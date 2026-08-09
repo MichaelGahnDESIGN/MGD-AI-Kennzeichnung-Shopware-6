@@ -41,17 +41,6 @@ final class DisplayConfigurationProvider
     /** Schlüssel der optional verkaufskanalspezifischen Sprache. */
     private const CONFIG_KEY_LANGUAGE = 'MGDAIImageLabels.config.language';
 
-    /** Eindeutiger lokaler Cache-Schlüssel für die globale Abfrage. */
-    private const GLOBAL_CACHE_KEY = 'global';
-
-    /**
-     * Hält ausschließlich während dieser Provider-Instanz bereits geprüfte
-     * Konfigurationen. Es gibt bewusst keinen statischen oder Prozesscache.
-     *
-     * @var array<string, DisplayConfiguration>
-     */
-    private array $configurationCache = [];
-
     /**
      * @param SystemConfigService $systemConfigService Shopwares Dienst für Systemkonfigurationen.
      * @param DisplayConfigurationNormalizer $normalizer Prüft alle gelesenen Werte.
@@ -72,13 +61,7 @@ final class DisplayConfigurationProvider
      */
     public function get(?string $salesChannelId = null): DisplayConfiguration
     {
-        $cacheKey = $this->cacheKey($salesChannelId);
-
-        if (isset($this->configurationCache[$cacheKey])) {
-            return $this->configurationCache[$cacheKey];
-        }
-
-        $configuration = $this->normalizer->normalize([
+        return $this->normalizer->normalize([
             'fontSize' => $this->systemConfigService->get(self::CONFIG_KEY_FONT_SIZE),
             'offset' => $this->systemConfigService->get(self::CONFIG_KEY_OFFSET),
             'paddingY' => $this->systemConfigService->get(self::CONFIG_KEY_PADDING_Y),
@@ -89,23 +72,5 @@ final class DisplayConfigurationProvider
             'theme' => $this->systemConfigService->get(self::CONFIG_KEY_THEME),
             'language' => $this->systemConfigService->get(self::CONFIG_KEY_LANGUAGE, $salesChannelId),
         ]);
-
-        $this->configurationCache[$cacheKey] = $configuration;
-
-        return $configuration;
-    }
-
-    /**
-     * Liefert einen kollisionsfreien, instanzlokalen Schlüssel für den Cache.
-     *
-     * @param ?string $salesChannelId Die optionale Shopware-ID des Verkaufskanals.
-     */
-    private function cacheKey(?string $salesChannelId): string
-    {
-        if ($salesChannelId === null) {
-            return self::GLOBAL_CACHE_KEY;
-        }
-
-        return 'sales-channel:' . $salesChannelId;
     }
 }

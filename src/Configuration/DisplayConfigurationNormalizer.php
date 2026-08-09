@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace MGDAIImageLabels\Configuration;
 
+use MGDAIImageLabels\Domain\LabelLanguage;
+use MGDAIImageLabels\Domain\LabelPosition;
+use MGDAIImageLabels\Domain\LabelTheme;
+
 /**
  * Überführt unzuverlässige gespeicherte Einstellungen in sichere Anzeigewerte.
  *
@@ -95,7 +99,7 @@ final class DisplayConfigurationNormalizer
     /** @param mixed $value Nicht vertrauenswürdige Positionsangabe. */
     private function normalizePosition(mixed $value): string
     {
-        if (!is_string($value) || !DisplayConfiguration::isAllowedPosition($value)) {
+        if (!is_string($value) || LabelPosition::tryFrom($value) === null) {
             return DisplayConfiguration::DEFAULT_POSITION;
         }
 
@@ -105,7 +109,7 @@ final class DisplayConfigurationNormalizer
     /** @param mixed $value Nicht vertrauenswürdige Theme-Angabe. */
     private function normalizeTheme(mixed $value): string
     {
-        if (!is_string($value) || !DisplayConfiguration::isAllowedTheme($value)) {
+        if (!is_string($value) || LabelTheme::tryFrom($value) === null) {
             return DisplayConfiguration::DEFAULT_THEME;
         }
 
@@ -115,7 +119,7 @@ final class DisplayConfigurationNormalizer
     /** @param mixed $value Nicht vertrauenswürdige Sprachangabe. */
     private function normalizeLanguage(mixed $value): string
     {
-        if (!is_string($value) || !DisplayConfiguration::isAllowedLanguage($value)) {
+        if (!is_string($value) || LabelLanguage::tryFrom($value) === null) {
             return DisplayConfiguration::DEFAULT_LANGUAGE;
         }
 

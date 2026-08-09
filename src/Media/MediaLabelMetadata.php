@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace MGDAIImageLabels\Media;
 
+use MGDAIImageLabels\Domain\LabelPosition;
+use MGDAIImageLabels\Domain\LabelStatus;
+use MGDAIImageLabels\Domain\LabelTheme;
+
 /**
  * Enthält die geprüften Metadaten für eine einzelne KI-Bildkennzeichnung.
  *
@@ -13,30 +17,6 @@ namespace MGDAIImageLabels\Media;
  */
 final readonly class MediaLabelMetadata
 {
-    /** @var list<string> Die ausschließlich erlaubten Kennzeichnungsstatus. */
-    private const ALLOWED_STATUSES = [
-        'none',
-        'generated',
-        'partially-generated',
-        'modified',
-        'deepfake',
-    ];
-
-    /** @var list<string> Die ausschließlich erlaubten Positionen. */
-    private const ALLOWED_POSITIONS = [
-        'top-left',
-        'top-right',
-        'bottom-left',
-        'bottom-right',
-    ];
-
-    /** @var list<string> Die ausschließlich erlaubten Themes. */
-    private const ALLOWED_THEMES = [
-        'auto',
-        'light',
-        'dark',
-    ];
-
     /**
      * @param string $status Der geprüfte Kennzeichnungsstatus.
      * @param ?string $position Die optionale, geprüfte Position des Labels.
@@ -65,7 +45,7 @@ final readonly class MediaLabelMetadata
      */
     public static function isAllowedStatus(string $status): bool
     {
-        return in_array($status, self::ALLOWED_STATUSES, true);
+        return LabelStatus::tryFrom($status) !== null;
     }
 
     /**
@@ -73,7 +53,7 @@ final readonly class MediaLabelMetadata
      */
     public static function isAllowedPosition(string $position): bool
     {
-        return in_array($position, self::ALLOWED_POSITIONS, true);
+        return LabelPosition::tryFrom($position) !== null;
     }
 
     /**
@@ -81,17 +61,17 @@ final readonly class MediaLabelMetadata
      */
     public static function isAllowedTheme(string $theme): bool
     {
-        return in_array($theme, self::ALLOWED_THEMES, true);
+        return LabelTheme::tryFrom($theme) !== null;
     }
 
     /**
      * Legt fest, ob für das Medium überhaupt eine Kennzeichnung erscheint.
      *
-     * Der Status „none“ ist der einzige explizite Zustand ohne sichtbares
-     * Label. Alle anderen Werte wurden zuvor durch die Positivliste geprüft.
+     * Der Enum-Fall „none“ ist der einzige explizite Zustand ohne sichtbares
+     * Label. Alle anderen Werte wurden zuvor durch die Domain geprüft.
      */
     public function isVisible(): bool
     {
-        return $this->status !== 'none';
+        return $this->status !== LabelStatus::None->value;
     }
 }

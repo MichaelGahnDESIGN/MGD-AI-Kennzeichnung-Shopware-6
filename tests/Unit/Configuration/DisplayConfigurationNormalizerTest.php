@@ -179,50 +179,29 @@ final class DisplayConfigurationNormalizerTest extends TestCase
      * Jede direkte Konstruktion muss die neun Invarianten selbst schützen.
      * So kann keine Umgehung des Normalizers unsichere Werte erzeugen.
      *
-     * @param int|string $invalidValue
+     * @param \Closure(): void $constructUnsafeConfiguration
      */
     #[DataProvider('invalidConstructorValueProvider')]
-    public function testConfigurationRejectsEveryUnsafeDirectConstruction(string $field, int|string $invalidValue): void
+    public function testConfigurationRejectsEveryUnsafeDirectConstruction(\Closure $constructUnsafeConfiguration): void
     {
-        $values = self::validConstructorValues();
-        $values[$field] = $invalidValue;
-
         $this->expectException(\InvalidArgumentException::class);
 
-        new DisplayConfiguration(...$values);
+        $constructUnsafeConfiguration();
     }
 
     /**
-     * @return iterable<string, array{string, int|string}>
+     * @return iterable<string, array{\Closure(): void}>
      */
     public static function invalidConstructorValueProvider(): iterable
     {
-        yield 'Schriftgröße' => ['fontSize', 25];
-        yield 'Abstand' => ['offset', 97];
-        yield 'vertikaler Innenabstand' => ['paddingY', 1];
-        yield 'horizontaler Innenabstand' => ['paddingX', 3];
-        yield 'Radius' => ['radius', 1000];
-        yield 'Unschärfe' => ['blur', 25];
-        yield 'Position' => ['position', 'center'];
-        yield 'Theme' => ['theme', 'contrast'];
-        yield 'Sprache' => ['language', 'fr'];
-    }
-
-    /**
-     * @return array{fontSize: int, offset: int, paddingY: int, paddingX: int, radius: int, blur: int, position: string, theme: string, language: string}
-     */
-    private static function validConstructorValues(): array
-    {
-        return [
-            'fontSize' => 6,
-            'offset' => 12,
-            'paddingY' => 5,
-            'paddingX' => 9,
-            'radius' => 999,
-            'blur' => 10,
-            'position' => 'bottom-right',
-            'theme' => 'auto',
-            'language' => 'auto',
-        ];
+        yield 'Schriftgröße' => [static function (): void { new DisplayConfiguration(25, 12, 5, 9, 999, 10, 'bottom-right', 'auto', 'auto'); }];
+        yield 'Abstand' => [static function (): void { new DisplayConfiguration(6, 97, 5, 9, 999, 10, 'bottom-right', 'auto', 'auto'); }];
+        yield 'vertikaler Innenabstand' => [static function (): void { new DisplayConfiguration(6, 12, 1, 9, 999, 10, 'bottom-right', 'auto', 'auto'); }];
+        yield 'horizontaler Innenabstand' => [static function (): void { new DisplayConfiguration(6, 12, 5, 3, 999, 10, 'bottom-right', 'auto', 'auto'); }];
+        yield 'Radius' => [static function (): void { new DisplayConfiguration(6, 12, 5, 9, 1000, 10, 'bottom-right', 'auto', 'auto'); }];
+        yield 'Unschärfe' => [static function (): void { new DisplayConfiguration(6, 12, 5, 9, 999, 25, 'bottom-right', 'auto', 'auto'); }];
+        yield 'Position' => [static function (): void { new DisplayConfiguration(6, 12, 5, 9, 999, 10, 'center', 'auto', 'auto'); }];
+        yield 'Theme' => [static function (): void { new DisplayConfiguration(6, 12, 5, 9, 999, 10, 'bottom-right', 'contrast', 'auto'); }];
+        yield 'Sprache' => [static function (): void { new DisplayConfiguration(6, 12, 5, 9, 999, 10, 'bottom-right', 'auto', 'fr'); }];
     }
 }

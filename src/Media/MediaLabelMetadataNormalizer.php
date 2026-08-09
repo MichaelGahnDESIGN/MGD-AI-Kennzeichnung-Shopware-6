@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace MGDAIImageLabels\Media;
 
+use MGDAIImageLabels\Domain\LabelPosition;
+use MGDAIImageLabels\Domain\LabelStatus;
+use MGDAIImageLabels\Domain\LabelTheme;
+
 /**
  * Überführt Media-Custom-Fields in sichere, streng geprüfte Label-Metadaten.
  *
@@ -39,7 +43,7 @@ final class MediaLabelMetadataNormalizer
      */
     private function normalizeStatus(mixed $value): string
     {
-        if (!is_string($value) || !MediaLabelMetadata::isAllowedStatus($value)) {
+        if (!is_string($value) || LabelStatus::tryFrom($value) === null) {
             return 'none';
         }
 
@@ -53,7 +57,7 @@ final class MediaLabelMetadataNormalizer
      */
     private function normalizePosition(mixed $value): ?string
     {
-        if (!is_string($value) || !MediaLabelMetadata::isAllowedPosition($value)) {
+        if (!is_string($value) || LabelPosition::tryFrom($value) === null) {
             return null;
         }
 
@@ -67,7 +71,7 @@ final class MediaLabelMetadataNormalizer
      */
     private function normalizeTheme(mixed $value): ?string
     {
-        if (!is_string($value) || !MediaLabelMetadata::isAllowedTheme($value)) {
+        if (!is_string($value) || LabelTheme::tryFrom($value) === null) {
             return null;
         }
 

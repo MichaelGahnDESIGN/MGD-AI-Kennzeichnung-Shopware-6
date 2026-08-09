@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace MGDAIImageLabels\Configuration;
 
-use MGDAIImageLabels\Media\MediaLabelMetadata;
+use MGDAIImageLabels\Domain\LabelLanguage;
+use MGDAIImageLabels\Domain\LabelPosition;
+use MGDAIImageLabels\Domain\LabelTheme;
 
 /**
  * Beschreibt die vollständig geprüften Anzeigeeinstellungen eines Labels.
  *
- * Diese Klasse ist die einzige fachliche Wahrheit für Standards, Zahlenräume
- * und Auswahllisten. Ihr validierender Konstruktor verhindert, dass auch eine
- * direkte Nutzung außerhalb des Normalizers unsichere Werte erzeugen kann.
+ * Diese Klasse ist die zentrale fachliche Wahrheit für Standards und
+ * Zahlenräume. Geschlossene Auswahllisten stammen ausschließlich aus den
+ * passenden Domain-Enume. Ihr Konstruktor schützt die Invarianten auch bei
+ * einer direkten Nutzung außerhalb des Normalizers.
  */
 final readonly class DisplayConfiguration
 {
@@ -176,21 +179,18 @@ final readonly class DisplayConfiguration
     /** Prüft die Position gegen die geschlossene Positivliste. */
     public static function isAllowedPosition(string $value): bool
     {
-        return MediaLabelMetadata::isAllowedPosition($value);
+        return LabelPosition::tryFrom($value) !== null;
     }
 
     /** Prüft das Theme gegen die geschlossene Positivliste. */
     public static function isAllowedTheme(string $value): bool
     {
-        return MediaLabelMetadata::isAllowedTheme($value);
+        return LabelTheme::tryFrom($value) !== null;
     }
 
     /** Prüft die Sprache gegen die geschlossene Positivliste. */
     public static function isAllowedLanguage(string $value): bool
     {
-        return match ($value) {
-            'auto', 'de', 'en' => true,
-            default => false,
-        };
+        return LabelLanguage::tryFrom($value) !== null;
     }
 }
