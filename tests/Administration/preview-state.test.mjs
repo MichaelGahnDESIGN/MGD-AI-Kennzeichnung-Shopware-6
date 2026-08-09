@@ -73,6 +73,8 @@ test('die Darstellung besteht ausschließlich aus fest zugeordneten Klassen und 
             positionClass: 'is--top-left',
             themeClass: 'is--dark',
             labelSnippet: 'mgd-ai-image-labels.preview.status.deepfake',
+            positionSnippet: 'mgd-ai-image-labels.preview.position.topLeft',
+            themeSnippet: 'mgd-ai-image-labels.preview.theme.dark',
         },
     );
 
@@ -86,6 +88,8 @@ test('die Darstellung besteht ausschließlich aus fest zugeordneten Klassen und 
             positionClass: 'is--bottom-right',
             themeClass: 'is--auto',
             labelSnippet: 'mgd-ai-image-labels.preview.status.none',
+            positionSnippet: 'mgd-ai-image-labels.preview.position.bottomRight',
+            themeSnippet: 'mgd-ai-image-labels.preview.theme.auto',
         },
     );
 });

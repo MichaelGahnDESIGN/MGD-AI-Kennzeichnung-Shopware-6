@@ -46,8 +46,11 @@
         aria-live="polite"
         aria-atomic="true"
     >
-        {{ $t('mgd-ai-image-labels.preview.currentStatus') }}:
-        {{ $t(previewPresentation.labelSnippet) }}
+        {{ $t('mgd-ai-image-labels.preview.announcement', {
+            status: $t(previewPresentation.labelSnippet),
+            position: $t(previewPresentation.positionSnippet),
+            theme: $t(previewPresentation.themeSnippet),
+        }) }}
     </p>
 </section>
 {% endblock %}

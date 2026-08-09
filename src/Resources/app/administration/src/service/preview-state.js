@@ -50,6 +50,21 @@ const STATUS_SNIPPETS = Object.freeze({
     deepfake: 'mgd-ai-image-labels.preview.status.deepfake',
 });
 
+/** Feste Übersetzungsschlüssel der erlaubten Positionen. */
+const POSITION_SNIPPETS = Object.freeze({
+    'top-left': 'mgd-ai-image-labels.preview.position.topLeft',
+    'top-right': 'mgd-ai-image-labels.preview.position.topRight',
+    'bottom-left': 'mgd-ai-image-labels.preview.position.bottomLeft',
+    'bottom-right': 'mgd-ai-image-labels.preview.position.bottomRight',
+});
+
+/** Feste Übersetzungsschlüssel der erlaubten Darstellungsvarianten. */
+const THEME_SNIPPETS = Object.freeze({
+    auto: 'mgd-ai-image-labels.preview.theme.auto',
+    light: 'mgd-ai-image-labels.preview.theme.light',
+    dark: 'mgd-ai-image-labels.preview.theme.dark',
+});
+
 /**
  * Normalisiert die nicht vertrauenswürdigen Werte der Medien-Custom-Fields.
  *
@@ -82,7 +97,13 @@ export function normalizePreviewState(input = {}) {
  * Darstellung weiterreichen.
  *
  * @param {unknown} input Ungeprüfte Werte aus dem aktuellen Medienobjekt.
- * @returns {{positionClass: string, themeClass: string, labelSnippet: string}}
+ * @returns {{
+ *     positionClass: string,
+ *     themeClass: string,
+ *     labelSnippet: string,
+ *     positionSnippet: string,
+ *     themeSnippet: string
+ * }}
  */
 export function getPreviewPresentation(input = {}) {
     const state = normalizePreviewState(input);
@@ -91,5 +112,7 @@ export function getPreviewPresentation(input = {}) {
         positionClass: POSITION_CLASSES[state.position],
         themeClass: THEME_CLASSES[state.theme],
         labelSnippet: STATUS_SNIPPETS[state.status],
+        positionSnippet: POSITION_SNIPPETS[state.position],
+        themeSnippet: THEME_SNIPPETS[state.theme],
     };
 }

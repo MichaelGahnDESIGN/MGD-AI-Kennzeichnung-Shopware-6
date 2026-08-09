@@ -5,13 +5,24 @@
             "helpText": "The preview updates locally only. Save changes with the existing Shopware custom-field save action.",
             "imageAlt": "Local preview of the selected image medium",
             "missingImage": "No local preview is available for this image yet.",
-            "currentStatus": "Current preview state",
+            "announcement": "Preview: status {status}, position {position}, appearance {theme}.",
             "status": {
                 "none": "NO VISIBLE LABEL",
                 "generated": "AI GENERATED",
                 "partiallyGenerated": "AI PARTIALLY GENERATED",
                 "modified": "AI MODIFIED",
                 "deepfake": "AI DEEPFAKE"
+            },
+            "position": {
+                "topLeft": "top left",
+                "topRight": "top right",
+                "bottomLeft": "bottom left",
+                "bottomRight": "bottom right"
+            },
+            "theme": {
+                "auto": "automatic",
+                "light": "light",
+                "dark": "dark"
             }
         }
     }

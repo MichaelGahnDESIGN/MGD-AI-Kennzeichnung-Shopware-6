@@ -5,13 +5,24 @@
             "helpText": "Die Vorschau wird nur lokal aktualisiert. Speichern Sie Änderungen mit der vorhandenen Shopware-Speicheraktion der Custom Fields.",
             "imageAlt": "Lokale Vorschau des ausgewählten Bildmediums",
             "missingImage": "Für dieses Bild ist noch keine lokale Vorschau verfügbar.",
-            "currentStatus": "Aktueller Vorschauzustand",
+            "announcement": "Vorschau: Status {status}, Position {position}, Darstellung {theme}.",
             "status": {
                 "none": "KEINE SICHTBARE KENNZEICHNUNG",
                 "generated": "KI-GENERIERT",
                 "partiallyGenerated": "TEILWEISE KI-GENERIERT",
                 "modified": "MIT KI BEARBEITET",
                 "deepfake": "KI-DEEPFAKE"
+            },
+            "position": {
+                "topLeft": "oben links",
+                "topRight": "oben rechts",
+                "bottomLeft": "unten links",
+                "bottomRight": "unten rechts"
+            },
+            "theme": {
+                "auto": "automatisch",
+                "light": "hell",
+                "dark": "dunkel"
             }
         }
     }
