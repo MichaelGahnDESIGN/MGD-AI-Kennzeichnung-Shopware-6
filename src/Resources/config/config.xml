@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/shopware/trunk/src/Core/System/SystemConfig/Schema/config.xsd">
+    <card>
+        <title>Language</title>
+        <title lang="de-DE">Sprache</title>
+
+        <input-field type="single-select">
+            <name>language</name>
+            <label>Label language</label>
+            <label lang="de-DE">Sprache der Kennzeichnung</label>
+            <helpText>Choose the language used for the AI image label.</helpText>
+            <helpText lang="de-DE">Wählen Sie die Sprache für die KI-Bildkennzeichnung.</helpText>
+            <defaultValue>auto</defaultValue>
+            <options>
+                <option><id>auto</id><name>Automatic</name><name lang="de-DE">Automatisch</name></option>
+                <option><id>de</id><name>German</name><name lang="de-DE">Deutsch</name></option>
+                <option><id>en</id><name>English</name><name lang="de-DE">Englisch</name></option>
+            </options>
+        </input-field>
+    </card>
+
+    <card>
+        <title>Display</title>
+        <title lang="de-DE">Darstellung</title>
+
+        <input-field type="single-select">
+            <name>position</name>
+            <label>Label position</label>
+            <label lang="de-DE">Position der Kennzeichnung</label>
+            <helpText>Choose one of the four corners of the image.</helpText>
+            <helpText lang="de-DE">Wählen Sie eine der vier Ecken des Bildes.</helpText>
+            <defaultValue>bottom-right</defaultValue>
+            <options>
+                <option><id>top-left</id><name>Top left</name><name lang="de-DE">Oben links</name></option>
+                <option><id>top-right</id><name>Top right</name><name lang="de-DE">Oben rechts</name></option>
+                <option><id>bottom-left</id><name>Bottom left</name><name lang="de-DE">Unten links</name></option>
+                <option><id>bottom-right</id><name>Bottom right</name><name lang="de-DE">Unten rechts</name></option>
+            </options>
+        </input-field>
+
+        <input-field type="single-select">
+            <name>theme</name>
+            <label>Label theme</label>
+            <label lang="de-DE">Theme der Kennzeichnung</label>
+            <helpText>Choose whether the label follows the system, stays light, or stays dark.</helpText>
+            <helpText lang="de-DE">Wählen Sie Systemdarstellung, helles oder dunkles Theme.</helpText>
+            <defaultValue>auto</defaultValue>
+            <options>
+                <option><id>auto</id><name>Automatic</name><name lang="de-DE">Automatisch</name></option>
+                <option><id>light</id><name>Light</name><name lang="de-DE">Hell</name></option>
+                <option><id>dark</id><name>Dark</name><name lang="de-DE">Dunkel</name></option>
+            </options>
+        </input-field>
+
+        <input-field type="int">
+            <name>fontSize</name><defaultValue>6</defaultValue><min>6</min><max>24</max>
+            <label>Font size</label><label lang="de-DE">Schriftgröße</label>
+            <helpText>Font size of the label in pixels.</helpText><helpText lang="de-DE">Schriftgröße der Kennzeichnung in Pixeln.</helpText>
+        </input-field>
+        <input-field type="int">
+            <name>offset</name><defaultValue>12</defaultValue><min>0</min><max>96</max>
+            <label>Image edge distance</label><label lang="de-DE">Abstand zum Bildrand</label>
+            <helpText>Distance between the label and the image edge in pixels.</helpText><helpText lang="de-DE">Abstand zwischen Kennzeichnung und Bildrand in Pixeln.</helpText>
+        </input-field>
+        <input-field type="int">
+            <name>paddingY</name><defaultValue>5</defaultValue><min>2</min><max>24</max>
+            <label>Vertical padding</label><label lang="de-DE">Vertikaler Innenabstand</label>
+            <helpText>Vertical inner spacing of the label in pixels.</helpText><helpText lang="de-DE">Vertikaler Innenabstand der Kennzeichnung in Pixeln.</helpText>
+        </input-field>
+        <input-field type="int">
+            <name>paddingX</name><defaultValue>9</defaultValue><min>4</min><max>40</max>
+            <label>Horizontal padding</label><label lang="de-DE">Horizontaler Innenabstand</label>
+            <helpText>Horizontal inner spacing of the label in pixels.</helpText><helpText lang="de-DE">Horizontaler Innenabstand der Kennzeichnung in Pixeln.</helpText>
+        </input-field>
+        <input-field type="int">
+            <name>radius</name><defaultValue>999</defaultValue><min>0</min><max>999</max>
+            <label>Corner radius</label><label lang="de-DE">Eckenradius</label>
+            <helpText>Corner radius of the label background in pixels.</helpText><helpText lang="de-DE">Eckenradius des Kennzeichnungshintergrunds in Pixeln.</helpText>
+        </input-field>
+        <input-field type="int">
+            <name>blur</name><defaultValue>10</defaultValue><min>0</min><max>24</max>
+            <label>Background blur</label><label lang="de-DE">Hintergrundunschärfe</label>
+            <helpText>Background blur of the label in pixels.</helpText><helpText lang="de-DE">Hintergrundunschärfe der Kennzeichnung in Pixeln.</helpText>
+        </input-field>
+    </card>
+</config>
