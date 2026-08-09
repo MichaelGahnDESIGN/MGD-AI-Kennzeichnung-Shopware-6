@@ -3,6 +3,8 @@
     position: relative;
     max-width: 100%;
     min-width: 0;
+    overflow: hidden;
+    overflow: clip;
     line-height: 0;
 }
 
@@ -18,17 +20,30 @@
     vertical-align: top;
 }
 
+// Die absolute Messschicht beeinflusst weder Fill- noch Intrinsic-Abmessungen.
+.mgd-ai-labeled-media__overlay {
+    position: absolute;
+    inset: 0;
+    min-width: 0;
+    pointer-events: none;
+    container-name: mgd-ai-media;
+    container-type: inline-size;
+}
+
 // Das Label blockiert weder Links noch Gesten auf dem gekennzeichneten Medium.
 .mgd-ai-image-label {
-    --mgd-ai-safe-offset: clamp(0px, var(--mgd-ai-offset), max(0px, calc(50% - 1px)));
+    // Mindestens 8rem bleiben für ein lesbares, einzeiliges Label verfügbar.
+    --mgd-ai-safe-offset: clamp(0px, var(--mgd-ai-offset), max(0px, calc((100% - 8rem) / 2)));
 
     position: absolute;
     z-index: 2;
     display: inline-flex;
     box-sizing: border-box;
     max-width: calc(100% - (2 * var(--mgd-ai-safe-offset)));
+    max-height: calc(100% - (2 * var(--mgd-ai-safe-offset)));
     min-width: 0;
     padding: var(--mgd-ai-padding-y) var(--mgd-ai-padding-x);
+    overflow: hidden;
     overflow-wrap: anywhere;
     color: #fff;
     font-size: var(--mgd-ai-font-size);
@@ -46,7 +61,16 @@
 
 .mgd-ai-image-label__text {
     min-width: 0;
-    overflow-wrap: anywhere;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+// Unter 8rem wäre eine sichtbare Kennzeichnung weder stabil noch lesbar.
+@container mgd-ai-media (max-width: 7.999rem) {
+    .mgd-ai-image-label {
+        display: none;
+    }
 }
 
 .mgd-ai-image-label--top-left {

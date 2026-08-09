@@ -3,6 +3,7 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "test:administration": "node --test tests/Administration/*.test.mjs"
+        "test:administration": "node --test tests/Administration/*.test.mjs",
+        "test:storefront": "node --test tests/Storefront/*.test.mjs"
     }
 }

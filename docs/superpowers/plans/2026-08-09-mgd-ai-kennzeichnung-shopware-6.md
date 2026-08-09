@@ -595,7 +595,7 @@ Expected: FAIL wegen fehlendem Override.
 
 - [ ] **Step 3: Zentralen Thumbnail-Pfad erweitern**
 
-Der Block `thumbnail_utility` ruft zunächst den Resolver auf. Bei unsichtbarem Label wird unverändert `{{ parent() }}` ausgegeben. Bei sichtbarem Label umschließt `labeled-media.html.twig` ausschließlich den bestehenden Parent-Inhalt; für Shopware-Galerie-Navigationen setzt der Aufrufer beziehungsweise eine feste Klassenprüfung `label.visible` auf false. Der Aufrufer verwendet den sicheren `fill`-Standard. Nur wenn Shopwares ursprüngliches Medium nachweislich von intrinsischer Inline-Breite abhängt, übergibt er die boolesche Option `intrinsicLayout: true`; freie Layoutklassen sind unzulässig. Der Wrapper verändert keine `src`, `srcset`, `sizes`, `alt`, `title`, Lazy-Loading- oder Zoom-Attribute.
+Der Block `thumbnail_utility` ruft zunächst den Resolver auf. Bei unsichtbarem Label wird unverändert `{{ parent() }}` ausgegeben. Bei sichtbarem Label umschließt `labeled-media.html.twig` ausschließlich den bestehenden Parent-Inhalt; für Shopware-Galerie-Navigationen setzt der Aufrufer beziehungsweise eine feste Klassenprüfung `label.visible` auf false. Der Aufrufer verwendet den sicheren `fill`-Standard. Nur wenn Shopwares ursprüngliches Medium nachweislich von intrinsischer Inline-Breite abhängt, übergibt er die boolesche Option `intrinsicLayout: true`; freie Layoutklassen sind unzulässig. Unter der dokumentierten Mindestbreite von `8rem` bleibt das visuelle Badge aus Lesbarkeits- und Layoutgründen verborgen. Der Wrapper verändert keine `src`, `srcset`, `sizes`, `alt`, `title`, Lazy-Loading- oder Zoom-Attribute.
 
 - [ ] **Step 4: Template- und Browser-Smoke-Test ausführen**
 
