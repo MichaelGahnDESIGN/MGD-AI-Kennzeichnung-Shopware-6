@@ -1,0 +1,8 @@
+{#
+ # Gemeinsamer Rahmen für genau einen Medieninhalt und dessen Kennzeichnung.
+ # Aufrufer überschreiben ausschließlich den Block „mediaContent“.
+ #}
+<div class="mgd-ai-labeled-media">
+    {% block mediaContent %}{% endblock %}
+    {% sw_include '@MGDAIImageLabels/storefront/component/mgd-ai-image-label/badge.html.twig' with { label: label } only %}
+</div>

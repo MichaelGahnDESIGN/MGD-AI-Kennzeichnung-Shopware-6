@@ -1,0 +1,86 @@
+// Der Medienrahmen bildet den einzigen Bezugspunkt für die absolute Position.
+.mgd-ai-labeled-media {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+    line-height: 0;
+}
+
+// Das Label blockiert weder Links noch Gesten auf dem gekennzeichneten Medium.
+.mgd-ai-image-label {
+    position: absolute;
+    z-index: 2;
+    display: inline-flex;
+    max-width: calc(100% - (2 * var(--mgd-ai-offset)));
+    padding: var(--mgd-ai-padding-y) var(--mgd-ai-padding-x);
+    overflow-wrap: anywhere;
+    color: #fff;
+    font-size: var(--mgd-ai-font-size);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.035em;
+    background: rgba(17, 17, 17, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    border-radius: var(--mgd-ai-radius);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+    pointer-events: none;
+    backdrop-filter: blur(var(--mgd-ai-blur));
+    transition: opacity 120ms ease-out;
+}
+
+.mgd-ai-image-label--top-left {
+    top: var(--mgd-ai-offset);
+    left: var(--mgd-ai-offset);
+}
+
+.mgd-ai-image-label--top-right {
+    top: var(--mgd-ai-offset);
+    right: var(--mgd-ai-offset);
+}
+
+.mgd-ai-image-label--bottom-left {
+    bottom: var(--mgd-ai-offset);
+    left: var(--mgd-ai-offset);
+}
+
+.mgd-ai-image-label--bottom-right {
+    right: var(--mgd-ai-offset);
+    bottom: var(--mgd-ai-offset);
+}
+
+.mgd-ai-image-label--theme-light {
+    color: #111;
+    background: rgba(255, 255, 255, 0.94);
+    border-color: rgba(17, 17, 17, 0.72);
+}
+
+.mgd-ai-image-label--theme-dark,
+.mgd-ai-image-label--theme-auto {
+    color: #fff;
+    background: rgba(17, 17, 17, 0.9);
+}
+
+// „Automatisch“ folgt dem Farbschema, behält aber stets hohen Kontrast bei.
+@media (prefers-color-scheme: light) {
+    .mgd-ai-image-label--theme-auto {
+        color: #111;
+        background: rgba(255, 255, 255, 0.94);
+        border-color: rgba(17, 17, 17, 0.72);
+    }
+}
+
+// Auf kleinen Bildern bleiben Text und Innenabstände lesbar, aber zurückhaltend.
+@media (max-width: 575.98px) {
+    .mgd-ai-image-label {
+        max-width: calc(100% - (2 * min(var(--mgd-ai-offset), 8px)));
+        padding: min(var(--mgd-ai-padding-y), 6px) min(var(--mgd-ai-padding-x), 10px);
+        font-size: min(var(--mgd-ai-font-size), 13px);
+    }
+}
+
+// Nutzerwünsche zur Bewegungsreduktion werden auch bei kleinen Effekten beachtet.
+@media (prefers-reduced-motion: reduce) {
+    .mgd-ai-image-label {
+        transition: none;
+    }
+}

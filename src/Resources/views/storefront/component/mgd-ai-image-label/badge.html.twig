@@ -1,0 +1,33 @@
+{#
+ # Barrierefreies KI-Bildlabel aus einem vollständig geprüften LabelView.
+ # Die Zuordnungen enthalten ausschließlich feste Klassen; freie Medien- oder
+ # Konfigurationswerte werden in diesem Template bewusst nicht ausgewertet.
+ #}
+{% if label.visible %}
+    {% set statusClass = {
+        'generated': 'mgd-ai-image-label--status-generated',
+        'partially-generated': 'mgd-ai-image-label--status-partially-generated',
+        'modified': 'mgd-ai-image-label--status-modified',
+        'deepfake': 'mgd-ai-image-label--status-deepfake'
+    }[label.status] ?? '' %}
+    {% set positionClass = {
+        'top-left': 'mgd-ai-image-label--top-left',
+        'top-right': 'mgd-ai-image-label--top-right',
+        'bottom-left': 'mgd-ai-image-label--bottom-left',
+        'bottom-right': 'mgd-ai-image-label--bottom-right'
+    }[label.position] ?? '' %}
+    {% set themeClass = {
+        'auto': 'mgd-ai-image-label--theme-auto',
+        'light': 'mgd-ai-image-label--theme-light',
+        'dark': 'mgd-ai-image-label--theme-dark'
+    }[label.theme] ?? '' %}
+
+    <span class="mgd-ai-image-label {{ statusClass }} {{ positionClass }} {{ themeClass }}"
+          role="note"
+          style="--mgd-ai-font-size: {{ label.fontSize }}px; --mgd-ai-offset: {{ label.offset }}px; --mgd-ai-padding-y: {{ label.paddingY }}px; --mgd-ai-padding-x: {{ label.paddingX }}px; --mgd-ai-radius: {{ label.radius }}px; --mgd-ai-blur: {{ label.blur }}px;">
+        <span class="mgd-ai-image-label__text">{{ label.textSnippet|trans({}, null, label.locale)|sw_sanitize }}</span>
+        {% if label.status == 'deepfake' and label.screenReaderSnippet %}
+            <span class="visually-hidden">{{ label.screenReaderSnippet|trans({}, null, label.locale)|sw_sanitize }}</span>
+        {% endif %}
+    </span>
+{% endif %}
