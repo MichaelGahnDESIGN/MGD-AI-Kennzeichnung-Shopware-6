@@ -24,11 +24,16 @@
             <argument type="service" id="MGDAIImageLabels\Configuration\DisplayConfigurationProvider"/>
             <argument type="service" id="MGDAIImageLabels\Storefront\Label\LabelLanguageResolver"/>
         </service>
+        <service id="MGDAIImageLabels\Storefront\Thumbnail\ThumbnailPresentationResolver"/>
 
         <!-- Das Tag ist in Shopware 6.6 und 6.7 der stabile Twig-Erweiterungsvertrag. -->
         <service id="MGDAIImageLabels\Storefront\Twig\LabelTwigExtension">
             <argument type="service" id="MGDAIImageLabels\Storefront\Label\LabelViewResolver"/>
             <argument type="service" id="Symfony\Component\HttpFoundation\RequestStack"/>
+            <tag name="twig.extension"/>
+        </service>
+        <service id="MGDAIImageLabels\Storefront\Twig\ThumbnailPresentationTwigExtension">
+            <argument type="service" id="MGDAIImageLabels\Storefront\Thumbnail\ThumbnailPresentationResolver"/>
             <tag name="twig.extension"/>
         </service>
     </services>

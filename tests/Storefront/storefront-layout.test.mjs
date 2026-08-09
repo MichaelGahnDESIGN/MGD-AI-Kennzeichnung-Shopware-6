@@ -60,6 +60,17 @@ function fixture(id, layout, width, height, values, text, options = {}) {
     return `${wrapper}${medium}${badge}</div>`;
 }
 
+/**
+ * Stellt dasselbe Shopware-Medium einmal unverändert und einmal im Labelrahmen
+ * dar. So werden Abmessungen und sichtbestimmende CSS-Eigenschaften verglichen.
+ */
+function presentationPair(id, layout, mediaClass) {
+    const original = `<div class="geometry-slot"><div id="${id}-original" class="${mediaClass}"></div></div>`;
+    const wrapped = `<div class="geometry-slot"><div id="${id}-wrapper" class="mgd-ai-labeled-media mgd-ai-labeled-media--${layout}"><div id="${id}-wrapped" class="${mediaClass}"></div><div class="mgd-ai-labeled-media__overlay"></div></div></div>`;
+
+    return `<div class="geometry-pair geometry-${id}">${original}${wrapped}</div>`;
+}
+
 function testDocument(css) {
     const standard = { fontSize: 6, offset: 12, paddingY: 5, paddingX: 9, radius: 999, blur: 10 };
     const maximum = { fontSize: 24, offset: 96, paddingY: 24, paddingX: 40, radius: 999, blur: 24 };
@@ -70,6 +81,37 @@ function testDocument(css) {
 body { margin: 0; font-size: 16px; }
 .fixture-slot { display: block; }
 .fixture-medium { display: block; background: #777; }
+.geometry-pair { display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; }
+.geometry-slot { flex: 0 0 auto; position: relative; }
+.geometry-pair [id$="-original"], .geometry-pair [id$="-wrapped"] { display: block; background: rgb(40, 120, 180); }
+.geometry-cms-standard .geometry-slot { width: 300px; }
+.geometry-cms-standard .cms-image { width: 160px; height: 90px; max-width: 100%; }
+.geometry-cms-cover .geometry-slot { width: 300px; height: 180px; }
+.geometry-cms-cover .cms-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.geometry-cms-stretch .geometry-slot { width: 300px; }
+.geometry-cms-stretch .cms-image { width: 100%; height: 169px; }
+.geometry-listing .geometry-slot { width: 200px; height: 200px; }
+.geometry-listing .product-image { width: 100%; height: 100%; object-fit: contain; transition: transform 120ms ease; }
+.geometry-gallery-cover .geometry-slot { width: 300px; height: 180px; }
+.geometry-gallery-cover .gallery-slider-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(0.98); }
+.geometry-gallery-standard .geometry-slot { width: 300px; }
+.geometry-gallery-standard .gallery-slider-image { width: 180px; height: 120px; max-width: 100%; }
+.geometry-cart .geometry-slot { width: 70px; }
+.geometry-cart .line-item-img { width: 100%; height: 70px; padding: 8px; border: 1px solid rgb(80, 80, 80); border-radius: 4px; object-fit: contain; }
+.geometry-logo .geometry-slot { width: 240px; }
+.geometry-logo .footer-logo-image { width: 100px; height: 35px; max-width: 100px; max-height: 35px; }
+.geometry-search .geometry-slot { width: 35px; height: 35px; }
+.geometry-search .search-suggest-product-image { width: 35px; height: 35px; max-width: 35px; max-height: 35px; }
+.geometry-payment .geometry-slot { width: 160px; }
+.geometry-payment .payment-method-image { width: 80px; height: 24px; max-height: 24px; }
+.geometry-configurator .geometry-slot { width: 52px; height: 52px; }
+.geometry-configurator .product-detail-configurator-option-image { width: 40px; height: 100%; }
+.geometry-image-slider .geometry-slot { width: 240px; }
+.geometry-image-slider .image-slider-image { width: 100%; height: 135px; }
+.geometry-navigation .geometry-slot { width: 310px; height: 250px; }
+.geometry-navigation .navigation-flyout-teaser-image { width: 100%; height: 100%; object-fit: cover; }
+.geometry-video .geometry-slot, .geometry-background .geometry-slot { width: 320px; height: 180px; }
+.geometry-video .video-placeholder-image, .geometry-background .cms-block-background { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
 ${css}
 </style></head><body>
@@ -80,6 +122,21 @@ ${fixture('minimum-fill-standard', 'fill', 128, 128, standard, 'PARTIALLY AI-GEN
 ${fixture('minimum-intrinsic-maximum', 'intrinsic', 128, 128, maximum, 'PARTIALLY AI-GENERATED')}
 ${fixture('large-fill-maximum', 'fill', 240, 160, maximum, 'PARTIALLY AI-GENERATED')}
 ${fixture('overflow-intrinsic', 'intrinsic', 128, 128, standard, 'AI GENERATED', { transform: 'translateX(24px)' })}
+${presentationPair('cms-standard', 'intrinsic', 'cms-image')}
+${presentationPair('cms-cover', 'fill', 'cms-image')}
+${presentationPair('cms-stretch', 'fill', 'cms-image')}
+${presentationPair('listing', 'fill', 'product-image')}
+${presentationPair('gallery-cover', 'fill', 'gallery-slider-image')}
+${presentationPair('gallery-standard', 'intrinsic', 'gallery-slider-image')}
+${presentationPair('cart', 'fill', 'line-item-img')}
+${presentationPair('logo', 'intrinsic', 'footer-logo-image')}
+${presentationPair('search', 'intrinsic', 'search-suggest-product-image')}
+${presentationPair('payment', 'intrinsic', 'payment-method-image')}
+${presentationPair('configurator', 'fill', 'product-detail-configurator-option-image')}
+${presentationPair('image-slider', 'fill', 'image-slider-image')}
+${presentationPair('navigation', 'fill', 'navigation-flyout-teaser-image')}
+${presentationPair('video', 'fill', 'video-placeholder-image')}
+${presentationPair('background', 'fill', 'cms-block-background')}
 <script>
 (() => {
     const ids = ['small-fill', 'small-intrinsic', 'flat-fill', 'minimum-fill-standard', 'minimum-intrinsic-maximum', 'large-fill-maximum', 'overflow-intrinsic'];
@@ -108,6 +165,29 @@ ${fixture('overflow-intrinsic', 'intrinsic', 128, 128, standard, 'AI GENERATED',
             textOverflow: textStyle.textOverflow,
             text: badge.textContent,
         }];
+    }));
+    const presentationIds = ['cms-standard', 'cms-cover', 'cms-stretch', 'listing', 'gallery-cover', 'gallery-standard', 'cart', 'logo', 'search', 'payment', 'configurator', 'image-slider', 'navigation', 'video', 'background'];
+    result.presentationPairs = Object.fromEntries(presentationIds.map((id) => {
+        const original = document.getElementById(id + '-original');
+        const wrapped = document.getElementById(id + '-wrapped');
+        const wrapper = document.getElementById(id + '-wrapper');
+        const rectangle = (element) => {
+            const value = element.getBoundingClientRect();
+            return { width: value.width, height: value.height };
+        };
+        const paint = (element) => {
+            const style = getComputedStyle(element);
+            return {
+                objectFit: style.objectFit,
+                transform: style.transform,
+                padding: style.padding,
+                borderWidth: style.borderWidth,
+                borderRadius: style.borderRadius,
+                backgroundColor: style.backgroundColor,
+            };
+        };
+
+        return [id, { original: rectangle(original), wrapped: rectangle(wrapped), wrapper: rectangle(wrapper), originalPaint: paint(original), wrappedPaint: paint(wrapped) }];
     }));
     document.body.dataset.result = encodeURIComponent(JSON.stringify(result));
 })();
@@ -295,6 +375,32 @@ test('Badges bleiben in echten kleinen und großen Mediengeometrien sicher', asy
         assert.equal(notes.length, 7, 'Jedes Label muss als eigener note-Knoten im AX-Baum erhalten bleiben.');
         assert.ok(noteTexts.some((name) => name.includes('DEEPFAKE') && name.includes('Notice: This image is labeled as a deepfake.')), `Der kleine Deepfake-Hinweis muss im AX-Baum vollständig erhalten bleiben: ${JSON.stringify(noteTexts)}`);
         assert.ok(noteTexts.some((name) => name.includes('AI-MODIFIED')), 'Das flache Label muss als note im AX-Baum erhalten bleiben.');
+
+        for (const [id, pair] of Object.entries(result.presentationPairs)) {
+            assertSize(pair.wrapped, pair.original.width, pair.original.height, `${id}: Medium`);
+            assert.deepEqual(pair.wrappedPaint, pair.originalPaint, `${id}: sichtbestimmende CSS-Eigenschaften`);
+        }
+
+        const fillSlotSizes = {
+            'cms-cover': [300, 180],
+            'cms-stretch': [300, 169],
+            listing: [200, 200],
+            'gallery-cover': [300, 180],
+            cart: [70, 70],
+            configurator: [52, 52],
+            'image-slider': [240, 135],
+            navigation: [310, 250],
+            video: [320, 180],
+            background: [320, 180],
+        };
+        for (const [id, [width, height]] of Object.entries(fillSlotSizes)) {
+            assertSize(result.presentationPairs[id].wrapper, width, height, `${id}: Fill-Rahmen`);
+        }
+
+        for (const id of ['cms-standard', 'gallery-standard', 'logo', 'search', 'payment']) {
+            const pair = result.presentationPairs[id];
+            assertSize(pair.wrapper, pair.original.width, pair.original.height, `${id}: Intrinsic-Rahmen`);
+        }
     } finally {
         await rm(temporaryDirectory, { recursive: true, force: true });
     }

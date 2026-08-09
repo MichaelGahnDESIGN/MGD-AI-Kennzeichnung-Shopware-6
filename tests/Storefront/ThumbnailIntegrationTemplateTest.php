@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace MGDAIImageLabels\Tests\Storefront;
 
 use Composer\InstalledVersions;
-use PHPUnit\Framework\Attributes\DataProvider;
+use MGDAIImageLabels\Storefront\Thumbnail\ThumbnailPresentationResolver;
 use PHPUnit\Framework\TestCase;
 use Shopware\Core\Framework\Adapter\Twig\TemplateFinderInterface;
 use Shopware\Core\Framework\Adapter\Twig\TemplateScopeDetector;
@@ -24,34 +24,16 @@ final class ThumbnailIntegrationTemplateTest extends TestCase
 {
     private const TEMPLATE_PATH = __DIR__ . '/../../src/Resources/views/storefront/utilities/thumbnail.html.twig';
 
-    /**
-     * Shopware 6.6.10.x und 6.7.x besitzen denselben äußeren Blockvertrag.
-     * Die intern unterschiedliche srcset-Berechnung bleibt vollständig in
-     * Shopwares Eltern-Template und darf von diesem Plugin nicht kopiert werden.
-     */
-    #[DataProvider('shopwareThumbnailContracts')]
-    public function testTargetsOnlyTheStableOuterBlockForSupportedShopwareLines(
-        string $shopwareLine,
-        string $outerBlock,
-        string $innerBlock,
-    ): void {
+    public function testOverrideTargetsOnlyTheResearchedStableOuterBlock(): void
+    {
         $template = $this->readTemplate();
 
-        self::assertNotSame('', $shopwareLine);
-        self::assertSame(1, preg_match_all('/{%-?\s*block\s+' . $outerBlock . '\s*-?%}/', $template));
-        self::assertStringNotContainsString('{% block ' . $innerBlock . ' %}', $template);
+        self::assertSame(1, preg_match_all('/{%-?\s*block\s+thumbnail_utility\s*-?%}/', $template));
+        self::assertStringNotContainsString('{% block thumbnail_utility_img %}', $template);
         self::assertStringNotContainsString('srcsetValue', $template);
         self::assertStringNotContainsString('srcsetValues', $template);
         self::assertStringNotContainsString('sizesValue', $template);
         self::assertStringNotContainsString('sizesValues', $template);
-    }
-
-    /** @return iterable<string, array{string, string, string}> */
-    public static function shopwareThumbnailContracts(): iterable
-    {
-        // Geprüft gegen die offiziellen Quellen v6.6.10.22 und v6.7.13.0.
-        yield 'Shopware 6.6.10.x' => ['6.6.10.x', 'thumbnail_utility', 'thumbnail_utility_img'];
-        yield 'Shopware 6.7.x' => ['6.7.x', 'thumbnail_utility', 'thumbnail_utility_img'];
     }
 
     public function testInstalledShopwareSourcesExposeTheVerifiedThumbnailAndGalleryContracts(): void
@@ -86,37 +68,48 @@ final class ThumbnailIntegrationTemplateTest extends TestCase
             $template,
         );
         self::assertSame(1, substr_count($template, 'mgd_ai_image_label(media)'));
+        self::assertSame(1, substr_count($template, 'mgd_ai_thumbnail_presentation('));
         self::assertSame(1, substr_count($template, 'parent()'));
         self::assertSame(1, substr_count($template, 'labeled-media.html.twig'));
+        self::assertStringContainsString('presentation.labelAllowed', $template);
+        self::assertStringContainsString('presentation.intrinsicLayout', $template);
+        self::assertStringNotContainsString('|split', $template);
+        self::assertStringNotContainsString('gallery-slider-thumbnails-image', $template);
     }
 
     public function testHiddenLabelReturnsTheUnchangedParentOutput(): void
     {
         $parentOutput = $this->renderParent();
-        $resolverCalls = 0;
+        $labelResolverCalls = 0;
+        $presentationResolverCalls = 0;
 
         $output = $this->renderOverride(
             ['visible' => false],
             'product-image is-contain',
-            $resolverCalls,
+            $labelResolverCalls,
+            $presentationResolverCalls,
         );
 
         self::assertSame($parentOutput, $output);
-        self::assertSame(1, $resolverCalls);
+        self::assertSame(1, $labelResolverCalls);
+        self::assertSame(1, $presentationResolverCalls);
     }
 
     public function testVisibleLabelWrapsTheUnchangedParentContentExactlyOnce(): void
     {
-        $resolverCalls = 0;
+        $labelResolverCalls = 0;
+        $presentationResolverCalls = 0;
 
         $output = $this->renderOverride(
             ['visible' => true],
             'product-image is-contain',
-            $resolverCalls,
+            $labelResolverCalls,
+            $presentationResolverCalls,
             ['intrinsicLayout' => true],
         );
 
-        self::assertSame(1, $resolverCalls);
+        self::assertSame(1, $labelResolverCalls);
+        self::assertSame(1, $presentationResolverCalls);
         self::assertSame(1, substr_count($output, '<img '));
         self::assertSame(1, substr_count($output, 'class="product-image is-contain"'));
         self::assertSame(1, substr_count($output, 'src="/media/product.webp"'));
@@ -134,37 +127,54 @@ final class ThumbnailIntegrationTemplateTest extends TestCase
 
     public function testExcludesOnlyTheExactGalleryNavigationThumbnailClass(): void
     {
-        $resolverCalls = 0;
+        $labelResolverCalls = 0;
+        $presentationResolverCalls = 0;
         $excluded = $this->renderOverride(
             ['visible' => true],
             'gallery-slider-thumbnails-image js-load-img',
-            $resolverCalls,
+            $labelResolverCalls,
+            $presentationResolverCalls,
+            ['name' => 'gallery-slider-thumbnails-image-thumbnails'],
         );
 
         self::assertSame($this->renderParent('gallery-slider-thumbnails-image js-load-img'), $excluded);
         self::assertStringNotContainsString('mgd-ai-labeled-media', $excluded);
 
         foreach ([
-            'gallery-slider-image js-image-zoom-element js-load-img',
-            'product-image is-contain',
-            'cms-image',
-            'img-fluid line-item-img',
-            'not-gallery-slider-thumbnails-image',
-        ] as $includedClass) {
-            $output = $this->renderOverride(['visible' => true], $includedClass, $resolverCalls);
-            self::assertStringContainsString('mgd-ai-labeled-media', $output, $includedClass);
+            ['gallery-slider-image js-image-zoom-element js-load-img', 'gallery-slider-image-thumbnails', 'cover', 'fill'],
+            ['product-image is-contain', 'product-image-thumbnails', null, 'fill'],
+            ['cms-image', 'cms-image-thumbnails', 'standard', 'intrinsic'],
+            ['img-fluid line-item-img', 'line-item-img-thumbnails', null, 'fill'],
+            ['not-gallery-slider-thumbnails-image', 'theme-thumbnail', null, 'intrinsic'],
+        ] as [$includedClass, $name, $displayMode, $layout]) {
+            $output = $this->renderOverride(
+                ['visible' => true],
+                $includedClass,
+                $labelResolverCalls,
+                $presentationResolverCalls,
+                ['name' => $name, 'displayMode' => $displayMode],
+            );
+            self::assertStringContainsString('mgd-ai-labeled-media--' . $layout, $output, $includedClass);
         }
 
-        self::assertSame(6, $resolverCalls);
+        self::assertSame(6, $labelResolverCalls);
+        self::assertSame(6, $presentationResolverCalls);
     }
 
     public function testMissingOptionalAttributesDoNotExcludeCmsImages(): void
     {
-        $resolverCalls = 0;
-        $output = $this->renderOverride(['visible' => true], null, $resolverCalls);
+        $labelResolverCalls = 0;
+        $presentationResolverCalls = 0;
+        $output = $this->renderOverride(
+            ['visible' => true],
+            null,
+            $labelResolverCalls,
+            $presentationResolverCalls,
+        );
 
-        self::assertStringContainsString('mgd-ai-labeled-media--fill', $output);
-        self::assertSame(1, $resolverCalls);
+        self::assertStringContainsString('mgd-ai-labeled-media--intrinsic', $output);
+        self::assertSame(1, $labelResolverCalls);
+        self::assertSame(1, $presentationResolverCalls);
     }
 
     public function testFillLayoutPreservesShopwaresFullWidthAndFullHeightImageContract(): void
@@ -197,7 +207,8 @@ final class ThumbnailIntegrationTemplateTest extends TestCase
     private function renderOverride(
         array $label,
         ?string $mediaClass,
-        int &$resolverCalls,
+        int &$labelResolverCalls,
+        int &$presentationResolverCalls,
         array $additionalContext = [],
     ): string {
         $labeledMedia = <<<'TWIG'
@@ -216,14 +227,24 @@ TWIG;
         $twig->addTokenParser(new EmbedTokenParser($finder));
         $twig->addFunction(new TwigFunction(
             'mgd_ai_image_label',
-            static function () use ($label, &$resolverCalls): array {
-                ++$resolverCalls;
+            static function () use ($label, &$labelResolverCalls): array {
+                ++$labelResolverCalls;
 
                 return $label;
             },
         ));
+        $presentationResolver = new ThumbnailPresentationResolver();
+        $twig->addFunction(new TwigFunction(
+            'mgd_ai_thumbnail_presentation',
+            static function (mixed $name, mixed $attributes, mixed $context) use ($presentationResolver, &$presentationResolverCalls): object {
+                ++$presentationResolverCalls;
+
+                return $presentationResolver->resolve($name, $attributes, $context);
+            },
+        ));
 
         $context = [
+            'name' => 'product-image-thumbnails',
             ...$additionalContext,
             'media' => ['url' => '/media/product.webp'],
         ];
@@ -260,7 +281,7 @@ TWIG;
      */
     private function createTemplateFinder(): TemplateFinderInterface
     {
-        return new class implements TemplateFinderInterface {
+        return new class () implements TemplateFinderInterface {
             public function getTemplateName(string $template): string
             {
                 return $template;

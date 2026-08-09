@@ -7,21 +7,28 @@
  #}
 {% block thumbnail_utility -%}
     {%- set label = mgd_ai_image_label(media) -%}
-    {%- set mediaClasses = (attributes.class|default(''))|split(' ') -%}
-    {%- set isGalleryNavigationThumbnail = 'gallery-slider-thumbnails-image' in mediaClasses -%}
+    {%- set presentation = mgd_ai_thumbnail_presentation(
+        name|default(null),
+        attributes|default(null),
+        {
+            displayMode: displayMode|default(null),
+            configDisplayMode: config.displayMode.value|default(null),
+            elementDisplayMode: element.config.displayMode.value|default(null)
+        }
+    ) -%}
     {%- set thumbnailContent -%}{{ parent() }}{%- endset -%}
 
     {# Kleine Galerie-Navigationsbilder bleiben ohne sichtbares oder doppeltes Label. #}
-    {%- if not label.visible or isGalleryNavigationThumbnail -%}
+    {%- if not label.visible or not presentation.labelAllowed -%}
         {{- thumbnailContent -}}
     {%- else -%}
         {#
-         # Der zentrale Thumbnail-Vertrag liefert responsive Blockbilder. Der
-         # Aufrufer darf den Layoutmodus daher nicht durch freie Werte ersetzen.
+         # Der PHP-Resolver liefert ausschließlich einen geprüften Boolean. Freie
+         # Theme-Werte können den Layoutmodus nicht direkt beeinflussen.
          #}
         {%- sw_embed '@MGDAIImageLabels/storefront/component/mgd-ai-image-label/labeled-media.html.twig' with {
             label: label,
-            intrinsicLayout: false,
+            intrinsicLayout: presentation.intrinsicLayout,
             thumbnailContent: thumbnailContent
         } only -%}
             {%- block mediaContent -%}{{- thumbnailContent -}}{%- endblock -%}
