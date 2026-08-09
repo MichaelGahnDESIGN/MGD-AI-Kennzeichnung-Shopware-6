@@ -10,36 +10,44 @@ use PHPUnit\Framework\TestCase;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 
 /**
- * Prüft das sichere Einlesen der globalen und verkaufskanalspezifischen Werte.
+ * Prüft das cachegerechte und sichere Einlesen der Anzeigeeinstellungen.
  */
 final class DisplayConfigurationProviderTest extends TestCase
 {
     /**
-     * Der Provider muss mit aktivierter Vererbung lesen, exakt den eigenen
-     * Präfix entfernen und fremde Schlüssel vollständig ignorieren.
+     * Nur die Sprache ist verkaufskanalspezifisch. Alle Darstellungseinstellungen
+     * werden mit null als globaler Ebene gelesen und danach zwischengespeichert.
      */
-    public function testGetReadsInheritedSalesChannelDomainAndIgnoresForeignKeys(): void
+    public function testGetReadsOnlyLanguageForSalesChannelAndCachesTheConfiguration(): void
     {
+        $salesChannelId = '0123456789abcdef0123456789abcdef';
         $service = $this->createSystemConfigServiceMock();
-        $service->expects(self::once())
-            ->method('getDomain')
-            ->with('MGDAIImageLabels.config.', 'sales-channel-id', true)
-            ->willReturn([
-                'MGDAIImageLabels.config.fontSize' => 18,
-                'MGDAIImageLabels.config.offset' => 32,
-                'MGDAIImageLabels.config.paddingY' => 8,
-                'MGDAIImageLabels.config.paddingX' => 15,
-                'MGDAIImageLabels.config.radius' => 20,
-                'MGDAIImageLabels.config.blur' => 4,
-                'MGDAIImageLabels.config.position' => 'top-right',
-                'MGDAIImageLabels.config.theme' => 'light',
-                'MGDAIImageLabels.config.language' => 'en',
-                'OtherPlugin.config.fontSize' => 24,
-                'MGDAIImageLabels.fontSize' => 24,
-            ]);
+        $calls = [];
 
-        $configuration = (new DisplayConfigurationProvider($service))->get('sales-channel-id');
+        $service->expects(self::exactly(9))
+            ->method('get')
+            ->willReturnCallback(static function (string $key, ?string $requestedSalesChannelId) use (&$calls, $salesChannelId): mixed {
+                $calls[] = [$key, $requestedSalesChannelId];
 
+                return match ($key) {
+                    'MGDAIImageLabels.config.fontSize' => 18,
+                    'MGDAIImageLabels.config.offset' => 32,
+                    'MGDAIImageLabels.config.paddingY' => 8,
+                    'MGDAIImageLabels.config.paddingX' => 15,
+                    'MGDAIImageLabels.config.radius' => 20,
+                    'MGDAIImageLabels.config.blur' => 4,
+                    'MGDAIImageLabels.config.position' => 'top-right',
+                    'MGDAIImageLabels.config.theme' => 'light',
+                    'MGDAIImageLabels.config.language' => $requestedSalesChannelId === $salesChannelId ? 'en' : 'auto',
+                    default => throw new \LogicException('Der Provider darf keine fremden Konfigurationsschlüssel lesen.'),
+                };
+            });
+
+        $provider = new DisplayConfigurationProvider($service);
+        $configuration = $provider->get($salesChannelId);
+        $cachedConfiguration = $provider->get($salesChannelId);
+
+        self::assertSame($configuration, $cachedConfiguration);
         self::assertSame(18, $configuration->fontSize);
         self::assertSame(32, $configuration->offset);
         self::assertSame(8, $configuration->paddingY);
@@ -49,45 +57,56 @@ final class DisplayConfigurationProviderTest extends TestCase
         self::assertSame('top-right', $configuration->position);
         self::assertSame('light', $configuration->theme);
         self::assertSame('en', $configuration->language);
+        self::assertSame([
+            ['MGDAIImageLabels.config.fontSize', null],
+            ['MGDAIImageLabels.config.offset', null],
+            ['MGDAIImageLabels.config.paddingY', null],
+            ['MGDAIImageLabels.config.paddingX', null],
+            ['MGDAIImageLabels.config.radius', null],
+            ['MGDAIImageLabels.config.blur', null],
+            ['MGDAIImageLabels.config.position', null],
+            ['MGDAIImageLabels.config.theme', null],
+            ['MGDAIImageLabels.config.language', $salesChannelId],
+        ], $calls);
     }
 
     /**
-     * Auch Werte aus der Datenbank bleiben nicht vertrauenswürdig und müssen
-     * vor jeder Verwendung erneut durch den Normalizer laufen.
+     * Manipulierte Dienstwerte bleiben unzuverlässig. Der Provider muss sie
+     * deshalb vor dem Cache-Eintrag durch den Normalizer zurückführen.
      */
-    public function testGetRenormalizesManipulatedStoredValuesAndUsesDefaultsForEmptyDomain(): void
+    public function testGetRenormalizesManipulatedServiceValues(): void
     {
         $service = $this->createSystemConfigServiceMock();
-        $service->expects(self::exactly(2))
-            ->method('getDomain')
-            ->with('MGDAIImageLabels.config.', null, true)
-            ->willReturnOnConsecutiveCalls(
-                [
-                    'MGDAIImageLabels.config.fontSize' => '6px;background:red',
-                    'MGDAIImageLabels.config.offset' => 97,
-                    'MGDAIImageLabels.config.position' => 'center',
-                    'MGDAIImageLabels.config.theme' => 'dark',
-                    'MGDAIImageLabels.config.language' => 'fr-FR',
-                ],
-                [],
-            );
+        $service->expects(self::exactly(9))
+            ->method('get')
+            ->willReturnMap([
+                ['MGDAIImageLabels.config.fontSize', null, '6px;background:red'],
+                ['MGDAIImageLabels.config.offset', null, 97],
+                ['MGDAIImageLabels.config.paddingY', null, -1],
+                ['MGDAIImageLabels.config.paddingX', null, 20],
+                ['MGDAIImageLabels.config.radius', null, 12],
+                ['MGDAIImageLabels.config.blur', null, 8],
+                ['MGDAIImageLabels.config.position', null, 'center'],
+                ['MGDAIImageLabels.config.theme', null, 'dark'],
+                ['MGDAIImageLabels.config.language', null, 'fr-FR'],
+            ]);
 
-        $provider = new DisplayConfigurationProvider($service);
-        $manipulatedConfiguration = $provider->get();
-        $defaultConfiguration = $provider->get();
+        $configuration = (new DisplayConfigurationProvider($service))->get();
 
-        self::assertSame(6, $manipulatedConfiguration->fontSize);
-        self::assertSame(12, $manipulatedConfiguration->offset);
-        self::assertSame('bottom-right', $manipulatedConfiguration->position);
-        self::assertSame('dark', $manipulatedConfiguration->theme);
-        self::assertSame('auto', $manipulatedConfiguration->language);
-        self::assertSame(6, $defaultConfiguration->fontSize);
-        self::assertSame('bottom-right', $defaultConfiguration->position);
+        self::assertSame(6, $configuration->fontSize);
+        self::assertSame(12, $configuration->offset);
+        self::assertSame(5, $configuration->paddingY);
+        self::assertSame(20, $configuration->paddingX);
+        self::assertSame(12, $configuration->radius);
+        self::assertSame(8, $configuration->blur);
+        self::assertSame('bottom-right', $configuration->position);
+        self::assertSame('dark', $configuration->theme);
+        self::assertSame('auto', $configuration->language);
     }
 
     /**
-     * Der externe Dienst ist die einzige unvermeidbare Test-Doppelung.
-     * Sein Vertrag wird über die Erwartungen der aufrufenden Tests geprüft.
+     * Der externe Shopware-Dienst ist die einzige unvermeidbare Test-Doppelung.
+     * Sein öffentlicher get()-Vertrag wird direkt am Aufruf geprüft.
      *
      * @return SystemConfigService&MockObject
      */

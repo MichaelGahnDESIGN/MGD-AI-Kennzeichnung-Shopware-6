@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace MGDAIImageLabels\Configuration;
 
+use MGDAIImageLabels\Media\MediaLabelMetadata;
+
 /**
  * Beschreibt die vollständig geprüften Anzeigeeinstellungen eines Labels.
  *
@@ -174,19 +176,13 @@ final readonly class DisplayConfiguration
     /** Prüft die Position gegen die geschlossene Positivliste. */
     public static function isAllowedPosition(string $value): bool
     {
-        return match ($value) {
-            'top-left', 'top-right', 'bottom-left', 'bottom-right' => true,
-            default => false,
-        };
+        return MediaLabelMetadata::isAllowedPosition($value);
     }
 
     /** Prüft das Theme gegen die geschlossene Positivliste. */
     public static function isAllowedTheme(string $value): bool
     {
-        return match ($value) {
-            'auto', 'light', 'dark' => true,
-            default => false,
-        };
+        return MediaLabelMetadata::isAllowedTheme($value);
     }
 
     /** Prüft die Sprache gegen die geschlossene Positivliste. */

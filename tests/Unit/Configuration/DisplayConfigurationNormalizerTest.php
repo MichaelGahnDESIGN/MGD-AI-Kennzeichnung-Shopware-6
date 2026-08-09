@@ -176,23 +176,53 @@ final class DisplayConfigurationNormalizerTest extends TestCase
     }
 
     /**
-     * Der Werttyp schützt seine Invariante auch bei einer direkten Nutzung
-     * außerhalb des Normalizers.
+     * Jede direkte Konstruktion muss die neun Invarianten selbst schützen.
+     * So kann keine Umgehung des Normalizers unsichere Werte erzeugen.
+     *
+     * @param int|string $invalidValue
      */
-    public function testConfigurationRejectsUnsafeDirectConstruction(): void
+    #[DataProvider('invalidConstructorValueProvider')]
+    public function testConfigurationRejectsEveryUnsafeDirectConstruction(string $field, int|string $invalidValue): void
     {
+        $values = self::validConstructorValues();
+        $values[$field] = $invalidValue;
+
         $this->expectException(\InvalidArgumentException::class);
 
-        new DisplayConfiguration(
-            fontSize: 25,
-            offset: 12,
-            paddingY: 5,
-            paddingX: 9,
-            radius: 999,
-            blur: 10,
-            position: 'bottom-right',
-            theme: 'auto',
-            language: 'auto',
-        );
+        new DisplayConfiguration(...$values);
+    }
+
+    /**
+     * @return iterable<string, array{string, int|string}>
+     */
+    public static function invalidConstructorValueProvider(): iterable
+    {
+        yield 'Schriftgröße' => ['fontSize', 25];
+        yield 'Abstand' => ['offset', 97];
+        yield 'vertikaler Innenabstand' => ['paddingY', 1];
+        yield 'horizontaler Innenabstand' => ['paddingX', 3];
+        yield 'Radius' => ['radius', 1000];
+        yield 'Unschärfe' => ['blur', 25];
+        yield 'Position' => ['position', 'center'];
+        yield 'Theme' => ['theme', 'contrast'];
+        yield 'Sprache' => ['language', 'fr'];
+    }
+
+    /**
+     * @return array{fontSize: int, offset: int, paddingY: int, paddingX: int, radius: int, blur: int, position: string, theme: string, language: string}
+     */
+    private static function validConstructorValues(): array
+    {
+        return [
+            'fontSize' => 6,
+            'offset' => 12,
+            'paddingY' => 5,
+            'paddingX' => 9,
+            'radius' => 999,
+            'blur' => 10,
+            'position' => 'bottom-right',
+            'theme' => 'auto',
+            'language' => 'auto',
+        ];
     }
 }
