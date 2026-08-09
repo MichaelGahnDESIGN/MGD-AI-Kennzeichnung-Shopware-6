@@ -1,5 +1,8 @@
 {
     "name": "mgd-ai-image-labels",
     "private": true,
-    "type": "module"
+    "type": "module",
+    "scripts": {
+        "test:administration": "node --test tests/Administration/*.test.mjs"
+    }
 }

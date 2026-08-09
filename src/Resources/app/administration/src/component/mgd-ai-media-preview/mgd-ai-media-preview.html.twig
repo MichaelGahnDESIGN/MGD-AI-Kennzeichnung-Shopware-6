@@ -1,0 +1,53 @@
+{% block mgd_ai_media_preview %}
+<section
+    class="mgd-ai-media-preview"
+    :aria-label="$t('mgd-ai-image-labels.preview.title')"
+>
+    <h3 class="mgd-ai-media-preview__title">
+        {{ $t('mgd-ai-image-labels.preview.title') }}
+    </h3>
+
+    <p class="mgd-ai-media-preview__help">
+        {{ $t('mgd-ai-image-labels.preview.helpText') }}
+    </p>
+
+    <div
+        v-if="item.url"
+        class="mgd-ai-media-preview__canvas"
+    >
+        <img
+            class="mgd-ai-media-preview__image"
+            :src="item.url"
+            :alt="$t('mgd-ai-image-labels.preview.imageAlt')"
+        >
+
+        <span
+            v-if="previewState.visible"
+            class="mgd-ai-media-preview__badge"
+            :class="[
+                previewPresentation.positionClass,
+                previewPresentation.themeClass,
+            ]"
+            role="note"
+        >
+            {{ $t(previewPresentation.labelSnippet) }}
+        </span>
+    </div>
+
+    <p
+        v-else
+        class="mgd-ai-media-preview__missing-image"
+    >
+        {{ $t('mgd-ai-image-labels.preview.missingImage') }}
+    </p>
+
+    <p
+        class="mgd-ai-media-preview__status"
+        aria-live="polite"
+        aria-atomic="true"
+    >
+        {{ $t('mgd-ai-image-labels.preview.currentStatus') }}:
+        {{ $t(previewPresentation.labelSnippet) }}
+    </p>
+</section>
+{% endblock %}

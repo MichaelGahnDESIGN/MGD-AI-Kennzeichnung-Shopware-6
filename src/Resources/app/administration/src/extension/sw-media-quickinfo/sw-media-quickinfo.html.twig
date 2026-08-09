@@ -1,0 +1,8 @@
+{% block sw_media_quickinfo_custom_field_sets %}
+    {{ parent() }}
+
+    <mgd-ai-media-preview
+        v-if="item.mediaType && item.mediaType.name === 'IMAGE'"
+        :item="item"
+    />
+{% endblock %}

@@ -1,0 +1,18 @@
+{
+    "mgd-ai-image-labels": {
+        "preview": {
+            "title": "Vorschau der KI-Bildkennzeichnung",
+            "helpText": "Die Vorschau wird nur lokal aktualisiert. Speichern Sie Änderungen mit der vorhandenen Shopware-Speicheraktion der Custom Fields.",
+            "imageAlt": "Lokale Vorschau des ausgewählten Bildmediums",
+            "missingImage": "Für dieses Bild ist noch keine lokale Vorschau verfügbar.",
+            "currentStatus": "Aktueller Vorschauzustand",
+            "status": {
+                "none": "KEINE SICHTBARE KENNZEICHNUNG",
+                "generated": "KI-GENERIERT",
+                "partiallyGenerated": "TEILWEISE KI-GENERIERT",
+                "modified": "MIT KI BEARBEITET",
+                "deepfake": "KI-DEEPFAKE"
+            }
+        }
+    }
+}
