@@ -1,0 +1,12 @@
+# Isolierte Arbeitsbereiche von Codex und anderen Entwicklungswerkzeugen.
+.worktrees/
+
+# Lokal erzeugte Abhängigkeiten und Release-Artefakte.
+/vendor/
+/node_modules/
+/dist/
+/.phpunit.cache/
+/.phpunit.result.cache
+
+# Betriebssystem- und Editorreste.
+.DS_Store
