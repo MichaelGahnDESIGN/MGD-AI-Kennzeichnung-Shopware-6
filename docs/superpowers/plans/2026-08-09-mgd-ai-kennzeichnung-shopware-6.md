@@ -808,6 +808,7 @@ Je eine isolierte Shopware-Installation für die jüngste 6.6.10.x- und 6.7.x-Ve
 Run in jedem Testshop:
 
 ```bash
+MGD_SHOPWARE_INTEGRATION_TESTS=1 MGD_SHOPWARE_TEST_DATABASE_URL='mysql://.../mgd_shopware_test' php bin/phpunit custom/plugins/MGDAIImageLabels/tests/Integration/Setup/CustomFieldSetInstallerTest.php --fail-on-skipped
 bin/console plugin:refresh
 bin/console plugin:install --activate MGDAIImageLabels
 bin/build-administration.sh
@@ -815,7 +816,9 @@ bin/build-storefront.sh
 bin/console cache:clear
 ```
 
-Expected: alle Befehle Exit-Code 0; Plugin ist aktiv.
+`MGD_SHOPWARE_TEST_DATABASE_URL` muss dabei auf eine isolierte Testdatenbank
+zeigen; das Beispiel enthält absichtlich keine echten Zugangsdaten. Expected:
+alle Befehle Exit-Code 0; Plugin ist aktiv.
 
 - [ ] **Step 3: Fachliche Smoke-Tests dokumentieren**
 

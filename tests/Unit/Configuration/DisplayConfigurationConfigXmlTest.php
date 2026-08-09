@@ -50,12 +50,23 @@ final class DisplayConfigurationConfigXmlTest extends TestCase
         $this->assertSelectField($elements['theme'], DisplayConfiguration::DEFAULT_THEME, $this->enumValues(LabelTheme::cases()));
         $this->assertSelectField($elements['language'], DisplayConfiguration::DEFAULT_LANGUAGE, $this->enumValues(LabelLanguage::cases()));
 
-        foreach ($cards as $card) {
-            $this->assertTranslationsAreNotEmpty($card['title']);
+        foreach ($cards as $rawCard) {
+            $card = $this->stringKeyedArray($rawCard);
+            $title = $card['title'] ?? null;
+            self::assertIsArray($title);
+            $this->assertTranslationsAreNotEmpty($title);
 
-            foreach ($card['elements'] as $element) {
-                $this->assertTranslationsAreNotEmpty($element['label']);
-                $this->assertTranslationsAreNotEmpty($element['helpText']);
+            $cardElements = $card['elements'] ?? null;
+            self::assertIsArray($cardElements);
+
+            foreach ($cardElements as $rawElement) {
+                $element = $this->stringKeyedArray($rawElement);
+                $label = $element['label'] ?? null;
+                $helpText = $element['helpText'] ?? null;
+                self::assertIsArray($label);
+                self::assertIsArray($helpText);
+                $this->assertTranslationsAreNotEmpty($label);
+                $this->assertTranslationsAreNotEmpty($helpText);
 
                 if (!isset($element['options']) || !is_array($element['options'])) {
                     continue;
@@ -114,7 +125,7 @@ final class DisplayConfigurationConfigXmlTest extends TestCase
     }
 
     /**
-     * @param array<array<string, mixed>> $cards Shopwares geparste Karten.
+     * @param array<mixed> $cards Shopwares geparste Karten.
      *
      * @return array<string, array<string, mixed>> Elemente nach ihrem Konfigurationsnamen.
      */
@@ -122,12 +133,13 @@ final class DisplayConfigurationConfigXmlTest extends TestCase
     {
         $elements = [];
 
-        foreach ($cards as $card) {
+        foreach ($cards as $rawCard) {
+            $card = $this->stringKeyedArray($rawCard);
             $cardElements = $card['elements'] ?? null;
             self::assertIsArray($cardElements);
 
-            foreach ($cardElements as $element) {
-                self::assertIsArray($element);
+            foreach ($cardElements as $rawElement) {
+                $element = $this->stringKeyedArray($rawElement);
                 $name = $element['name'] ?? null;
                 self::assertIsString($name);
                 $elements[$name] = $element;
@@ -159,7 +171,7 @@ final class DisplayConfigurationConfigXmlTest extends TestCase
     }
 
     /**
-     * @param array<string, string|null> $translations Die Shopware-Übersetzungen eines sichtbaren Textes.
+     * @param array<mixed> $translations Die Shopware-Übersetzungen eines sichtbaren Textes.
      */
     private function assertTranslationsAreNotEmpty(array $translations): void
     {
@@ -168,6 +180,24 @@ final class DisplayConfigurationConfigXmlTest extends TestCase
             self::assertIsString($translations[$locale]);
             self::assertNotSame('', trim($translations[$locale]));
         }
+    }
+
+    /**
+     * Normalisiert einen externen Reader-Wert zu einem nachvollziehbaren String-Key-Array.
+     *
+     * @return array<string, mixed>
+     */
+    private function stringKeyedArray(mixed $value): array
+    {
+        self::assertIsArray($value);
+        $normalized = [];
+
+        foreach ($value as $key => $item) {
+            self::assertIsString($key);
+            $normalized[$key] = $item;
+        }
+
+        return $normalized;
     }
 
     /**

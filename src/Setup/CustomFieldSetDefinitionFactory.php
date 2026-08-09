@@ -7,7 +7,6 @@ namespace MGDAIImageLabels\Setup;
 use MGDAIImageLabels\Domain\LabelPosition;
 use MGDAIImageLabels\Domain\LabelStatus;
 use MGDAIImageLabels\Domain\LabelTheme;
-use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\CustomField\CustomFieldTypes;
 
@@ -19,6 +18,32 @@ use Shopware\Core\System\CustomField\CustomFieldTypes;
  * unveränderlichen Namen abgeleitet. Das macht DAL-Upserts wiederholbar, ohne
  * feste UUIDs im Quellcode zu hinterlegen oder bestehende Datensätze erraten zu
  * müssen. Es werden weder personenbezogene Daten noch externe Dienste berührt.
+ *
+ * @phpstan-type TranslatedLabel array{'de-DE': string, 'en-GB': string}
+ * @phpstan-type SelectOption array{label: TranslatedLabel, value: string}
+ * @phpstan-type SelectConfig array{
+ *     componentName: 'sw-single-select',
+ *     customFieldType: 'select',
+ *     type: 'select',
+ *     customFieldPosition: int,
+ *     label: TranslatedLabel,
+ *     options: list<SelectOption>
+ * }
+ * @phpstan-type CustomFieldPayload array{
+ *     id: string,
+ *     name: string,
+ *     type: 'select',
+ *     active: true,
+ *     config: SelectConfig
+ * }
+ * @phpstan-type CustomFieldSetPayload array{
+ *     id: string,
+ *     name: 'mgd_ai_image_labels',
+ *     active: true,
+ *     config: array{label: TranslatedLabel, translated: true},
+ *     customFields: list<CustomFieldPayload>
+ * }
+ * @phpstan-type RelationPayload array{id: string, customFieldSetId: string, entityName: 'media'}
  */
 final readonly class CustomFieldSetDefinitionFactory
 {
@@ -37,16 +62,17 @@ final readonly class CustomFieldSetDefinitionFactory
      * SystemConfig-Einstellung und kann dadurch je Verkaufskanal aufgelöst
      * werden, ohne Medien mit redundanten Sprachwerten anzureichern.
      *
-     * @return array<string, mixed>
+     * @return CustomFieldSetPayload
      */
     public static function createSet(): array
     {
         return [
-            'id' => self::technicalId(self::SET_NAME),
+            'id' => self::setId(),
             'name' => self::SET_NAME,
             'active' => true,
             'config' => [
                 'label' => self::translatedLabel('KI-Bildkennzeichnung', 'AI image labeling'),
+                'translated' => true,
             ],
             'customFields' => [
                 self::createSelectField(
@@ -74,10 +100,16 @@ final readonly class CustomFieldSetDefinitionFactory
         ];
     }
 
+    /** Liefert die allein dem Plugin gehörende, reproduzierbare Set-ID. */
+    public static function setId(): string
+    {
+        return self::technicalId(self::SET_NAME);
+    }
+
     /**
      * Erstellt die eindeutige Zuordnung des Sets zur Shopware-Medienentität.
      *
-     * @return array{id: string, customFieldSetId: string, entityName: string}
+     * @return RelationPayload
      */
     public static function createRelation(string $customFieldSetId): array
     {
@@ -93,9 +125,9 @@ final readonly class CustomFieldSetDefinitionFactory
     }
 
     /**
-     * @param list<array{label: array<string, string>, value: string}> $options
+     * @param list<SelectOption> $options
      *
-     * @return array<string, mixed>
+     * @return CustomFieldPayload
      */
     private static function createSelectField(
         string $name,
@@ -120,7 +152,7 @@ final readonly class CustomFieldSetDefinitionFactory
         ];
     }
 
-    /** @return list<array{label: array<string, string>, value: string}> */
+    /** @return list<SelectOption> */
     private static function statusOptions(): array
     {
         return array_map(
@@ -139,7 +171,7 @@ final readonly class CustomFieldSetDefinitionFactory
         );
     }
 
-    /** @return list<array{label: array<string, string>, value: string}> */
+    /** @return list<SelectOption> */
     private static function positionOptions(): array
     {
         return array_map(
@@ -157,7 +189,7 @@ final readonly class CustomFieldSetDefinitionFactory
         );
     }
 
-    /** @return list<array{label: array<string, string>, value: string}> */
+    /** @return list<SelectOption> */
     private static function themeOptions(): array
     {
         return array_map(
@@ -174,7 +206,7 @@ final readonly class CustomFieldSetDefinitionFactory
         );
     }
 
-    /** @return array{label: array<string, string>, value: string} */
+    /** @return SelectOption */
     private static function createOption(string $value, string $german, string $english): array
     {
         return [
@@ -183,19 +215,12 @@ final readonly class CustomFieldSetDefinitionFactory
         ];
     }
 
-    /**
-     * Shopware verwendet neben Locale-Codes die ID seiner Systemsprache als
-     * sichere Rückfallebene. Da deren Locale installationsabhängig sein kann,
-     * bleibt der System-Fallback bewusst international verständlich.
-     *
-     * @return array<string, string>
-     */
+    /** @return TranslatedLabel */
     private static function translatedLabel(string $german, string $english): array
     {
         return [
             'de-DE' => $german,
             'en-GB' => $english,
-            Defaults::LANGUAGE_SYSTEM => $english,
         ];
     }
 

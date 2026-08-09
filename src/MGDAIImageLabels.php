@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace MGDAIImageLabels;
 
 use MGDAIImageLabels\Setup\CustomFieldSetInstaller;
+use Shopware\Core\Framework\DataAbstractionLayer\Entity;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityCollection;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\Plugin;
 use Shopware\Core\Framework\Plugin\Context\InstallContext;
 use Shopware\Core\Framework\Plugin\Context\UninstallContext;
@@ -23,7 +26,7 @@ final class MGDAIImageLabels extends Plugin
     {
         parent::install($installContext);
 
-        $this->customFieldSetInstaller()->install($installContext->getContext());
+        $this->installer()->install($installContext->getContext());
     }
 
     /** Stellt bei Updates ebenfalls die jeweils aktuelle Definition sicher. */
@@ -31,7 +34,7 @@ final class MGDAIImageLabels extends Plugin
     {
         parent::update($updateContext);
 
-        $this->customFieldSetInstaller()->install($updateContext->getContext());
+        $this->installer()->install($updateContext->getContext());
     }
 
     /**
@@ -47,27 +50,54 @@ final class MGDAIImageLabels extends Plugin
             return;
         }
 
-        $this->customFieldSetInstaller()->remove($uninstallContext->getContext());
+        $this->installer()->remove($uninstallContext->getContext());
     }
 
     /**
-     * Holt den gezielt öffentlichen Lebenszyklusdienst aus Shopwares Container.
+     * Liefert den Installer auch dann, wenn Plugin-Dienste noch nicht geladen sind.
      *
-     * Plugin-Instanzen werden von Shopware selbst erzeugt und erhalten daher
-     * keine normale Konstruktorinjektion. Nur dieser eine Dienst ist öffentlich;
-     * seine Repository-Abhängigkeiten bleiben reguläre Containerdienste.
+     * Beim Installieren oder Aktualisieren eines inaktiven Plugins ist die eigene
+     * services.xml nicht garantiert Teil des laufenden Containers. Deshalb wird
+     * bevorzugt der registrierte Dienst genutzt und andernfalls ausschließlich
+     * aus Shopwares garantiert öffentlichen Core-Repositories aufgebaut.
      */
-    private function customFieldSetInstaller(): CustomFieldSetInstaller
+    private function installer(): CustomFieldSetInstaller
     {
         if ($this->container === null) {
             throw new \RuntimeException('Der Shopware-Service-Container ist für den Plugin-Lebenszyklus nicht verfügbar.');
         }
 
-        $installer = $this->container->get(CustomFieldSetInstaller::class);
-        if (!$installer instanceof CustomFieldSetInstaller) {
-            throw new \RuntimeException('Der Custom-Field-Installer ist im Shopware-Service-Container nicht verfügbar.');
+        if ($this->container->has(CustomFieldSetInstaller::class)) {
+            $installer = $this->container->get(CustomFieldSetInstaller::class);
+            if (!$installer instanceof CustomFieldSetInstaller) {
+                throw new \RuntimeException('Der registrierte Custom-Field-Installer besitzt einen unerwarteten Typ.');
+            }
+
+            return $installer;
         }
 
-        return $installer;
+        return new CustomFieldSetInstaller(
+            $this->coreRepository('custom_field_set.repository'),
+            $this->coreRepository('custom_field_set_relation.repository'),
+        );
+    }
+
+    /**
+     * Holt ein garantiert öffentliches Core-Repository mit statischer Fehlerausgabe.
+     *
+     * @return EntityRepository<covariant EntityCollection<covariant Entity>>
+     */
+    private function coreRepository(string $serviceId): EntityRepository
+    {
+        if ($this->container === null || !$this->container->has($serviceId)) {
+            throw new \RuntimeException('Ein erforderliches Shopware-Core-Repository ist nicht verfügbar.');
+        }
+
+        $repository = $this->container->get($serviceId);
+        if (!$repository instanceof EntityRepository) {
+            throw new \RuntimeException('Ein erforderliches Shopware-Core-Repository besitzt einen unerwarteten Typ.');
+        }
+
+        return $repository;
     }
 }

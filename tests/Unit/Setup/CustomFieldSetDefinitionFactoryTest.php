@@ -10,7 +10,6 @@ use MGDAIImageLabels\Domain\LabelTheme;
 use MGDAIImageLabels\Setup\CustomFieldSetDefinitionFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Shopware\Core\Defaults;
 use Shopware\Core\System\CustomField\CustomFieldTypes;
 
 /**
@@ -19,18 +18,22 @@ use Shopware\Core\System\CustomField\CustomFieldTypes;
  * Die Tests vergleichen die gespeicherten Optionswerte absichtlich mit den
  * Domain-Enums. So kann keine zweite, unbemerkt abweichende Werteliste
  * entstehen, wenn sich der fachliche Wertebereich später kontrolliert ändert.
+ *
+ * @phpstan-import-type CustomFieldPayload from CustomFieldSetDefinitionFactory
  */
 final class CustomFieldSetDefinitionFactoryTest extends TestCase
 {
-    /** Das Set besitzt einen stabilen Namen und verständliche Fallback-Bezeichnungen. */
+    /** Das Set besitzt eine stabile eigene ID und ausschließlich gültige Locale-Bezeichnungen. */
     public function testCreateSetDefinesTechnicalNameAndTranslatedLabels(): void
     {
         $set = CustomFieldSetDefinitionFactory::createSet();
 
+        self::assertSame(CustomFieldSetDefinitionFactory::setId(), $set['id']);
         self::assertSame(CustomFieldSetDefinitionFactory::SET_NAME, $set['name']);
+        $this->assertRuntimeTrue($set['config']['translated']);
         self::assertSame('KI-Bildkennzeichnung', $set['config']['label']['de-DE']);
         self::assertSame('AI image labeling', $set['config']['label']['en-GB']);
-        self::assertSame('AI image labeling', $set['config']['label'][Defaults::LANGUAGE_SYSTEM]);
+        self::assertSame(['de-DE', 'en-GB'], array_keys($set['config']['label']));
     }
 
     /** Es werden ausschließlich die drei vorgesehenen geschlossenen Auswahllisten angelegt. */
@@ -55,6 +58,11 @@ final class CustomFieldSetDefinitionFactoryTest extends TestCase
             self::assertSame(CustomFieldTypes::SELECT, $customField['config']['customFieldType']);
             self::assertSame(CustomFieldTypes::SELECT, $customField['config']['type']);
             self::assertArrayHasKey('options', $customField['config']);
+            self::assertSame(['de-DE', 'en-GB'], array_keys($customField['config']['label']));
+
+            foreach ($customField['config']['options'] as $option) {
+                self::assertSame(['de-DE', 'en-GB'], array_keys($option['label']));
+            }
         }
     }
 
@@ -134,9 +142,7 @@ final class CustomFieldSetDefinitionFactoryTest extends TestCase
         yield 'zu kurz' => ['abc123'];
     }
 
-    /**
-     * @return array{name: string, type: string, config: array<string, mixed>}
-     */
+    /** @return CustomFieldPayload */
     private function fieldByName(string $name): array
     {
         $fields = array_column(CustomFieldSetDefinitionFactory::createSet()['customFields'], null, 'name');
@@ -157,5 +163,12 @@ final class CustomFieldSetDefinitionFactoryTest extends TestCase
             self::assertSame($german, $option['label']['de-DE']);
             self::assertSame($english, $option['label']['en-GB']);
         }
+    }
+
+    /** Prüft einen Laufzeitwert, ohne sich auf die statische Array-Shape zu verlassen. */
+    private function assertRuntimeTrue(mixed $value): void
+    {
+        self::assertIsBool($value);
+        self::assertTrue($value);
     }
 }

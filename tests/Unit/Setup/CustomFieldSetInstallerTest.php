@@ -25,7 +25,7 @@ use Shopware\Core\Framework\Uuid\Uuid;
  */
 final class CustomFieldSetInstallerTest extends TestCase
 {
-    /** Installation schreibt das Set, sucht eng nach seinem Namen und bindet nur Medien an. */
+    /** Installation prüft zuerst den Namen, schreibt das eigene Set und verifiziert dessen ID. */
     public function testInstallPersistsDefinitionFindsItsIdAndCreatesMediaRelation(): void
     {
         $setRepository = new InMemoryEntityRepository();
@@ -38,12 +38,13 @@ final class CustomFieldSetInstallerTest extends TestCase
         ))->install($context);
 
         self::assertSame([[CustomFieldSetDefinitionFactory::createSet()]], $setRepository->upsertPayloads);
-        self::assertCount(1, $setRepository->searchCriteria);
+        self::assertCount(3, $setRepository->searchCriteria);
         $this->assertOnlyOwnNameFilter($setRepository->searchCriteria[0]);
+        $this->assertOnlyOwnIdLookup($setRepository->searchCriteria[1]);
+        $this->assertOwnIdAndNameVerification($setRepository->searchCriteria[2]);
 
-        $setId = CustomFieldSetDefinitionFactory::createSet()['id'];
         self::assertSame(
-            [[CustomFieldSetDefinitionFactory::createRelation($setId)]],
+            [[CustomFieldSetDefinitionFactory::createRelation(CustomFieldSetDefinitionFactory::setId())]],
             $relationRepository->upsertPayloads,
         );
         self::assertSame('media', array_values($relationRepository->rows)[0]['entityName']);
@@ -76,7 +77,7 @@ final class CustomFieldSetInstallerTest extends TestCase
         $relationRepository = new InMemoryEntityRepository();
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('konnte nach dem Speichern nicht eindeutig gefunden werden');
+        $this->expectExceptionMessage('konnte nach dem Speichern nicht über seine eigene ID verifiziert werden');
 
         (new CustomFieldSetInstaller(
             $this->repository($setRepository),
@@ -84,21 +85,71 @@ final class CustomFieldSetInstallerTest extends TestCase
         ))->install(Context::createDefaultContext());
     }
 
-    /** Mehrere gleichnamige Sets sind kein sicher auflösbarer Zustand. */
-    public function testInstallFailsClearlyWhenSetNameIsAmbiguous(): void
+    /** Eine fremde ID unter dem eigenen Namen blockiert vor jeder Mutation. */
+    public function testInstallRejectsForeignIdWithOwnNameBeforeMutation(): void
     {
         $setRepository = new InMemoryEntityRepository([
             ['id' => Uuid::randomHex(), 'name' => CustomFieldSetDefinitionFactory::SET_NAME],
         ]);
+        $relationRepository = new InMemoryEntityRepository();
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('konnte nach dem Speichern nicht eindeutig gefunden werden');
+        $this->expectExceptionMessage('bereits von einem fremden Datensatz belegt');
 
-        (new CustomFieldSetInstaller(
-            $this->repository($setRepository),
-            $this->repository(new InMemoryEntityRepository()),
-        ))
-            ->install(Context::createDefaultContext());
+        try {
+            (new CustomFieldSetInstaller(
+                $this->repository($setRepository),
+                $this->repository($relationRepository),
+            ))->install(Context::createDefaultContext());
+        } finally {
+            self::assertSame([], $setRepository->upsertPayloads);
+            self::assertSame([], $relationRepository->upsertPayloads);
+        }
+    }
+
+    /** Mehrere gleichnamige IDs blockieren ebenfalls vor jeder Mutation. */
+    public function testInstallRejectsMultipleNameMatchesBeforeMutation(): void
+    {
+        $setRepository = new InMemoryEntityRepository([
+            ['id' => Uuid::randomHex(), 'name' => CustomFieldSetDefinitionFactory::SET_NAME],
+            ['id' => Uuid::randomHex(), 'name' => CustomFieldSetDefinitionFactory::SET_NAME],
+        ]);
+        $relationRepository = new InMemoryEntityRepository();
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('mehrfach vorhanden');
+
+        try {
+            (new CustomFieldSetInstaller(
+                $this->repository($setRepository),
+                $this->repository($relationRepository),
+            ))->install(Context::createDefaultContext());
+        } finally {
+            self::assertSame([], $setRepository->upsertPayloads);
+            self::assertSame([], $relationRepository->upsertPayloads);
+        }
+    }
+
+    /** Eine fremde Belegung der eigenen deterministischen ID blockiert ebenfalls vor dem Upsert. */
+    public function testInstallRejectsForeignNameStoredUnderOwnIdBeforeMutation(): void
+    {
+        $setRepository = new InMemoryEntityRepository([
+            ['id' => CustomFieldSetDefinitionFactory::setId(), 'name' => 'fremdes_set'],
+        ]);
+        $relationRepository = new InMemoryEntityRepository();
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('eigene Custom-Field-Set-ID');
+
+        try {
+            (new CustomFieldSetInstaller(
+                $this->repository($setRepository),
+                $this->repository($relationRepository),
+            ))->install(Context::createDefaultContext());
+        } finally {
+            self::assertSame([], $setRepository->upsertPayloads);
+            self::assertSame([], $relationRepository->upsertPayloads);
+        }
     }
 
     /** Ohne plugin-eigenes Set führt die Deinstallation keine Löschung aus. */
@@ -118,19 +169,39 @@ final class CustomFieldSetInstallerTest extends TestCase
         self::assertSame([], $setRepository->deletePayloads);
         self::assertArrayHasKey($foreignId, $setRepository->rows);
         self::assertCount(1, $setRepository->searchCriteria);
-        $this->assertOnlyOwnNameFilter($setRepository->searchCriteria[0]);
+        $this->assertOnlyOwnIdLookup($setRepository->searchCriteria[0]);
     }
 
-    /** Die Deinstallation löscht alle und ausschließlich die eigenen gefundenen Set-IDs. */
-    public function testRemoveDeletesOnlyOwnSetIdsAndKeepsForeignSets(): void
+    /** Ein fremder Name unter der deterministischen eigenen ID wird niemals gelöscht. */
+    public function testRemoveRejectsForeignNameStoredUnderOwnId(): void
     {
-        $ownIdA = Uuid::randomHex();
-        $ownIdB = Uuid::randomHex();
+        $ownId = CustomFieldSetDefinitionFactory::setId();
+        $setRepository = new InMemoryEntityRepository([
+            ['id' => $ownId, 'name' => 'fremdes_set'],
+        ]);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('unerwarteten Namen');
+
+        try {
+            (new CustomFieldSetInstaller(
+                $this->repository($setRepository),
+                $this->repository(new InMemoryEntityRepository()),
+            ))->remove(Context::createDefaultContext());
+        } finally {
+            self::assertSame([], $setRepository->deletePayloads);
+            self::assertArrayHasKey($ownId, $setRepository->rows);
+        }
+    }
+
+    /** Die Deinstallation löscht nur die eigene ID und schont gleichnamige fremde IDs. */
+    public function testRemoveDeletesOnlyOwnIdAndKeepsForeignNameCollision(): void
+    {
+        $ownId = CustomFieldSetDefinitionFactory::setId();
         $foreignId = Uuid::randomHex();
         $setRepository = new InMemoryEntityRepository([
-            ['id' => $ownIdA, 'name' => CustomFieldSetDefinitionFactory::SET_NAME],
-            ['id' => $ownIdB, 'name' => CustomFieldSetDefinitionFactory::SET_NAME],
-            ['id' => $foreignId, 'name' => 'fremdes_set'],
+            ['id' => $ownId, 'name' => CustomFieldSetDefinitionFactory::SET_NAME],
+            ['id' => $foreignId, 'name' => CustomFieldSetDefinitionFactory::SET_NAME],
         ]);
 
         (new CustomFieldSetInstaller(
@@ -140,10 +211,11 @@ final class CustomFieldSetInstallerTest extends TestCase
             ->remove(Context::createDefaultContext());
 
         self::assertSame([[
-            ['id' => $ownIdA],
-            ['id' => $ownIdB],
+            ['id' => $ownId],
         ]], $setRepository->deletePayloads);
-        self::assertSame([$foreignId => ['id' => $foreignId, 'name' => 'fremdes_set']], $setRepository->rows);
+        self::assertSame([
+            $foreignId => ['id' => $foreignId, 'name' => CustomFieldSetDefinitionFactory::SET_NAME],
+        ], $setRepository->rows);
     }
 
     /** Nur ein EqualsFilter auf den festen technischen Setnamen ist zulässig. */
@@ -155,6 +227,24 @@ final class CustomFieldSetInstallerTest extends TestCase
         self::assertInstanceOf(EqualsFilter::class, $filter);
         self::assertSame('name', $filter->getField());
         self::assertSame(CustomFieldSetDefinitionFactory::SET_NAME, $filter->getValue());
+    }
+
+    /** Verifiziert die eigene ID gemeinsam mit dem erwarteten Namen. */
+    private function assertOwnIdAndNameVerification(Criteria $criteria): void
+    {
+        self::assertSame([CustomFieldSetDefinitionFactory::setId()], $criteria->getIds());
+        self::assertCount(1, $criteria->getFilters());
+        $filter = $criteria->getFilters()[0];
+        self::assertInstanceOf(EqualsFilter::class, $filter);
+        self::assertSame('name', $filter->getField());
+        self::assertSame(CustomFieldSetDefinitionFactory::SET_NAME, $filter->getValue());
+    }
+
+    /** Verifiziert, dass remove zunächst ausschließlich die eigene ID betrachtet. */
+    private function assertOnlyOwnIdLookup(Criteria $criteria): void
+    {
+        self::assertSame([CustomFieldSetDefinitionFactory::setId()], $criteria->getIds());
+        self::assertSame([], $criteria->getFilters());
     }
 
     /** @return EntityRepository<covariant EntityCollection<covariant Entity>> */

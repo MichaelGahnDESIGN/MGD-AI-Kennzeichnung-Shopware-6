@@ -22,7 +22,7 @@ final class PluginLifecycleTest extends TestCase
     /** Installation und Aktualisierung stellen beide die aktuelle Definition sicher. */
     public function testInstallAndUpdateDelegateToInstaller(): void
     {
-        [$plugin, $setRepository, $relationRepository] = $this->pluginWithRepositories();
+        [$plugin, $setRepository, $relationRepository, , $container] = $this->pluginWithRepositories();
         $context = Context::createDefaultContext();
         $installContext = $this->createStub(InstallContext::class);
         $installContext->method('getContext')->willReturn($context);
@@ -32,6 +32,7 @@ final class PluginLifecycleTest extends TestCase
         $plugin->install($installContext);
         $plugin->update($updateContext);
 
+        self::assertFalse($container->has(CustomFieldSetInstaller::class));
         self::assertCount(2, $setRepository->upsertPayloads);
         self::assertCount(2, $relationRepository->upsertPayloads);
         self::assertCount(1, $setRepository->rows);
@@ -76,7 +77,8 @@ final class PluginLifecycleTest extends TestCase
      *     MGDAIImageLabels,
      *     InMemoryEntityRepository,
      *     InMemoryEntityRepository,
-     *     CustomFieldSetInstaller
+     *     CustomFieldSetInstaller,
+     *     Container
      * }
      */
     private function pluginWithRepositories(): array
@@ -88,12 +90,13 @@ final class PluginLifecycleTest extends TestCase
             $this->repository($relationRepository),
         );
         $container = new Container();
-        $container->set(CustomFieldSetInstaller::class, $installer);
+        $container->set('custom_field_set.repository', $this->repository($setRepository));
+        $container->set('custom_field_set_relation.repository', $this->repository($relationRepository));
 
         $plugin = new MGDAIImageLabels(false, dirname(__DIR__, 3));
         $plugin->setContainer($container);
 
-        return [$plugin, $setRepository, $relationRepository, $installer];
+        return [$plugin, $setRepository, $relationRepository, $installer, $container];
     }
 
     /** @return EntityRepository<covariant EntityCollection<covariant Entity>> */

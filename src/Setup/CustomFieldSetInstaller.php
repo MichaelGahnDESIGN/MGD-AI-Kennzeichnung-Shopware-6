@@ -40,20 +40,41 @@ final readonly class CustomFieldSetInstaller
      */
     public function install(Context $context): void
     {
+        $existingIds = $this->findIdsByName($context);
+        if (count($existingIds) > 1) {
+            throw new \RuntimeException(
+                'Der technische Name des Custom-Field-Sets der KI-Bildkennzeichnung ist mehrfach vorhanden.'
+            );
+        }
+
+        $ownSetId = CustomFieldSetDefinitionFactory::setId();
+        if ($existingIds !== [] && $existingIds[0] !== $ownSetId) {
+            throw new \RuntimeException(
+                'Der technische Name des Custom-Field-Sets der KI-Bildkennzeichnung ist bereits von einem fremden Datensatz belegt.'
+            );
+        }
+
+        $idsAtOwnPrimaryKey = $this->findOwnId($context);
+        if ($idsAtOwnPrimaryKey !== [] && $existingIds !== [$ownSetId]) {
+            throw new \RuntimeException(
+                'Die eigene Custom-Field-Set-ID der KI-Bildkennzeichnung ist bereits von einem fremden Datensatz belegt.'
+            );
+        }
+
         $this->customFieldSetRepository->upsert(
             [CustomFieldSetDefinitionFactory::createSet()],
             $context,
         );
 
-        $setIds = $this->findOwnSetIds($context);
-        if (count($setIds) !== 1) {
+        $verifiedIds = $this->findOwnIdWithExpectedName($context);
+        if ($verifiedIds !== [$ownSetId]) {
             throw new \RuntimeException(
-                'Das Custom-Field-Set der KI-Bildkennzeichnung konnte nach dem Speichern nicht eindeutig gefunden werden.'
+                'Das Custom-Field-Set der KI-Bildkennzeichnung konnte nach dem Speichern nicht über seine eigene ID verifiziert werden.'
             );
         }
 
         $this->customFieldSetRelationRepository->upsert(
-            [CustomFieldSetDefinitionFactory::createRelation($setIds[0])],
+            [CustomFieldSetDefinitionFactory::createRelation($ownSetId)],
             $context,
         );
     }
@@ -67,39 +88,77 @@ final readonly class CustomFieldSetInstaller
      */
     public function remove(Context $context): void
     {
-        $setIds = $this->findOwnSetIds($context);
-        if ($setIds === []) {
+        $ownSetId = CustomFieldSetDefinitionFactory::setId();
+        $idsAtOwnPrimaryKey = $this->findOwnId($context);
+        if ($idsAtOwnPrimaryKey === []) {
             return;
         }
 
-        $deletePayload = array_map(
-            static fn (string $setId): array => ['id' => $setId],
-            $setIds,
-        );
+        if ($idsAtOwnPrimaryKey !== [$ownSetId] || $this->findOwnIdWithExpectedName($context) !== [$ownSetId]) {
+            throw new \RuntimeException(
+                'Die eigene Custom-Field-Set-ID der KI-Bildkennzeichnung ist mit einem unerwarteten Namen belegt.'
+            );
+        }
 
-        $this->customFieldSetRepository->delete($deletePayload, $context);
+        $this->customFieldSetRepository->delete([['id' => $ownSetId]], $context);
     }
 
     /**
-     * Sucht ausschließlich per DAL-Kriterium nach dem technischen Setnamen.
+     * Sucht vor der Mutation nach allen Belegungen des technischen Setnamens.
      *
      * @return list<string>
      */
-    private function findOwnSetIds(Context $context): array
+    private function findIdsByName(Context $context): array
     {
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('name', CustomFieldSetDefinitionFactory::SET_NAME));
 
-        $ids = $this->customFieldSetRepository->searchIds($criteria, $context)->getIds();
+        return $this->normalizeIds(
+            $this->customFieldSetRepository->searchIds($criteria, $context)->getIds(),
+        );
+    }
+
+    /** @return list<string> */
+    private function findOwnId(Context $context): array
+    {
+        $criteria = new Criteria([CustomFieldSetDefinitionFactory::setId()]);
+
+        return $this->normalizeIds(
+            $this->customFieldSetRepository->searchIds($criteria, $context)->getIds(),
+        );
+    }
+
+    /** @return list<string> */
+    private function findOwnIdWithExpectedName(Context $context): array
+    {
+        $criteria = new Criteria([CustomFieldSetDefinitionFactory::setId()]);
+        $criteria->addFilter(new EqualsFilter('name', CustomFieldSetDefinitionFactory::SET_NAME));
+
+        return $this->normalizeIds(
+            $this->customFieldSetRepository->searchIds($criteria, $context)->getIds(),
+        );
+    }
+
+    /**
+     * Verwirft unerwartete zusammengesetzte oder ungültige Primärschlüssel.
+     *
+     * @param list<string|array<string, string>> $ids
+     *
+     * @return list<string>
+     */
+    private function normalizeIds(array $ids): array
+    {
+        $normalizedIds = [];
         foreach ($ids as $id) {
-            if (!Uuid::isValid($id)) {
+            if (!is_string($id) || !Uuid::isValid($id)) {
                 throw new \RuntimeException(
                     'Das Custom-Field-Set der KI-Bildkennzeichnung besitzt keine gültige Shopware-ID.'
                 );
             }
+
+            $normalizedIds[] = $id;
         }
 
-        /** @var list<string> $ids */
-        return $ids;
+        return $normalizedIds;
     }
 }
