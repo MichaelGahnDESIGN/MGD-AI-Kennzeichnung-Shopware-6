@@ -80,8 +80,9 @@ final readonly class CustomFieldSetInstaller
     }
 
     /**
-     * Entfernt ausschließlich Sets mit dem festen plugin-eigenen Namen.
+     * Entfernt ausschließlich das Set unter der deterministischen plugin-eigenen ID.
      *
+     * Vor der Löschung wird zusätzlich der erwartete technische Name geprüft.
      * Shopwares Cascade-Relation entfernt die zugehörigen Felddefinitionen und
      * Medienrelationen. Medien selbst, deren übrige Custom Fields sowie fremde
      * Sets bleiben unangetastet. Ein fehlendes Set ist ein sicherer No-op.
