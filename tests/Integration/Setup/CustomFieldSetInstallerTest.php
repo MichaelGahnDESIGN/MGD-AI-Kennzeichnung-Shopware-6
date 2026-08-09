@@ -39,7 +39,7 @@ final class CustomFieldSetInstallerTest extends TestCase
     {
         if (($_SERVER['MGD_SHOPWARE_INTEGRATION_TESTS'] ?? getenv('MGD_SHOPWARE_INTEGRATION_TESTS')) !== '1') {
             self::markTestSkipped(
-                'Task 13: Nur mit MGD_SHOPWARE_INTEGRATION_TESTS=1 und einer isolierten Shopware-Testdatenbank ausführen.'
+                'Task 13: Ausführen mit „MGD_SHOPWARE_INTEGRATION_TESTS=1 php bin/phpunit custom/plugins/MGDAIImageLabels/tests/Integration/Setup/CustomFieldSetInstallerTest.php“. DATABASE_URL muss auf eine isolierte Shopware-Testdatenbank zeigen.'
             );
         }
 
