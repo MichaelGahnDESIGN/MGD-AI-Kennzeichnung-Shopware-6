@@ -198,12 +198,21 @@ final class LabelTemplateTest extends TestCase
         self::assertStringContainsString('--mgd-ai-safe-offset: clamp(0px, var(--mgd-ai-offset), max(0px, calc((100% - 8rem) / 2)))', $component);
         self::assertStringContainsString('max-width: calc(100% - (2 * var(--mgd-ai-safe-offset)))', $component);
         self::assertStringContainsString('max-height: calc(100% - (2 * var(--mgd-ai-safe-offset)))', $component);
-        self::assertStringContainsString('@container mgd-ai-media (max-width: 7.999rem)', $component);
-        self::assertStringContainsString('container-type: inline-size', $component);
+        self::assertStringContainsString('@container mgd-ai-media (min-width: 8rem) and (min-height: 5rem)', $component);
+        self::assertStringContainsString('container-type: size', $component);
         self::assertStringContainsString('overflow: hidden', $component);
         self::assertStringContainsString('overflow: clip', $component);
+        self::assertStringContainsString('width: 1px', $component);
+        self::assertStringContainsString('height: 1px', $component);
+        self::assertStringContainsString('clip: rect(0, 0, 0, 0)', $component);
+        self::assertStringContainsString('clip-path: inset(50%)', $component);
         self::assertStringContainsString('text-overflow: ellipsis', $component);
         self::assertStringContainsString('white-space: nowrap', $component);
+        self::assertStringNotContainsString('display: none', $component);
+        self::assertStringNotContainsString('visibility: hidden', $component);
+        self::assertStringNotContainsString('aria-hidden', $component . $this->readResource('views/storefront/component/mgd-ai-image-label/labeled-media.html.twig'));
+        self::assertMatchesRegularExpression('/\.mgd-ai-labeled-media\s*\{(?:(?!overflow:).)*\}/s', $component);
+        self::assertMatchesRegularExpression('/\.mgd-ai-labeled-media__overlay\s*\{[^}]*overflow:\s*hidden;[^}]*overflow:\s*clip;/s', $component);
         self::assertGreaterThanOrEqual(2, substr_count($component, 'min-width: 0'));
         foreach (['top', 'right', 'bottom', 'left'] as $inset) {
             self::assertMatchesRegularExpression('/' . $inset . ':\s*var\(--mgd-ai-safe-offset\)/', $component);
@@ -288,6 +297,7 @@ final class LabelTemplateTest extends TestCase
         self::assertStringContainsString('fill', $taskEight);
         self::assertStringContainsString('intrinsic', $taskEight);
         self::assertStringContainsString('8rem', $taskEight);
+        self::assertStringContainsString('5rem', $taskEight);
     }
 
     public function testServiceDefinitionRegistersTheCompatibleTwigExtension(): void

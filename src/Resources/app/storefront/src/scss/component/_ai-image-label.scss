@@ -3,8 +3,6 @@
     position: relative;
     max-width: 100%;
     min-width: 0;
-    overflow: hidden;
-    overflow: clip;
     line-height: 0;
 }
 
@@ -25,9 +23,11 @@
     position: absolute;
     inset: 0;
     min-width: 0;
+    overflow: hidden;
+    overflow: clip;
     pointer-events: none;
     container-name: mgd-ai-media;
-    container-type: inline-size;
+    container-type: size;
 }
 
 // Das Label blockiert weder Links noch Gesten auf dem gekennzeichneten Medium.
@@ -39,24 +39,28 @@
     z-index: 2;
     display: inline-flex;
     box-sizing: border-box;
-    max-width: calc(100% - (2 * var(--mgd-ai-safe-offset)));
-    max-height: calc(100% - (2 * var(--mgd-ai-safe-offset)));
+    width: 1px;
+    height: 1px;
+    max-width: 1px;
+    max-height: 1px;
     min-width: 0;
-    padding: var(--mgd-ai-padding-y) var(--mgd-ai-padding-x);
+    padding: 0;
     overflow: hidden;
     overflow-wrap: anywhere;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
     color: #fff;
     font-size: var(--mgd-ai-font-size);
     font-weight: 700;
     line-height: 1.2;
     letter-spacing: 0.035em;
-    background: rgba(17, 17, 17, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.72);
-    border-radius: var(--mgd-ai-radius);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
     pointer-events: none;
-    backdrop-filter: blur(var(--mgd-ai-blur));
-    transition: opacity 120ms ease-out;
+    backdrop-filter: none;
+    transition: none;
 }
 
 .mgd-ai-image-label__text {
@@ -66,10 +70,24 @@
     white-space: nowrap;
 }
 
-// Unter 8rem wäre eine sichtbare Kennzeichnung weder stabil noch lesbar.
-@container mgd-ai-media (max-width: 7.999rem) {
+// Nur ausreichend breite und hohe Medien erhalten die sichtbare Variante.
+// Der Grundzustand darüber bleibt der sichere barrierefreie Fallback für
+// Browser ohne Container Queries sowie für kleinere Medien.
+@container mgd-ai-media (min-width: 8rem) and (min-height: 5rem) {
     .mgd-ai-image-label {
-        display: none;
+        width: auto;
+        height: auto;
+        max-width: calc(100% - (2 * var(--mgd-ai-safe-offset)));
+        max-height: calc(100% - (2 * var(--mgd-ai-safe-offset)));
+        padding: var(--mgd-ai-padding-y) var(--mgd-ai-padding-x);
+        clip: auto;
+        clip-path: none;
+        background: rgba(17, 17, 17, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.72);
+        border-radius: var(--mgd-ai-radius);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(var(--mgd-ai-blur));
+        transition: opacity 120ms ease-out;
     }
 }
 
@@ -116,9 +134,11 @@
 
 // Auf kleinen Bildern bleiben Text und Innenabstände lesbar, aber zurückhaltend.
 @media (max-width: 575.98px) {
-    .mgd-ai-image-label {
-        padding: min(var(--mgd-ai-padding-y), 6px) min(var(--mgd-ai-padding-x), 10px);
-        font-size: min(var(--mgd-ai-font-size), 13px);
+    @container mgd-ai-media (min-width: 8rem) and (min-height: 5rem) {
+        .mgd-ai-image-label {
+            padding: min(var(--mgd-ai-padding-y), 6px) min(var(--mgd-ai-padding-x), 10px);
+            font-size: min(var(--mgd-ai-font-size), 13px);
+        }
     }
 }
 
