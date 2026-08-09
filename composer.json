@@ -1,0 +1,47 @@
+{
+    "name": "michaelgahn-design/mgd-ai-kennzeichnung-shopware-6",
+    "description": "Transparente und barrierefreie KI-Bildkennzeichnungen für Shopware 6.",
+    "type": "shopware-platform-plugin",
+    "version": "0.1.0",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": "^8.2",
+        "shopware/core": "~6.6.10 || ~6.7.0",
+        "shopware/storefront": "~6.6.10 || ~6.7.0"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.68",
+        "phpstan/phpstan": "^1.12 || ^2.0",
+        "phpunit/phpunit": "^10.5 || ^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "MGDAIImageLabels\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "MGDAIImageLabels\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "shopware-plugin-class": "MGDAIImageLabels\\MGDAIImageLabels",
+        "label": {
+            "de-DE": "MGD KI-Bildkennzeichnung",
+            "en-GB": "MGD AI Image Labels"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "symfony/runtime": true
+        }
+    },
+    "scripts": {
+        "test:unit": "phpunit --testsuite unit",
+        "check:php": [
+            "composer validate --strict",
+            "php -l src/MGDAIImageLabels.php",
+            "@test:unit"
+        ]
+    }
+}
