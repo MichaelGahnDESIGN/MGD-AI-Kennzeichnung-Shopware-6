@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MGDAIImageLabels\Tests\Unit\Setup;
 
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Process\Process;
 
 /** Prüft die Trennung von schnellen Unit- und explizit freigegebenen DAL-Tests. */
 final class IntegrationTestConfigurationTest extends TestCase
@@ -38,9 +39,42 @@ final class IntegrationTestConfigurationTest extends TestCase
         $scripts = $composer['scripts'] ?? null;
         self::assertIsArray($scripts);
 
-        self::assertSame(
+        self::assertSame([
+            '@php tests/Integration/preflight.php',
             'phpunit --testsuite integration --fail-on-skipped',
-            $scripts['test:integration'] ?? null,
+        ], $scripts['test:integration'] ?? null);
+    }
+
+    /** Ohne ausdrückliche Freigabe beendet der vorgeschaltete Prozess den DAL-Test verständlich mit Fehler. */
+    public function testIntegrationPreflightFailsWithoutExplicitPermission(): void
+    {
+        $process = $this->runPreflight('0');
+
+        self::assertSame(1, $process->getExitCode());
+        self::assertStringContainsString('MGD_SHOPWARE_INTEGRATION_TESTS=1', $process->getErrorOutput());
+        self::assertStringContainsString('isolierte MySQL-Testdatenbank', $process->getErrorOutput());
+    }
+
+    /** Mit ausdrücklicher Freigabe reicht der Preflight an PHPUnit weiter. */
+    public function testIntegrationPreflightAcceptsExplicitPermission(): void
+    {
+        $process = $this->runPreflight('1');
+
+        self::assertSame(0, $process->getExitCode());
+        self::assertSame('', $process->getErrorOutput());
+    }
+
+    /** Startet nur das kleine sicherheitsrelevante Preflight-Skript in einem getrennten PHP-Prozess. */
+    private function runPreflight(string $permission): Process
+    {
+        $projectDirectory = dirname(__DIR__, 3);
+        $process = new Process(
+            [PHP_BINARY, $projectDirectory . '/tests/Integration/preflight.php'],
+            $projectDirectory,
+            ['MGD_SHOPWARE_INTEGRATION_TESTS' => $permission],
         );
+        $process->run();
+
+        return $process;
     }
 }

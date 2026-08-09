@@ -14,7 +14,7 @@ final class ShopwareTestDatabaseConfigurationTest extends TestCase
     /** Eine explizite MySQL-Testdatenbank wird unverändert an Shopware weitergegeben. */
     public function testAcceptsExplicitIsolatedMysqlTestDatabase(): void
     {
-        $url = 'mysql://test-user:placeholder@localhost:3306/mgd_shopware_test';
+        $url = 'mysql://test-user:placeholder@localhost:3306/mgd_shopware_test?charset=utf8mb4';
 
         self::assertSame($url, ShopwareTestDatabaseConfiguration::validate($url));
     }
@@ -41,5 +41,9 @@ final class ShopwareTestDatabaseConfigurationTest extends TestCase
         yield 'ohne Datenbank' => ['mysql://test-user:placeholder@localhost'];
         yield 'Produktionsname' => ['mysql://test-user:placeholder@localhost/mgd_shopware'];
         yield 'irreführendes contest' => ['mysql://test-user:placeholder@localhost/contest'];
+        yield 'Doctrine-Override auf Produktion' => ['mysql://test-user:placeholder@localhost/mgd_shopware_test?dbname=production'];
+        yield 'Doctrine-Override trotz Testname' => ['mysql://test-user:placeholder@localhost/mgd_shopware_test?dbname=another_test'];
+        yield 'URL-kodierter Doctrine-Override' => ['mysql://test-user:placeholder@localhost/mgd_shopware_test?db%6Eame=production'];
+        yield 'mehrfacher Doctrine-Override' => ['mysql://test-user:placeholder@localhost/mgd_shopware_test?dbname=mgd_shopware_test&dbname=production'];
     }
 }

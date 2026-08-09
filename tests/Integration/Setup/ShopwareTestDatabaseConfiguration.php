@@ -32,6 +32,20 @@ final readonly class ShopwareTestDatabaseConfiguration
             throw self::unsafeDatabaseException();
         }
 
+        /*
+         * Doctrine übernimmt Query-Parameter nach dem URL-Pfad und ein
+         * `dbname` würde dadurch den bereits geprüften Testdatenbanknamen
+         * ersetzen. Wir spiegeln hier bewusst Doctrine DBALs `parse_str`-
+         * Verhalten, damit auch URL-kodierte und mehrfache Schlüssel vor dem
+         * Aufbau irgendeiner Datenbankverbindung zuverlässig erkannt werden.
+         */
+        $query = $parts['query'] ?? '';
+        $queryParameters = [];
+        parse_str($query, $queryParameters);
+        if (array_key_exists('dbname', $queryParameters)) {
+            throw self::unsafeDatabaseException();
+        }
+
         $databaseName = rawurldecode(ltrim($path, '/'));
         if (
             $databaseName === ''

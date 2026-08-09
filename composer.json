@@ -41,7 +41,10 @@
     },
     "scripts": {
         "test:unit": "phpunit --testsuite unit",
-        "test:integration": "phpunit --testsuite integration --fail-on-skipped",
+        "test:integration": [
+            "@php tests/Integration/preflight.php",
+            "phpunit --testsuite integration --fail-on-skipped"
+        ],
         "check:php": [
             "composer validate --strict --no-check-version",
             "php -l src/MGDAIImageLabels.php",
