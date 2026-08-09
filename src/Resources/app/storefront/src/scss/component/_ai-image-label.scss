@@ -9,6 +9,8 @@
 .mgd-ai-labeled-media--fill {
     display: block;
     width: 100%;
+    // Erhält Shopwares 100-%-Höhe für Cover-, Contain- und Galerie-Bilder.
+    height: 100%;
 }
 
 // Dieser Modus ist nur für bewusst intrinsisch dimensionierte Inline-Medien gedacht.
