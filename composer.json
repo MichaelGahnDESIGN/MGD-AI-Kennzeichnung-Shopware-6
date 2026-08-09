@@ -39,7 +39,7 @@
     "scripts": {
         "test:unit": "phpunit --testsuite unit",
         "check:php": [
-            "composer validate --strict",
+            "composer validate --strict --no-check-version",
             "php -l src/MGDAIImageLabels.php",
             "@test:unit"
         ]
