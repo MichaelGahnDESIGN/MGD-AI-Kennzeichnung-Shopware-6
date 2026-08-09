@@ -12,13 +12,21 @@ use MGDAIImageLabels\Storefront\Twig\LabelTwigExtension;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Shopware\Core\Content\Media\MediaEntity;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\PlatformRequest;
 use Shopware\Core\SalesChannelRequest;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Shopware\Core\System\Snippet\Command\Util\CountryAgnosticFileLinter;
+use Shopware\Core\System\Snippet\Struct\LintedTranslationFileOptions;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Twig\Extension\ExtensionInterface;
+use Twig\Loader\ArrayLoader;
+use Twig\Environment;
 
 /**
  * Prüft die PHP-, Twig-, Übersetzungs- und Asset-Grenzen der Storefront-Komponente.
@@ -139,6 +147,36 @@ final class LabelTemplateTest extends TestCase
         self::assertSame(1, preg_match_all('/{%-?\s*endblock\s*-?%}/', $template));
         self::assertSame(1, substr_count($template, 'badge.html.twig'));
         self::assertStringContainsString('mgd-ai-labeled-media', $template);
+        self::assertStringContainsString('mgd-ai-labeled-media--fill', $template);
+        self::assertStringContainsString('mgd-ai-labeled-media--intrinsic', $template);
+        self::assertStringContainsString('intrinsicLayout is same as(true)', $template);
+        self::assertStringNotContainsString('layoutClass', $template);
+    }
+
+    public function testLabeledMediaRendersOnlyFixedBooleanLayoutModes(): void
+    {
+        $template = $this->readResource('views/storefront/component/mgd-ai-image-label/labeled-media.html.twig');
+        $template = str_replace(
+            [
+                '{% sw_include',
+                "'@MGDAIImageLabels/storefront/component/mgd-ai-image-label/badge.html.twig'",
+            ],
+            ['{% include', "'badge'"],
+            $template,
+        );
+        $twig = new Environment(new ArrayLoader([
+            'labeled-media' => $template,
+            'badge' => '',
+        ]));
+
+        $defaultMarkup = $twig->render('labeled-media', ['label' => null]);
+        $intrinsicMarkup = $twig->render('labeled-media', ['label' => null, 'intrinsicLayout' => true]);
+        $manipulatedMarkup = $twig->render('labeled-media', ['label' => null, 'intrinsicLayout' => '<script>']);
+
+        self::assertStringContainsString('mgd-ai-labeled-media--fill', $defaultMarkup);
+        self::assertStringContainsString('mgd-ai-labeled-media--intrinsic', $intrinsicMarkup);
+        self::assertStringContainsString('mgd-ai-labeled-media--fill', $manipulatedMarkup);
+        self::assertStringNotContainsString('<script>', $manipulatedMarkup);
     }
 
     public function testStylesAreLocalAccessibleAndResponsive(): void
@@ -156,6 +194,13 @@ final class LabelTemplateTest extends TestCase
         self::assertMatchesRegularExpression('/@media\s*\([^)]*max-width/', $component);
         self::assertStringContainsString('#fff', $component);
         self::assertStringContainsString('#111', $component);
+        self::assertStringContainsString('--mgd-ai-safe-offset: clamp(0px, var(--mgd-ai-offset), max(0px, calc(50% - 1px)))', $component);
+        self::assertStringContainsString('max-width: calc(100% - (2 * var(--mgd-ai-safe-offset)))', $component);
+        self::assertGreaterThanOrEqual(2, substr_count($component, 'min-width: 0'));
+        foreach (['top', 'right', 'bottom', 'left'] as $inset) {
+            self::assertMatchesRegularExpression('/' . $inset . ':\s*var\(--mgd-ai-safe-offset\)/', $component);
+        }
+        self::assertDoesNotMatchRegularExpression('/(?:top|right|bottom|left):\s*var\(--mgd-ai-offset\)/', $component);
         self::assertDoesNotMatchRegularExpression('/https?:\/\//i', $allAssets);
         self::assertDoesNotMatchRegularExpression('/@import\s+url/i', $allAssets);
         self::assertDoesNotMatchRegularExpression('/@font-face|fonts?\.(?:googleapis|gstatic)/i', $allAssets);
@@ -164,9 +209,15 @@ final class LabelTemplateTest extends TestCase
     public function testGermanAndEnglishStorefrontSnippetsAreCompleteAndStructurallyEqual(): void
     {
         $german = $this->decodeJsonResource('snippet/de-DE/storefront.de-DE.json');
+        $neutralGerman = $this->decodeJsonResource('snippet/de-DE/storefront.de.json');
         $english = $this->decodeJsonResource('snippet/en-GB/storefront.en-GB.json');
+        $neutralEnglish = $this->decodeJsonResource('snippet/en-GB/storefront.en.json');
 
         self::assertSame($this->snippetPaths($german), $this->snippetPaths($english));
+        self::assertSame($this->snippetPaths($german), $this->snippetPaths($neutralGerman));
+        self::assertSame($this->snippetPaths($german), $this->snippetPaths($neutralEnglish));
+        self::assertSame($german, $neutralGerman);
+        self::assertSame($english, $neutralEnglish);
         self::assertSame([
             'mgd-ai-image-labels.screenReader.deepfake',
             'mgd-ai-image-labels.status.deepfake',
@@ -176,6 +227,58 @@ final class LabelTemplateTest extends TestCase
         ], $this->snippetPaths($german));
         self::assertSame('KI-GENERIERT', $this->snippetValue($german, 'mgd-ai-image-labels.status.generated'));
         self::assertSame('AI GENERATED', $this->snippetValue($english, 'mgd-ai-image-labels.status.generated'));
+    }
+
+    public function testStorefrontSnippetsPassShopwaresCountryAgnosticLinter(): void
+    {
+        // Shopware 6.6 kennt den 6.7-Linter noch nicht. Dort schützt derselbe
+        // Test weiterhin den von 6.7 geforderten neutralen Dateivertrag.
+        if (!class_exists(CountryAgnosticFileLinter::class) || !class_exists(LintedTranslationFileOptions::class)) {
+            foreach (['de-DE/storefront.de-DE.json' => 'de-DE/storefront.de.json', 'en-GB/storefront.en-GB.json' => 'en-GB/storefront.en.json'] as $regional => $neutral) {
+                self::assertFileExists(self::RESOURCE_ROOT . 'snippet/' . $regional);
+                self::assertFileExists(self::RESOURCE_ROOT . 'snippet/' . $neutral);
+            }
+
+            return;
+        }
+
+        $input = $this->createMock(InputInterface::class);
+        $input->method('getOption')->willReturnCallback(static function (string $option): mixed {
+            return match ($option) {
+                'extensions', 'ignore' => '',
+                'fix', 'all' => false,
+                'dir' => self::RESOURCE_ROOT . 'snippet',
+                default => throw new \LogicException('Unerwartete Linter-Option: ' . $option),
+            };
+        });
+        $options = LintedTranslationFileOptions::fromInputInterface($input);
+        $linter = new CountryAgnosticFileLinter(
+            new Filesystem(),
+            $this->createMock(EntityRepository::class),
+            $this->createMock(EntityRepository::class),
+            new Finder(),
+        );
+
+        $result = $linter->checkTranslationFiles($options);
+
+        self::assertCount(4, $result->getCompleteCollection());
+        self::assertCount(2, $result->getSpecificCollection());
+        self::assertCount(0, $result->getFixableFiles());
+    }
+
+    public function testTaskEightDocumentsTheRequiredFixedLayoutChoice(): void
+    {
+        $plan = file_get_contents(dirname(__DIR__, 2) . '/docs/superpowers/plans/2026-08-09-mgd-ai-kennzeichnung-shopware-6.md');
+        self::assertIsString($plan);
+
+        $remainingPlan = strstr($plan, '### Task 8:');
+        self::assertIsString($remainingPlan);
+        $taskNinePosition = strpos($remainingPlan, '### Task 9:');
+        self::assertIsInt($taskNinePosition);
+        $taskEight = substr($remainingPlan, 0, $taskNinePosition);
+        self::assertStringContainsString('intrinsicLayout', $taskEight);
+        self::assertStringContainsString('fill', $taskEight);
+        self::assertStringContainsString('intrinsic', $taskEight);
     }
 
     public function testServiceDefinitionRegistersTheCompatibleTwigExtension(): void

@@ -1,8 +1,10 @@
 {#
  # Gemeinsamer Rahmen für genau einen Medieninhalt und dessen Kennzeichnung.
- # Aufrufer überschreiben ausschließlich den Block „mediaContent“.
+ # Der sichere Standard „fill“ folgt dem verfügbaren Block. Nur Medien, deren
+ # Shopware-Layout ausdrücklich auf intrinsischer Inline-Breite beruht, erhalten
+ # vom Aufrufer das streng boolesche `intrinsicLayout: true`.
  #}
-<div class="mgd-ai-labeled-media">
+<div class="mgd-ai-labeled-media{% if intrinsicLayout is defined and intrinsicLayout is same as(true) %} mgd-ai-labeled-media--intrinsic{% else %} mgd-ai-labeled-media--fill{% endif %}">
     {% block mediaContent %}{% endblock %}
     {% sw_include '@MGDAIImageLabels/storefront/component/mgd-ai-image-label/badge.html.twig' with { label: label } only %}
 </div>

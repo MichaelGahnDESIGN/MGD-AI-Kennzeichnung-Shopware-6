@@ -1,17 +1,33 @@
 // Der Medienrahmen bildet den einzigen Bezugspunkt für die absolute Position.
 .mgd-ai-labeled-media {
     position: relative;
-    display: inline-block;
     max-width: 100%;
+    min-width: 0;
     line-height: 0;
+}
+
+.mgd-ai-labeled-media--fill {
+    display: block;
+    width: 100%;
+}
+
+// Dieser Modus ist nur für bewusst intrinsisch dimensionierte Inline-Medien gedacht.
+.mgd-ai-labeled-media--intrinsic {
+    display: inline-block;
+    width: auto;
+    vertical-align: top;
 }
 
 // Das Label blockiert weder Links noch Gesten auf dem gekennzeichneten Medium.
 .mgd-ai-image-label {
+    --mgd-ai-safe-offset: clamp(0px, var(--mgd-ai-offset), max(0px, calc(50% - 1px)));
+
     position: absolute;
     z-index: 2;
     display: inline-flex;
-    max-width: calc(100% - (2 * var(--mgd-ai-offset)));
+    box-sizing: border-box;
+    max-width: calc(100% - (2 * var(--mgd-ai-safe-offset)));
+    min-width: 0;
     padding: var(--mgd-ai-padding-y) var(--mgd-ai-padding-x);
     overflow-wrap: anywhere;
     color: #fff;
@@ -28,24 +44,29 @@
     transition: opacity 120ms ease-out;
 }
 
+.mgd-ai-image-label__text {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
 .mgd-ai-image-label--top-left {
-    top: var(--mgd-ai-offset);
-    left: var(--mgd-ai-offset);
+    top: var(--mgd-ai-safe-offset);
+    left: var(--mgd-ai-safe-offset);
 }
 
 .mgd-ai-image-label--top-right {
-    top: var(--mgd-ai-offset);
-    right: var(--mgd-ai-offset);
+    top: var(--mgd-ai-safe-offset);
+    right: var(--mgd-ai-safe-offset);
 }
 
 .mgd-ai-image-label--bottom-left {
-    bottom: var(--mgd-ai-offset);
-    left: var(--mgd-ai-offset);
+    bottom: var(--mgd-ai-safe-offset);
+    left: var(--mgd-ai-safe-offset);
 }
 
 .mgd-ai-image-label--bottom-right {
-    right: var(--mgd-ai-offset);
-    bottom: var(--mgd-ai-offset);
+    right: var(--mgd-ai-safe-offset);
+    bottom: var(--mgd-ai-safe-offset);
 }
 
 .mgd-ai-image-label--theme-light {
@@ -72,7 +93,6 @@
 // Auf kleinen Bildern bleiben Text und Innenabstände lesbar, aber zurückhaltend.
 @media (max-width: 575.98px) {
     .mgd-ai-image-label {
-        max-width: calc(100% - (2 * min(var(--mgd-ai-offset), 8px)));
         padding: min(var(--mgd-ai-padding-y), 6px) min(var(--mgd-ai-padding-x), 10px);
         font-size: min(var(--mgd-ai-font-size), 13px);
     }

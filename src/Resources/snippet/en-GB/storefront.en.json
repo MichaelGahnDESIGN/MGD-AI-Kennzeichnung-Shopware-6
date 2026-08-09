@@ -1,0 +1,13 @@
+{
+    "mgd-ai-image-labels": {
+        "status": {
+            "generated": "AI GENERATED",
+            "partiallyGenerated": "PARTIALLY AI-GENERATED",
+            "modified": "AI-MODIFIED",
+            "deepfake": "DEEPFAKE"
+        },
+        "screenReader": {
+            "deepfake": "Notice: This image is labeled as a deepfake."
+        }
+    }
+}
