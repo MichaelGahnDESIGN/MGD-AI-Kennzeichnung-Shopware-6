@@ -149,6 +149,46 @@ final class DisplayConfigurationNormalizerTest extends TestCase
     }
 
     /**
+     * Nichttextliche Auswahlwerte dürfen niemals an die Anzeige gelangen.
+     * Jede Kombination aus Feld und unerwartetem Typ fällt feldweise auf den
+     * passenden sicheren Standard zurück.
+     *
+     * @param mixed $invalidValue
+     */
+    #[DataProvider('invalidSelectionValueProvider')]
+    public function testNormalizeRejectsNonStringSelectionValues(string $field, mixed $invalidValue, string $expectedValue): void
+    {
+        $configuration = (new DisplayConfigurationNormalizer())->normalize([
+            $field => $invalidValue,
+        ]);
+
+        $actualValue = match ($field) {
+            'position' => $configuration->position,
+            'theme' => $configuration->theme,
+            'language' => $configuration->language,
+            default => throw new \LogicException('Der Test kennt nur Auswahlfelder der Anzeige-Konfiguration.'),
+        };
+
+        self::assertSame($expectedValue, $actualValue);
+    }
+
+    /**
+     * @return iterable<string, array{string, mixed, string}>
+     */
+    public static function invalidSelectionValueProvider(): iterable
+    {
+        yield 'Position als Array' => ['position', ['top-left'], 'bottom-right'];
+        yield 'Position als Objekt' => ['position', new \stdClass(), 'bottom-right'];
+        yield 'Position als Integer' => ['position', 1, 'bottom-right'];
+        yield 'Theme als Array' => ['theme', ['light'], 'auto'];
+        yield 'Theme als Objekt' => ['theme', new \stdClass(), 'auto'];
+        yield 'Theme als Integer' => ['theme', 1, 'auto'];
+        yield 'Sprache als Array' => ['language', ['de'], 'auto'];
+        yield 'Sprache als Objekt' => ['language', new \stdClass(), 'auto'];
+        yield 'Sprache als Integer' => ['language', 1, 'auto'];
+    }
+
+    /**
      * Die Positivlisten dürfen keine Varianten, Leerzeichen oder freie Werte
      * akzeptieren. Jede erlaubte Alternative wird zugleich explizit geprüft.
      *

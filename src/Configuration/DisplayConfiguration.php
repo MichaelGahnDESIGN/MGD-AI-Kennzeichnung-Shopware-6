@@ -13,7 +13,7 @@ use MGDAIImageLabels\Domain\LabelTheme;
  *
  * Diese Klasse ist die zentrale fachliche Wahrheit für Standards und
  * Zahlenräume. Geschlossene Auswahllisten stammen ausschließlich aus den
- * passenden Domain-Enume. Ihr Konstruktor schützt die Invarianten auch bei
+ * passenden Domain-Enums. Ihr Konstruktor schützt die Invarianten auch bei
  * einer direkten Nutzung außerhalb des Normalizers.
  */
 final readonly class DisplayConfiguration

@@ -253,6 +253,7 @@ git commit -m "feat: validiere KI-Kennzeichnungen"
 - Create: `src/Resources/config/config.xml`
 - Test: `tests/Unit/Configuration/DisplayConfigurationNormalizerTest.php`
 - Test: `tests/Unit/Configuration/DisplayConfigurationProviderTest.php`
+- Test: `tests/Unit/Configuration/DisplayConfigurationConfigXmlTest.php`
 
 - [ ] **Step 1: Grenzwerte und Standards zuerst testen**
 
@@ -290,7 +291,7 @@ Expected: FAIL wegen fehlender Konfigurationsklassen.
 
 - [ ] **Step 3: Normalisierung und Anbieter implementieren**
 
-`DisplayConfiguration` enthält nur `readonly`-Werte. Der Normalizer akzeptiert ausschließlich echte Ganzzahlen in den freigegebenen Bereichen. `DisplayConfigurationProvider` liest mit `SystemConfigService::getDomain('MGDAIImageLabels.config.', $salesChannelId, true)`, entfernt den Präfix und normalisiert bei jedem Lesen erneut. Ein Unit-Test mockt `SystemConfigService` und prüft, dass die Verkaufskanal-ID weitergegeben wird.
+`DisplayConfiguration` enthält nur `readonly`-Werte. Der Normalizer akzeptiert ausschließlich echte Ganzzahlen in den freigegebenen Bereichen. `DisplayConfigurationProvider` ruft pro Lesen genau neunmal die öffentliche, cache-integrierte API `SystemConfigService::get()` auf: Die acht Darstellungswerte werden immer global mit `null` als Verkaufskanal-ID geladen, ausschließlich `language` mit der angefragten Verkaufskanal-ID und Shopwares globalem Fallback. Der Provider besitzt keinen eigenen Cache; Memoisierung und Invalidierung verbleiben bei Shopware. Unit-Tests prüfen die neun exakten Aufrufe für zwei gültige Verkaufskanal-IDs und `null`, die feldweise Normalisierung manipulierter Werte sowie den XML-Vertrag gegen die PHP-Domäne.
 
 - [ ] **Step 4: Native Konfigurationsfelder definieren**
 
@@ -298,9 +299,9 @@ Expected: FAIL wegen fehlender Konfigurationsklassen.
 
 - [ ] **Step 5: Konfiguration prüfen und committen**
 
-Run: `vendor/bin/phpunit tests/Unit/Configuration && xmllint --noout src/Resources/config/config.xml`
+Run: `vendor/bin/phpunit tests/Unit/Configuration && xmllint --noout src/Resources/config/config.xml && xmllint --noout --schema vendor/shopware/core/System/SystemConfig/Schema/config.xsd src/Resources/config/config.xml`
 
-Expected: alle Tests PASS; XML ist wohlgeformt.
+Expected: alle Tests PASS; XML ist wohlgeformt und entspricht dem Shopware-Systemkonfigurationsschema.
 
 ```bash
 git add src/Configuration src/Resources/config/config.xml tests/Unit/Configuration

@@ -26,6 +26,7 @@ final class DisplayConfigurationConfigXmlTest extends TestCase
         $cards = (new ConfigReader())->read(dirname(__DIR__, 3) . '/src/Resources/config/config.xml');
         $elements = $this->elementsByName($cards);
 
+        // Die feste Reihenfolge entspricht bewusst der Administrations-UX und ist deshalb ein harter Vertrag.
         self::assertSame([
             'language',
             'position',
@@ -93,8 +94,6 @@ final class DisplayConfigurationConfigXmlTest extends TestCase
         $actualOptions = $this->optionIds($element);
 
         self::assertSame($expectedOptions, $actualOptions);
-        self::assertSame([], array_values(array_diff($expectedOptions, $actualOptions)));
-        self::assertSame([], array_values(array_diff($actualOptions, $expectedOptions)));
     }
 
     /**
