@@ -13,30 +13,6 @@ namespace MGDAIImageLabels\Media;
  */
 final class MediaLabelMetadataNormalizer
 {
-    /** @var list<string> Die ausschließlich erlaubten Kennzeichnungsstatus. */
-    private const ALLOWED_STATUSES = [
-        'none',
-        'generated',
-        'partially-generated',
-        'modified',
-        'deepfake',
-    ];
-
-    /** @var list<string> Die ausschließlich erlaubten Positionen. */
-    private const ALLOWED_POSITIONS = [
-        'top-left',
-        'top-right',
-        'bottom-left',
-        'bottom-right',
-    ];
-
-    /** @var list<string> Die ausschließlich erlaubten Themes. */
-    private const ALLOWED_THEMES = [
-        'auto',
-        'light',
-        'dark',
-    ];
-
     /**
      * Liest die drei vorgesehenen KI-Custom-Fields und gibt ausschließlich
      * sichere Werte zurück.
@@ -51,8 +27,8 @@ final class MediaLabelMetadataNormalizer
     {
         return new MediaLabelMetadata(
             $this->normalizeStatus($customFields['mgd_ai_status'] ?? null),
-            $this->normalizeOptionalValue($customFields['mgd_ai_position'] ?? null, self::ALLOWED_POSITIONS),
-            $this->normalizeOptionalValue($customFields['mgd_ai_theme'] ?? null, self::ALLOWED_THEMES),
+            $this->normalizePosition($customFields['mgd_ai_position'] ?? null),
+            $this->normalizeTheme($customFields['mgd_ai_theme'] ?? null),
         );
     }
 
@@ -63,7 +39,7 @@ final class MediaLabelMetadataNormalizer
      */
     private function normalizeStatus(mixed $value): string
     {
-        if (!is_string($value) || !in_array($value, self::ALLOWED_STATUSES, true)) {
+        if (!is_string($value) || !MediaLabelMetadata::isAllowedStatus($value)) {
             return 'none';
         }
 
@@ -71,14 +47,27 @@ final class MediaLabelMetadataNormalizer
     }
 
     /**
-     * Prüft eine optionale Darstellungsangabe gegen ihre Positivliste.
+     * Prüft eine optionale Positionsangabe gegen die Domain-Positivliste.
      *
      * @param mixed $value Der ungeprüfte gespeicherte Feldwert.
-     * @param list<string> $allowedValues Die bytegenau erlaubten Werte.
      */
-    private function normalizeOptionalValue(mixed $value, array $allowedValues): ?string
+    private function normalizePosition(mixed $value): ?string
     {
-        if (!is_string($value) || !in_array($value, $allowedValues, true)) {
+        if (!is_string($value) || !MediaLabelMetadata::isAllowedPosition($value)) {
+            return null;
+        }
+
+        return $value;
+    }
+
+    /**
+     * Prüft eine optionale Theme-Angabe gegen die Domain-Positivliste.
+     *
+     * @param mixed $value Der ungeprüfte gespeicherte Feldwert.
+     */
+    private function normalizeTheme(mixed $value): ?string
+    {
+        if (!is_string($value) || !MediaLabelMetadata::isAllowedTheme($value)) {
             return null;
         }
 

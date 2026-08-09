@@ -13,6 +13,30 @@ namespace MGDAIImageLabels\Media;
  */
 final readonly class MediaLabelMetadata
 {
+    /** @var list<string> Die ausschließlich erlaubten Kennzeichnungsstatus. */
+    private const ALLOWED_STATUSES = [
+        'none',
+        'generated',
+        'partially-generated',
+        'modified',
+        'deepfake',
+    ];
+
+    /** @var list<string> Die ausschließlich erlaubten Positionen. */
+    private const ALLOWED_POSITIONS = [
+        'top-left',
+        'top-right',
+        'bottom-left',
+        'bottom-right',
+    ];
+
+    /** @var list<string> Die ausschließlich erlaubten Themes. */
+    private const ALLOWED_THEMES = [
+        'auto',
+        'light',
+        'dark',
+    ];
+
     /**
      * @param string $status Der geprüfte Kennzeichnungsstatus.
      * @param ?string $position Die optionale, geprüfte Position des Labels.
@@ -23,6 +47,41 @@ final readonly class MediaLabelMetadata
         public ?string $position,
         public ?string $theme,
     ) {
+        if (!self::isAllowedStatus($status)) {
+            throw new \InvalidArgumentException('Ungültiger KI-Kennzeichnungsstatus.');
+        }
+
+        if ($position !== null && !self::isAllowedPosition($position)) {
+            throw new \InvalidArgumentException('Ungültige Position für die KI-Kennzeichnung.');
+        }
+
+        if ($theme !== null && !self::isAllowedTheme($theme)) {
+            throw new \InvalidArgumentException('Ungültiges Theme für die KI-Kennzeichnung.');
+        }
+    }
+
+    /**
+     * Prüft, ob ein Status bytegenau für eine KI-Kennzeichnung erlaubt ist.
+     */
+    public static function isAllowedStatus(string $status): bool
+    {
+        return in_array($status, self::ALLOWED_STATUSES, true);
+    }
+
+    /**
+     * Prüft, ob eine Position bytegenau für eine KI-Kennzeichnung erlaubt ist.
+     */
+    public static function isAllowedPosition(string $position): bool
+    {
+        return in_array($position, self::ALLOWED_POSITIONS, true);
+    }
+
+    /**
+     * Prüft, ob ein Theme bytegenau für eine KI-Kennzeichnung erlaubt ist.
+     */
+    public static function isAllowedTheme(string $theme): bool
+    {
+        return in_array($theme, self::ALLOWED_THEMES, true);
     }
 
     /**

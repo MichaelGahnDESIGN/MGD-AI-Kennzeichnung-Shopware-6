@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MGDAIImageLabels\Tests\Unit\Media;
 
 use MGDAIImageLabels\Media\MediaLabelMetadataNormalizer;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -29,6 +30,84 @@ final class MediaLabelMetadataNormalizerTest extends TestCase
         self::assertSame('top-left', $result->position);
         self::assertSame('light', $result->theme);
         self::assertTrue($result->isVisible());
+    }
+
+    /**
+     * Jeder erlaubte Status muss durch den Normalizer unverändert erhalten
+     * bleiben; nur „none“ darf kein sichtbares Label erzeugen.
+     */
+    #[DataProvider('allowedStatusProvider')]
+    public function testNormalizeKeepsEveryAllowedStatus(string $status, bool $isVisible): void
+    {
+        $result = (new MediaLabelMetadataNormalizer())->normalize([
+            'mgd_ai_status' => $status,
+        ]);
+
+        self::assertSame($status, $result->status);
+        self::assertSame($isVisible, $result->isVisible());
+    }
+
+    /**
+     * @return iterable<string, array{string, bool}>
+     */
+    public static function allowedStatusProvider(): iterable
+    {
+        yield 'keine Kennzeichnung' => ['none', false];
+        yield 'vollständig generiert' => ['generated', true];
+        yield 'teilweise generiert' => ['partially-generated', true];
+        yield 'verändert' => ['modified', true];
+        yield 'Deepfake' => ['deepfake', true];
+    }
+
+    /**
+     * Jede erlaubte Position muss durch den Normalizer unverändert erhalten
+     * bleiben, wenn ein sichtbarer Kennzeichnungsstatus vorliegt.
+     */
+    #[DataProvider('allowedPositionProvider')]
+    public function testNormalizeKeepsEveryAllowedPosition(string $position): void
+    {
+        $result = (new MediaLabelMetadataNormalizer())->normalize([
+            'mgd_ai_status' => 'generated',
+            'mgd_ai_position' => $position,
+        ]);
+
+        self::assertSame($position, $result->position);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function allowedPositionProvider(): iterable
+    {
+        yield 'oben links' => ['top-left'];
+        yield 'oben rechts' => ['top-right'];
+        yield 'unten links' => ['bottom-left'];
+        yield 'unten rechts' => ['bottom-right'];
+    }
+
+    /**
+     * Jedes erlaubte Theme muss durch den Normalizer unverändert erhalten
+     * bleiben, wenn ein sichtbarer Kennzeichnungsstatus vorliegt.
+     */
+    #[DataProvider('allowedThemeProvider')]
+    public function testNormalizeKeepsEveryAllowedTheme(string $theme): void
+    {
+        $result = (new MediaLabelMetadataNormalizer())->normalize([
+            'mgd_ai_status' => 'generated',
+            'mgd_ai_theme' => $theme,
+        ]);
+
+        self::assertSame($theme, $result->theme);
+    }
+
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function allowedThemeProvider(): iterable
+    {
+        yield 'automatisch' => ['auto'];
+        yield 'hell' => ['light'];
+        yield 'dunkel' => ['dark'];
     }
 
     /**
