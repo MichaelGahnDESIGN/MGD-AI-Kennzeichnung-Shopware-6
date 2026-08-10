@@ -648,7 +648,10 @@ Das Administrations-Element bietet Medium, Mindesthöhe, horizontale und vertika
 
 Der Integrationstest wird nur hinter dem gemeinsamen sicheren Task-4-Preflight
 mit einer explizit validierten isolierten Testdatenbank gestartet und nutzt
-Shopwares Transaktions-Rollback. Ein kleiner Prüfsummen-/Reflection-Vertrag
+Shopwares Transaktions-Rollback. `addCallingPlugin()` und
+`setForceInstallPlugins(true)` garantieren dabei auch in einer frischen oder
+bereits initialisierten isolierten Testdatenbank den aktiven Plugin-Dienst.
+Ein kleiner Prüfsummen-/Reflection-Vertrag
 prüft pro Lauf ausschließlich die installierte offizielle Quelllinie. Der echte
 Kernel-, Administrations- und Storefront-Doppellauf für v6.6.10.22 sowie
 v6.7.13.0 bleibt ausdrücklich Bestandteil von Task 13.

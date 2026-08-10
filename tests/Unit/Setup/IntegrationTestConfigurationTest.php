@@ -58,8 +58,16 @@ final class IntegrationTestConfigurationTest extends TestCase
         self::assertStringContainsString('ShopwareTestDatabaseConfiguration::validate', $source);
         self::assertStringContainsString('->setLoadEnvFile(false)', $source);
         self::assertStringContainsString('->setDatabaseUrl($validatedDatabaseUrl)', $source);
+        self::assertStringContainsString("->addCallingPlugin(dirname(__DIR__, 3) . '/composer.json')", $source);
+        self::assertStringContainsString('->setForceInstallPlugins(true)', $source);
         self::assertStringContainsString("self::getContainer()->get(BackgroundImageCmsElementResolver::class)", $source);
         self::assertStringContainsString("self::getContainer()->get('media.repository')", $source);
+
+        $pluginPosition = strpos($source, '->addCallingPlugin(');
+        $bootstrapPosition = strpos($source, '->bootstrap();');
+        self::assertIsInt($pluginPosition);
+        self::assertIsInt($bootstrapPosition);
+        self::assertLessThan($bootstrapPosition, $pluginPosition);
     }
 
     /** Ohne ausdrückliche Freigabe beendet der vorgeschaltete Prozess den DAL-Test verständlich mit Fehler. */

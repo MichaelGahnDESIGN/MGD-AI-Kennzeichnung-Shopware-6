@@ -58,6 +58,8 @@ final class BackgroundImageCmsElementResolverTest extends TestCase
             ->setEnableCommercial(false)
             ->setLoadEnvFile(false)
             ->setDatabaseUrl($validatedDatabaseUrl)
+            ->addCallingPlugin(dirname(__DIR__, 3) . '/composer.json')
+            ->setForceInstallPlugins(true)
             ->bootstrap();
     }
 
