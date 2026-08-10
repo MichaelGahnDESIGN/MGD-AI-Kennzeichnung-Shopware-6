@@ -118,7 +118,6 @@ final class DocumentationAndReleaseTest extends TestCase
             'Administration headless testen' => 'npm run test:administration',
             'Storefront headless testen' => 'npm run test:storefront',
             'JSON und XML prüfen' => 'jq empty',
-            'Shopware-Erweiterung validieren' => 'shopware-cli --no-interaction extension validate "${{ steps.shopware-validation-copy.outputs.path }}"',
         ];
         foreach ($requiredCommands as $stepName => $command) {
             $run = $this->workflowStep($steps, $stepName)['run'] ?? null;
@@ -129,12 +128,6 @@ final class DocumentationAndReleaseTest extends TestCase
         $shopwareCliInstall = $this->workflowStep($steps, 'Shopware CLI in fester Version installieren')['run'] ?? null;
         self::assertIsString($shopwareCliInstall);
         self::assertStringContainsString('go install github.com/shopware/shopware-cli@0.15.12', $shopwareCliInstall);
-
-        $validationCopy = $this->workflowStep($steps, 'Shopware-Prüfkopie mit Release-Version vorbereiten');
-        self::assertSame('shopware-validation-copy', $validationCopy['id'] ?? null);
-        self::assertStringContainsString('mktemp -d', (string) ($validationCopy['run'] ?? ''));
-        self::assertStringContainsString('mgd-release-version', (string) ($validationCopy['run'] ?? ''));
-        self::assertStringContainsString('$composer["version"] = $releaseVersion;', (string) ($validationCopy['run'] ?? ''));
 
         $unitCommand = $this->workflowStep($steps, 'PHP-Unit-Tests ohne Datenbank ausführen')['run'] ?? '';
         self::assertStringNotContainsString('test:integration', (string) $unitCommand);
@@ -150,18 +143,32 @@ final class DocumentationAndReleaseTest extends TestCase
         );
 
         $releaseStep = $this->workflowStep($steps, 'Release-ZIP reproduzierbar bauen');
-        self::assertSame(
-            "github.event_name != 'pull_request' && matrix.shopware == '6.7' && matrix.php == '8.4'",
-            $releaseStep['if'] ?? null,
-        );
+        self::assertSame("matrix.shopware == '6.7' && matrix.php == '8.4'", $releaseStep['if'] ?? null);
         self::assertSame('bash scripts/build-release.sh', $releaseStep['run'] ?? null);
+
+        $validationStep = $this->workflowStep($steps, 'Ausgeliefertes Shopware-Erweiterungspaket validieren');
+        self::assertSame($releaseStep['if'] ?? null, $validationStep['if'] ?? null);
+        self::assertSame(
+            'shopware-cli --no-interaction extension validate dist/MGDAIImageLabels-0.1.0.zip',
+            $validationStep['run'] ?? null,
+        );
+        self::assertGreaterThan(
+            $this->workflowStepIndex($steps, 'Release-ZIP reproduzierbar bauen'),
+            $this->workflowStepIndex($steps, 'Ausgeliefertes Shopware-Erweiterungspaket validieren'),
+        );
+
+        $shopwareInstallStep = $this->workflowStep($steps, 'Shopware CLI in fester Version installieren');
+        self::assertSame($releaseStep['if'] ?? null, $shopwareInstallStep['if'] ?? null);
 
         $archiveTestStep = $this->workflowStep($steps, 'Release-ZIP prüfen');
         self::assertSame($releaseStep['if'] ?? null, $archiveTestStep['if'] ?? null);
         self::assertStringContainsString('testReleaseBuildIsSafeCompleteAndReproducible', (string) ($archiveTestStep['run'] ?? ''));
 
         $uploadStep = $this->workflowStep($steps, 'Release-ZIP als Artefakt bereitstellen');
-        self::assertSame($releaseStep['if'] ?? null, $uploadStep['if'] ?? null);
+        self::assertSame(
+            "github.event_name != 'pull_request' && matrix.shopware == '6.7' && matrix.php == '8.4'",
+            $uploadStep['if'] ?? null,
+        );
         self::assertSame(
             'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a',
             $uploadStep['uses'] ?? null,
@@ -185,6 +192,7 @@ final class DocumentationAndReleaseTest extends TestCase
 
         $serializedWorkflow = json_encode($workflow, JSON_THROW_ON_ERROR);
         self::assertStringNotContainsString('--no-check-' . 'version', $serializedWorkflow);
+        self::assertStringNotContainsString('extension validate ' . '.', $serializedWorkflow);
         self::assertStringNotContainsString('secrets.', $serializedWorkflow);
         self::assertStringNotContainsString('pull_request_target', $serializedWorkflow);
         self::assertStringNotContainsString('contents: write', (string) file_get_contents($workflowPath));
@@ -230,6 +238,13 @@ final class DocumentationAndReleaseTest extends TestCase
         $contributing = (string) file_get_contents(self::ROOT . '/CONTRIBUTING.md');
         self::assertStringContainsString('composer validate --strict', $contributing);
         self::assertStringNotContainsString('--no-check-' . 'version', $contributing);
+
+        $plan = (string) file_get_contents(self::ROOT . '/docs/superpowers/plans/2026-08-09-mgd-ai-kennzeichnung-shopware-6.md');
+        self::assertStringContainsString(
+            'bash scripts/build-release.sh && shopware-cli --no-interaction extension validate dist/MGDAIImageLabels-0.1.0.zip',
+            $plan,
+        );
+        self::assertStringNotContainsString('shopware-cli extension validate ' . '.', $plan);
     }
 
     public function testRequiredDocumentationIsCompleteAndSafeToPublish(): void

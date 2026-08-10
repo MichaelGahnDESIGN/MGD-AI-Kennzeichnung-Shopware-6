@@ -810,9 +810,11 @@ ungeprüften Pull Requests veröffentlicht.
 
 - [ ] **Step 4: Vollständige lokale Prüfung**
 
-Run: `composer validate --strict && vendor/bin/phpunit && vendor/bin/phpstan analyse -c phpstan.neon.dist && vendor/bin/php-cs-fixer fix --dry-run --diff && npm run test:administration && shopware-cli extension validate . && git diff --check && bash scripts/build-release.sh`
+Run: `composer validate --strict && vendor/bin/phpunit && vendor/bin/phpstan analyse -c phpstan.neon.dist && vendor/bin/php-cs-fixer fix --dry-run --diff && npm run test:administration && git diff --check && bash scripts/build-release.sh && shopware-cli --no-interaction extension validate dist/MGDAIImageLabels-0.1.0.zip`
 
-Expected: alle Befehle Exit-Code 0.
+Expected: alle Befehle Exit-Code 0. Die Shopware CLI prüft bewusst das
+tatsächlich auslieferbare, versionierte ZIP; der strikt validierte Quellbaum
+wird dafür weder verändert noch als abweichendes Plugin-Paket ausgegeben.
 
 - [ ] **Step 5: CI committen**
 
