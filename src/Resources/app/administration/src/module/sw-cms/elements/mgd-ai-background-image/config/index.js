@@ -7,7 +7,7 @@ import {
     normalizeBoolean,
     normalizeEditorialAltText,
     resolveBackgroundAltText,
-} from '../../../../../service/cms-background-config';
+} from '../../../../../service/cms-background-config.js';
 
 const { Mixin } = Shopware;
 

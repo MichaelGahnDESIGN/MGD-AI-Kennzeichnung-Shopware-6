@@ -2,7 +2,7 @@ import template from './config.html.twig';
 import {
     philosophyContentLanguageMixin,
     resolvePhilosophyContent,
-} from '../../../../../service/philosophy-content';
+} from '../../../../../service/philosophy-content.js';
 
 const { Mixin } = Shopware;
 

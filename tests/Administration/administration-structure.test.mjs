@@ -1,11 +1,73 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile, stat } from 'node:fs/promises';
+import { extname } from 'node:path';
+import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 
 const administrationRoot = new URL('../../src/Resources/app/administration/src/', import.meta.url);
 
 async function readAdministrationFile(relativePath) {
     return readFile(new URL(relativePath, administrationRoot), 'utf8');
+}
+
+/**
+ * Liest alle JavaScript-Dateien der Administration rekursiv ein. Der Test
+ * bleibt dadurch vollständig, wenn später weitere Komponenten hinzukommen.
+ */
+async function collectJavaScriptSources(directory = administrationRoot) {
+    const entries = await readdir(directory, { withFileTypes: true });
+    const sources = [];
+
+    for (const entry of entries) {
+        const fileUrl = new URL(entry.name, directory);
+
+        if (entry.isDirectory()) {
+            fileUrl.pathname += '/';
+            sources.push(...await collectJavaScriptSources(fileUrl));
+        } else if (entry.isFile() && entry.name.endsWith('.js')) {
+            sources.push({
+                fileUrl,
+                source: await readFile(fileUrl, 'utf8'),
+            });
+        }
+    }
+
+    return sources;
+}
+
+/**
+ * Nutzt Nodes echten ECMAScript-Parser statt regulärer Ausdrücke. So werden
+ * Kommentare oder Zeichenketten mit dem Wort `import` nicht fälschlich als
+ * Modulabhängigkeit gewertet.
+ */
+function parseStaticImports(sources) {
+    const parser = String.raw`
+        import { SourceTextModule } from 'node:vm';
+
+        let input = '';
+        for await (const chunk of process.stdin) input += chunk;
+
+        const sources = JSON.parse(input);
+        const imports = sources.map(({ identifier, source }) => ({
+            identifier,
+            specifiers: new SourceTextModule(source, { identifier }).dependencySpecifiers,
+        }));
+
+        process.stdout.write(JSON.stringify(imports));
+    `;
+    const input = sources.map(({ fileUrl, source }) => ({
+        identifier: fileUrl.href,
+        source,
+    }));
+    const result = spawnSync(
+        process.execPath,
+        ['--experimental-vm-modules', '--input-type=module', '--eval', parser],
+        { input: JSON.stringify(input), encoding: 'utf8' },
+    );
+
+    assert.equal(result.status, 0, result.stderr);
+
+    return JSON.parse(result.stdout);
 }
 
 /**
@@ -31,6 +93,29 @@ test('der Administrationseinstieg registriert deutsche und englische Snippets ex
     assert.match(main, /import enGB from '.\/snippet\/en-GB\.json';/);
     assert.match(main, /Shopware\.Locale\.extend\('de-DE', deDE\);/);
     assert.match(main, /Shopware\.Locale\.extend\('en-GB', enGB\);/);
+});
+
+test('alle relativen Administration-Imports benennen eine vorhandene Datei mit Endung', async () => {
+    const sources = await collectJavaScriptSources();
+    const parsedImports = parseStaticImports(sources);
+
+    for (const { identifier, specifiers } of parsedImports) {
+        for (const specifier of specifiers.filter((value) => value.startsWith('.'))) {
+            assert.notEqual(
+                extname(specifier),
+                '',
+                `${identifier}: Relativer Import ohne Dateiendung: ${specifier}`,
+            );
+
+            const importedFile = new URL(specifier, identifier);
+            const importedFileStat = await stat(importedFile).catch(() => null);
+
+            assert.ok(
+                importedFileStat?.isFile(),
+                `${identifier}: Relative Importdatei fehlt: ${specifier}`,
+            );
+        }
+    }
 });
 
 test('die Medienerweiterung erhält Shopwares native Custom Fields und ergänzt nur Bildmedien', async () => {

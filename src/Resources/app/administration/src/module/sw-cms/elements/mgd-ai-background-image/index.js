@@ -1,6 +1,6 @@
-import component from './component';
-import configComponent from './config';
-import previewComponent from './preview';
+import component from './component/index.js';
+import configComponent from './config/index.js';
+import previewComponent from './preview/index.js';
 
 Shopware.Component.register('sw-cms-el-mgd-ai-background-image', component);
 Shopware.Component.register('sw-cms-el-config-mgd-ai-background-image', configComponent);

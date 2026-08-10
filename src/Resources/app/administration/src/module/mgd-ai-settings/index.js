@@ -1,4 +1,4 @@
-import './page/mgd-ai-settings-index';
+import './page/mgd-ai-settings-index/index.js';
 
 /** Kleine Einstellungsseite für die bewusst manuell ausgelöste Seitenerstellung. */
 Shopware.Module.register('mgd-ai-settings', {

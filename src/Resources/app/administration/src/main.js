@@ -7,11 +7,11 @@
 import deDE from './snippet/de-DE.json';
 import enGB from './snippet/en-GB.json';
 
-import './component/mgd-ai-media-preview';
-import './extension/sw-media-quickinfo';
-import './module/sw-cms/elements/mgd-ai-background-image';
-import './module/sw-cms/elements/mgd-ai-philosophy';
-import './module/mgd-ai-settings';
+import './component/mgd-ai-media-preview/index.js';
+import './extension/sw-media-quickinfo/index.js';
+import './module/sw-cms/elements/mgd-ai-background-image/index.js';
+import './module/sw-cms/elements/mgd-ai-philosophy/index.js';
+import './module/mgd-ai-settings/index.js';
 
 /**
  * Deutsch und Englisch gehören bereits zu Shopwares Locale-Registry. `extend`

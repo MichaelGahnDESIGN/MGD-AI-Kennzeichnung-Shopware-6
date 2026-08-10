@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { access, readFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 const root = new URL('../../src/Resources/app/administration/src/', import.meta.url);
@@ -21,7 +21,7 @@ test('das CMS-Element ist vollständig und über den Administrationseinstieg reg
     const main = await read('main.js');
     const index = await read('module/sw-cms/elements/mgd-ai-background-image/index.js');
 
-    assert.match(main, /import '.\/module\/sw-cms\/elements\/mgd-ai-background-image';/);
+    assert.match(main, /import '.\/module\/sw-cms\/elements\/mgd-ai-background-image\/index\.js';/);
     assert.match(index, /name:\s*'mgd-ai-background-image'/);
     assert.match(index, /component:\s*'sw-cms-el-mgd-ai-background-image'/);
     assert.match(index, /configComponent:\s*'sw-cms-el-config-mgd-ai-background-image'/);
@@ -86,22 +86,6 @@ test('Komponente und Vorschau verwenden nur feste Klassen statt freier Styles', 
     assert.doesNotMatch(combined, /v-html|:style=|https?:\/\//);
     assert.match(combined, /normalizeBackgroundConfig/);
     assert.match(combined, /mgd-ai-background-image--height-/);
-});
-
-test('alle relativen JavaScript-Importe zeigen auf vorhandene Dateien', async () => {
-    for (const relativePath of [
-        'module/sw-cms/elements/mgd-ai-background-image/component/index.js',
-        'module/sw-cms/elements/mgd-ai-background-image/config/index.js',
-        'module/sw-cms/elements/mgd-ai-background-image/preview/index.js',
-    ]) {
-        const sourceUrl = new URL(relativePath, root);
-        const source = await read(relativePath);
-        const imports = [...source.matchAll(/from\s+'(\.\.[^']+)'/g)].map((match) => match[1]);
-
-        for (const importPath of imports) {
-            await access(new URL(`${importPath}.js`, sourceUrl));
-        }
-    }
 });
 
 test('deutsche und englische CMS-Snippets besitzen exakt dieselbe Struktur', async () => {

@@ -1,7 +1,7 @@
 import template from './component.html.twig';
 import './component.scss';
 
-import { normalizeBackgroundConfig } from '../../../../../service/cms-background-config';
+import { normalizeBackgroundConfig } from '../../../../../service/cms-background-config.js';
 
 const { Mixin } = Shopware;
 

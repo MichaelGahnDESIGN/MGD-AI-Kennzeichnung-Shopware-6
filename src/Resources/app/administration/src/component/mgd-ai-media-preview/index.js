@@ -4,7 +4,7 @@ import './mgd-ai-media-preview.scss';
 import {
     getPreviewPresentation,
     normalizePreviewState,
-} from '../../service/preview-state';
+} from '../../service/preview-state.js';
 
 /**
  * Zeigt ausschließlich eine lokale Vorschau der bereits am Medium gebundenen
