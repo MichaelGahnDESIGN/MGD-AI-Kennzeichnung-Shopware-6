@@ -9,5 +9,18 @@
 /.phpunit.result.cache
 /.phpstan-cache/
 
+# Playtests, Backups und Datenbankabzüge bleiben immer ausschließlich lokal.
+/PLAYTEST/
+/PlayTest/
+/BACKUPS/
+/Backups/
+*.sql
+*.sql.gz
+
+# Umgebungsdateien können Zugangsdaten enthalten. Nur bewusst anonymisierte
+# Beispieldateien dürfen versioniert werden.
+.env*
+!.env.example
+
 # Betriebssystem- und Editorreste.
 .DS_Store
