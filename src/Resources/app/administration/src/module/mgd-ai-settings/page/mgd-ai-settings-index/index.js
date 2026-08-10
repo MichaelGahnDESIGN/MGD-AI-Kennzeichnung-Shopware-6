@@ -1,4 +1,5 @@
 import template from './mgd-ai-settings-index.html.twig';
+import { preparePhilosophyPage } from '../../../../service/prepare-philosophy-page-api.js';
 
 const { Mixin } = Shopware;
 const UUID_PATTERN = /^[0-9a-f]{32}$/i;
@@ -6,7 +7,7 @@ const UUID_PATTERN = /^[0-9a-f]{32}$/i;
 /** Steuert ausschließlich die explizite Erstellung und sichere Navigation. */
 Shopware.Component.register('mgd-ai-settings-index', {
     template,
-    inject: ['acl'],
+    inject: ['acl', 'systemConfigApiService'],
     mixins: [Mixin.getByName('notification')],
 
     data() {
@@ -41,7 +42,7 @@ Shopware.Component.register('mgd-ai-settings-index', {
             this.cmsPageId = null;
             try {
                 const httpClient = Shopware.Application.getContainer('init').httpClient;
-                const response = await httpClient.post('/_action/mgd-ai-image-labels/philosophy-page');
+                const response = await preparePhilosophyPage(httpClient, this.systemConfigApiService);
                 const id = response?.data?.cmsPageId;
                 if (typeof response?.data?.created !== 'boolean' || typeof id !== 'string' || !UUID_PATTERN.test(id)) {
                     throw new TypeError('Unerwartete Antwortstruktur');
