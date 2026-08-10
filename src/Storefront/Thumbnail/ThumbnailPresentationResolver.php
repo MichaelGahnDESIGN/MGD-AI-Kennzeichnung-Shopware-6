@@ -36,8 +36,18 @@ final class ThumbnailPresentationResolver
         'cms-image-slider-thumbnails' => 'image-slider-image',
         'configurator-option-img-thumbnails' => 'product-detail-configurator-option-image',
         'line-item-img-thumbnails' => 'line-item-img',
-        'navigation-flyout-teaser-image-thumbnails' => 'navigation-flyout-teaser-image',
         'product-image-thumbnails' => 'product-image',
+    ];
+
+    /**
+     * Diese Logo-Bilder floaten in Shopware 6.6 und 6.7 rechts. Nur das exakte
+     * Name-Klassen-Paar darf den entsprechenden Rahmenmodus aktivieren.
+     *
+     * @var array<string, string>
+     */
+    private const FLOAT_END_CALLERS = [
+        'payment-method-image-thumbnails' => 'payment-method-image',
+        'shipping-method-image-thumbnails' => 'shipping-method-image',
     ];
 
     /**
@@ -66,11 +76,10 @@ final class ThumbnailPresentationResolver
         'footer-payment-image-thumbnails',
         'footer-shipping-image-thumbnails',
         'minimal-image-thumbnails',
-        'payment-method-image-thumbnails',
+        'navigation-flyout-teaser-image-thumbnails',
         'product-detail-manufacturer-image-thumbnails',
         'quickview-minimal-product-manufacturer-logo',
         'search-suggest-product-image-thumbnails',
-        'shipping-method-image-thumbnails',
     ];
 
     /** @var list<string> */
@@ -103,6 +112,11 @@ final class ThumbnailPresentationResolver
         $requiredClass = self::FILL_CALLERS[$safeName] ?? null;
         if ($requiredClass !== null && isset($classTokens[$requiredClass])) {
             return ThumbnailPresentation::fill();
+        }
+
+        $floatEndClass = self::FLOAT_END_CALLERS[$safeName] ?? null;
+        if ($floatEndClass !== null && isset($classTokens[$floatEndClass])) {
+            return ThumbnailPresentation::intrinsicFloatEnd();
         }
 
         $modeAwareCaller = self::MODE_AWARE_CALLERS[$safeName] ?? null;

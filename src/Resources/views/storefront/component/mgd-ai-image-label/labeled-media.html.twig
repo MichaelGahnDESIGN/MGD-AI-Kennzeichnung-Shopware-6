@@ -2,9 +2,11 @@
  # Gemeinsamer Rahmen für genau einen Medieninhalt und dessen Kennzeichnung.
  # Der sichere Standard „fill“ folgt dem verfügbaren Block. Nur Medien, deren
  # Shopware-Layout ausdrücklich auf intrinsischer Inline-Breite beruht, erhalten
- # vom Aufrufer das streng boolesche `intrinsicLayout: true`.
+ # vom Aufrufer das streng boolesche `intrinsicLayout: true`. Der ebenfalls
+ # streng boolesche Float-End-Modus ist nur für die geschlossenen Zahlungs- und
+ # Versandlogo-Verträge vorgesehen.
  #}
-<div class="mgd-ai-labeled-media{% if intrinsicLayout is defined and intrinsicLayout is same as(true) %} mgd-ai-labeled-media--intrinsic{% else %} mgd-ai-labeled-media--fill{% endif %}">
+<div class="mgd-ai-labeled-media{% if intrinsicLayout is defined and intrinsicLayout is same as(true) %} mgd-ai-labeled-media--intrinsic{% else %} mgd-ai-labeled-media--fill{% endif %}{% if floatEndLayout is defined and floatEndLayout is same as(true) %} mgd-ai-labeled-media--intrinsic-float-end{% endif %}">
     {% block mediaContent %}{% endblock %}
     <div class="mgd-ai-labeled-media__overlay">
         {% sw_include '@MGDAIImageLabels/storefront/component/mgd-ai-image-label/badge.html.twig' with { label: label } only %}

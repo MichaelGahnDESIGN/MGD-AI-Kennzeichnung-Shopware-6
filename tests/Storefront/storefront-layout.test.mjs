@@ -65,10 +65,28 @@ function fixture(id, layout, width, height, values, text, options = {}) {
  * dar. So werden Abmessungen und sichtbestimmende CSS-Eigenschaften verglichen.
  */
 function presentationPair(id, layout, mediaClass) {
-    const original = `<div class="geometry-slot"><div id="${id}-original" class="${mediaClass}"></div></div>`;
-    const wrapped = `<div class="geometry-slot"><div id="${id}-wrapper" class="mgd-ai-labeled-media mgd-ai-labeled-media--${layout}"><div id="${id}-wrapped" class="${mediaClass}"></div><div class="mgd-ai-labeled-media__overlay"></div></div></div>`;
+    const original = `<div id="${id}-original-slot" class="geometry-slot"><div id="${id}-original" class="${mediaClass}"></div></div>`;
+    const wrapped = `<div id="${id}-wrapped-slot" class="geometry-slot"><div id="${id}-wrapper" class="mgd-ai-labeled-media mgd-ai-labeled-media--${layout}"><div id="${id}-wrapped" class="${mediaClass}"></div><div class="mgd-ai-labeled-media__overlay"></div></div></div>`;
 
     return `<div class="geometry-pair geometry-${id}">${original}${wrapped}</div>`;
+}
+
+/** Ein echtes 160×90-SVG liefert dem Browser natürliche Bildabmessungen. */
+const naturalImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='90'%3E%3Crect width='160' height='90' fill='%232878b4'/%3E%3C/svg%3E";
+
+function naturalImagePair(id, layout, mediaClass) {
+    const original = `<div id="${id}-original-slot" class="geometry-slot"><img id="${id}-original" class="${mediaClass}" src="${naturalImage}" alt=""></div>`;
+    const wrapped = `<div id="${id}-wrapped-slot" class="geometry-slot"><div id="${id}-wrapper" class="mgd-ai-labeled-media mgd-ai-labeled-media--${layout}"><img id="${id}-wrapped" class="${mediaClass}" src="${naturalImage}" alt=""><div class="mgd-ai-labeled-media__overlay"></div></div></div>`;
+
+    return `<div class="geometry-pair geometry-${id}">${original}${wrapped}</div>`;
+}
+
+/** Bild und nachfolgender Text bilden Shopwares echte Float-Nachbarschaft nach. */
+function floatingMethodPair(id, mediaClass) {
+    const original = `<div class="method-slot"><div id="${id}-original-row" class="method-row"><img id="${id}-original" class="${mediaClass}" src="${naturalImage}" alt=""><span id="${id}-original-sibling">Beschreibung der Methode mit ausreichend langem Text</span></div></div>`;
+    const wrapped = `<div class="method-slot"><div id="${id}-wrapped-row" class="method-row"><div id="${id}-wrapper" class="mgd-ai-labeled-media mgd-ai-labeled-media--intrinsic mgd-ai-labeled-media--intrinsic-float-end"><img id="${id}-wrapped" class="${mediaClass}" src="${naturalImage}" alt=""><div class="mgd-ai-labeled-media__overlay"></div></div><span id="${id}-wrapped-sibling">Beschreibung der Methode mit ausreichend langem Text</span></div></div>`;
+
+    return `<div class="method-pair method-${id}">${original}${wrapped}</div>`;
 }
 
 function testDocument(css) {
@@ -102,14 +120,16 @@ body { margin: 0; font-size: 16px; }
 .geometry-logo .footer-logo-image { width: 100px; height: 35px; max-width: 100px; max-height: 35px; }
 .geometry-search .geometry-slot { width: 35px; height: 35px; }
 .geometry-search .search-suggest-product-image { width: 35px; height: 35px; max-width: 35px; max-height: 35px; }
-.geometry-payment .geometry-slot { width: 160px; }
-.geometry-payment .payment-method-image { width: 80px; height: 24px; max-height: 24px; }
 .geometry-configurator .geometry-slot { width: 52px; height: 52px; }
 .geometry-configurator .product-detail-configurator-option-image { width: 40px; height: 100%; }
 .geometry-image-slider .geometry-slot { width: 240px; }
 .geometry-image-slider .image-slider-image { width: 100%; height: 135px; }
-.geometry-navigation .geometry-slot { width: 310px; height: 250px; }
-.geometry-navigation .navigation-flyout-teaser-image { width: 100%; height: 100%; object-fit: cover; }
+.geometry-navigation .geometry-slot { width: 310px; }
+.geometry-navigation .img-fluid { max-width: 100%; height: auto; }
+.method-pair { display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; }
+.method-slot, .method-row { width: 320px; }
+.method-row { color: rgb(20, 20, 20); font-size: 16px; line-height: 20px; }
+.payment-method-image, .shipping-method-image { max-height: 24px; max-width: 100%; margin-right: 4px; margin-left: 4px; float: right; }
 .geometry-video .geometry-slot, .geometry-background .geometry-slot { width: 320px; height: 180px; }
 .geometry-video .video-placeholder-image, .geometry-background .cms-block-background { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
@@ -131,14 +151,16 @@ ${presentationPair('gallery-standard', 'intrinsic', 'gallery-slider-image')}
 ${presentationPair('cart', 'fill', 'line-item-img')}
 ${presentationPair('logo', 'intrinsic', 'footer-logo-image')}
 ${presentationPair('search', 'intrinsic', 'search-suggest-product-image')}
-${presentationPair('payment', 'intrinsic', 'payment-method-image')}
 ${presentationPair('configurator', 'fill', 'product-detail-configurator-option-image')}
 ${presentationPair('image-slider', 'fill', 'image-slider-image')}
-${presentationPair('navigation', 'fill', 'navigation-flyout-teaser-image')}
+${naturalImagePair('navigation', 'intrinsic', 'navigation-flyout-teaser-image img-fluid')}
 ${presentationPair('video', 'fill', 'video-placeholder-image')}
 ${presentationPair('background', 'fill', 'cms-block-background')}
+${floatingMethodPair('payment', 'payment-method-image')}
+${floatingMethodPair('shipping', 'shipping-method-image')}
 <script>
-(() => {
+(async () => {
+    await Promise.all([...document.images].map((image) => image.decode()));
     const ids = ['small-fill', 'small-intrinsic', 'flat-fill', 'minimum-fill-standard', 'minimum-intrinsic-maximum', 'large-fill-maximum', 'overflow-intrinsic'];
     const result = Object.fromEntries(ids.map((id) => {
         const wrapper = document.getElementById(id);
@@ -166,14 +188,14 @@ ${presentationPair('background', 'fill', 'cms-block-background')}
             text: badge.textContent,
         }];
     }));
-    const presentationIds = ['cms-standard', 'cms-cover', 'cms-stretch', 'listing', 'gallery-cover', 'gallery-standard', 'cart', 'logo', 'search', 'payment', 'configurator', 'image-slider', 'navigation', 'video', 'background'];
+    const presentationIds = ['cms-standard', 'cms-cover', 'cms-stretch', 'listing', 'gallery-cover', 'gallery-standard', 'cart', 'logo', 'search', 'configurator', 'image-slider', 'navigation', 'video', 'background'];
     result.presentationPairs = Object.fromEntries(presentationIds.map((id) => {
         const original = document.getElementById(id + '-original');
         const wrapped = document.getElementById(id + '-wrapped');
         const wrapper = document.getElementById(id + '-wrapper');
         const rectangle = (element) => {
             const value = element.getBoundingClientRect();
-            return { width: value.width, height: value.height };
+            return { left: value.left, top: value.top, right: value.right, bottom: value.bottom, width: value.width, height: value.height };
         };
         const paint = (element) => {
             const style = getComputedStyle(element);
@@ -187,7 +209,31 @@ ${presentationPair('background', 'fill', 'cms-block-background')}
             };
         };
 
-        return [id, { original: rectangle(original), wrapped: rectangle(wrapped), wrapper: rectangle(wrapper), originalPaint: paint(original), wrappedPaint: paint(wrapped) }];
+        return [id, {
+            original: rectangle(original),
+            wrapped: rectangle(wrapped),
+            wrapper: rectangle(wrapper),
+            originalSlot: rectangle(document.getElementById(id + '-original-slot')),
+            wrappedSlot: rectangle(document.getElementById(id + '-wrapped-slot')),
+            originalPaint: paint(original),
+            wrappedPaint: paint(wrapped),
+        }];
+    }));
+    result.methodPairs = Object.fromEntries(['payment', 'shipping'].map((id) => {
+        const rectangle = (element) => {
+            const value = element.getBoundingClientRect();
+            return { left: value.left, top: value.top, right: value.right, bottom: value.bottom, width: value.width, height: value.height };
+        };
+
+        return [id, {
+            original: rectangle(document.getElementById(id + '-original')),
+            wrapped: rectangle(document.getElementById(id + '-wrapped')),
+            wrapper: rectangle(document.getElementById(id + '-wrapper')),
+            originalRow: rectangle(document.getElementById(id + '-original-row')),
+            wrappedRow: rectangle(document.getElementById(id + '-wrapped-row')),
+            originalSibling: rectangle(document.getElementById(id + '-original-sibling')),
+            wrappedSibling: rectangle(document.getElementById(id + '-wrapped-sibling')),
+        }];
     }));
     document.body.dataset.result = encodeURIComponent(JSON.stringify(result));
 })();
@@ -389,7 +435,6 @@ test('Badges bleiben in echten kleinen und großen Mediengeometrien sicher', asy
             cart: [70, 70],
             configurator: [52, 52],
             'image-slider': [240, 135],
-            navigation: [310, 250],
             video: [320, 180],
             background: [320, 180],
         };
@@ -397,9 +442,24 @@ test('Badges bleiben in echten kleinen und großen Mediengeometrien sicher', asy
             assertSize(result.presentationPairs[id].wrapper, width, height, `${id}: Fill-Rahmen`);
         }
 
-        for (const id of ['cms-standard', 'gallery-standard', 'logo', 'search', 'payment']) {
+        for (const id of ['cms-standard', 'gallery-standard', 'logo', 'search', 'navigation']) {
             const pair = result.presentationPairs[id];
             assertSize(pair.wrapper, pair.original.width, pair.original.height, `${id}: Intrinsic-Rahmen`);
+        }
+
+        const navigation = result.presentationPairs.navigation;
+        assertSize(navigation.original, 160, 90, 'Navigation: natürliche Originalgröße');
+        assert.ok(Math.abs((navigation.original.left - navigation.originalSlot.left) - (navigation.wrapped.left - navigation.wrappedSlot.left)) < 0.1, 'Navigation: horizontale Position bleibt erhalten.');
+        assert.ok(Math.abs((navigation.original.top - navigation.originalSlot.top) - (navigation.wrapped.top - navigation.wrappedSlot.top)) < 0.1, 'Navigation: vertikale Position bleibt erhalten.');
+
+        for (const [id, pair] of Object.entries(result.methodPairs)) {
+            assertSize(pair.wrapped, pair.original.width, pair.original.height, `${id}: Logo`);
+            assertSize(pair.wrapper, pair.wrapped.width + 8, pair.wrapped.height, `${id}: Float-Rahmen einschließlich beider 4px-Bildränder`);
+            assert.ok(Math.abs((pair.original.left - pair.originalRow.left) - (pair.wrapped.left - pair.wrappedRow.left)) < 0.1, `${id}: Logo-x bleibt erhalten.`);
+            assert.ok(Math.abs((pair.original.top - pair.originalRow.top) - (pair.wrapped.top - pair.wrappedRow.top)) < 0.1, `${id}: Logo-y bleibt erhalten.`);
+            assert.ok(Math.abs((pair.originalSibling.left - pair.originalRow.left) - (pair.wrappedSibling.left - pair.wrappedRow.left)) < 0.1, `${id}: Geschwister-x bleibt erhalten.`);
+            assert.ok(Math.abs((pair.originalSibling.top - pair.originalRow.top) - (pair.wrappedSibling.top - pair.wrappedRow.top)) < 0.1, `${id}: Geschwister-y bleibt erhalten.`);
+            assertSize(pair.wrappedRow, pair.originalRow.width, pair.originalRow.height, `${id}: Elternzeile`);
         }
     } finally {
         await rm(temporaryDirectory, { recursive: true, force: true });

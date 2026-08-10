@@ -73,6 +73,7 @@ final class ThumbnailIntegrationTemplateTest extends TestCase
         self::assertSame(1, substr_count($template, 'labeled-media.html.twig'));
         self::assertStringContainsString('presentation.labelAllowed', $template);
         self::assertStringContainsString('presentation.intrinsicLayout', $template);
+        self::assertStringContainsString('presentation.floatEndLayout', $template);
         self::assertStringNotContainsString('|split', $template);
         self::assertStringNotContainsString('gallery-slider-thumbnails-image', $template);
     }
@@ -145,6 +146,9 @@ final class ThumbnailIntegrationTemplateTest extends TestCase
             ['product-image is-contain', 'product-image-thumbnails', null, 'fill'],
             ['cms-image', 'cms-image-thumbnails', 'standard', 'intrinsic'],
             ['img-fluid line-item-img', 'line-item-img-thumbnails', null, 'fill'],
+            ['navigation-flyout-teaser-image img-fluid', 'navigation-flyout-teaser-image-thumbnails', null, 'intrinsic'],
+            ['payment-method-image', 'payment-method-image-thumbnails', null, 'intrinsic-float-end'],
+            ['shipping-method-image', 'shipping-method-image-thumbnails', null, 'intrinsic-float-end'],
             ['not-gallery-slider-thumbnails-image', 'theme-thumbnail', null, 'intrinsic'],
         ] as [$includedClass, $name, $displayMode, $layout]) {
             $output = $this->renderOverride(
@@ -157,8 +161,8 @@ final class ThumbnailIntegrationTemplateTest extends TestCase
             self::assertStringContainsString('mgd-ai-labeled-media--' . $layout, $output, $includedClass);
         }
 
-        self::assertSame(6, $labelResolverCalls);
-        self::assertSame(6, $presentationResolverCalls);
+        self::assertSame(9, $labelResolverCalls);
+        self::assertSame(9, $presentationResolverCalls);
     }
 
     public function testMissingOptionalAttributesDoNotExcludeCmsImages(): void
@@ -212,7 +216,7 @@ final class ThumbnailIntegrationTemplateTest extends TestCase
         array $additionalContext = [],
     ): string {
         $labeledMedia = <<<'TWIG'
-<div class="mgd-ai-labeled-media{% if intrinsicLayout is defined and intrinsicLayout is same as(true) %} mgd-ai-labeled-media--intrinsic{% else %} mgd-ai-labeled-media--fill{% endif %}">{% block mediaContent %}{% endblock %}<span class="mgd-ai-test-badge"></span></div>
+<div class="mgd-ai-labeled-media{% if intrinsicLayout is defined and intrinsicLayout is same as(true) %} mgd-ai-labeled-media--intrinsic{% else %} mgd-ai-labeled-media--fill{% endif %}{% if floatEndLayout is defined and floatEndLayout is same as(true) %} mgd-ai-labeled-media--intrinsic-float-end{% endif %}">{% block mediaContent %}{% endblock %}<span class="mgd-ai-test-badge"></span></div>
 TWIG;
         $twig = new Environment(
             new ArrayLoader([

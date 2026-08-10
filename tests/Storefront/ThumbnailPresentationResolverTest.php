@@ -103,11 +103,6 @@ final class ThumbnailPresentationResolverTest extends TestCase
             ['class' => "product-detail-configurator-option-image\fh-100"],
             null,
         ];
-        yield 'Navigationsteaser' => [
-            'navigation-flyout-teaser-image-thumbnails',
-            ['class' => "navigation-flyout-teaser-image\nimg-fluid"],
-            null,
-        ];
         yield 'Galerie Cover' => [
             'gallery-slider-image-thumbnails',
             ['class' => 'gallery-slider-image js-image-zoom-element'],
@@ -157,8 +152,7 @@ final class ThumbnailPresentationResolverTest extends TestCase
         yield 'Quickview-Herstellerlogo' => ['quickview-minimal-product-manufacturer-logo', ['class' => 'quickview-minimal-product-manufacturer-logo'], null];
         yield 'altes Produktdetail-Herstellerlogo' => ['product-detail-manufacturer-image-thumbnails', ['class' => 'product-detail-manufacturer-logo'], null];
         yield 'Suchvorschau' => ['search-suggest-product-image-thumbnails', ['class' => 'search-suggest-product-image'], null];
-        yield 'Zahlungsart' => ['payment-method-image-thumbnails', ['class' => 'payment-method-image'], null];
-        yield 'Versandart' => ['shipping-method-image-thumbnails', ['class' => 'shipping-method-image'], null];
+        yield 'Navigationsteaser' => ['navigation-flyout-teaser-image-thumbnails', ['class' => "navigation-flyout-teaser-image\nimg-fluid"], null];
         yield 'Footer-Zahlungslogo' => ['footer-payment-image-thumbnails', ['class' => 'img-fluid footer-logo-image'], null];
         yield 'Footer-Versandlogo' => ['footer-shipping-image-thumbnails', ['class' => 'img-fluid footer-logo-image'], null];
         yield 'unbekannter Name trotz freiem Coverwert' => ['theme-controlled-thumbnail', ['class' => 'theme-image'], ['displayMode' => 'cover']];
@@ -167,6 +161,34 @@ final class ThumbnailPresentationResolverTest extends TestCase
         yield 'Alt-Text ist keine Klasse' => ['theme-controlled-thumbnail', ['alt' => 'gallery-slider-thumbnails-image'], null];
         yield 'manipulierte Typen' => [new \stdClass(), ['class' => [42, false, new \stdClass()]], ['displayMode' => new \stdClass()]];
         yield 'sehr tief verschachtelte Eingabe' => ['theme-controlled-thumbnail', ['class' => [[[[[[[[[[['gallery-slider-image']]]]]]]]]]]], null];
+    }
+
+    #[DataProvider('floatingMethodLogoCallers')]
+    public function testUsesClosedFloatEndVariantOnlyForOfficialMethodLogos(string $name, string $class): void
+    {
+        self::assertEquals(
+            ThumbnailPresentation::intrinsicFloatEnd(),
+            (new ThumbnailPresentationResolver())->resolve($name, ['class' => $class]),
+        );
+    }
+
+    /** @return iterable<string, array{string, string}> */
+    public static function floatingMethodLogoCallers(): iterable
+    {
+        yield 'Zahlungsart' => ['payment-method-image-thumbnails', 'payment-method-image'];
+        yield 'Versandart' => ['shipping-method-image-thumbnails', 'shipping-method-image'];
+    }
+
+    public function testDoesNotExposeFloatEndVariantThroughFreeThemeValues(): void
+    {
+        self::assertEquals(
+            ThumbnailPresentation::intrinsic(),
+            (new ThumbnailPresentationResolver())->resolve(
+                'theme-controlled-thumbnail',
+                ['class' => 'payment-method-image shipping-method-image'],
+                ['floatEndLayout' => true],
+            ),
+        );
     }
 
     #[DataProvider('galleryNavigationInputs')]

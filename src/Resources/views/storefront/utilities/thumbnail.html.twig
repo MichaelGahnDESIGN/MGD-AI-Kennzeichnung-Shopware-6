@@ -29,6 +29,7 @@
         {%- sw_embed '@MGDAIImageLabels/storefront/component/mgd-ai-image-label/labeled-media.html.twig' with {
             label: label,
             intrinsicLayout: presentation.intrinsicLayout,
+            floatEndLayout: presentation.floatEndLayout,
             thumbnailContent: thumbnailContent
         } only -%}
             {%- block mediaContent -%}{{- thumbnailContent -}}{%- endblock -%}
