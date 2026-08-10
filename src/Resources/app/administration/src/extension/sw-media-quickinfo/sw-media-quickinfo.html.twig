@@ -1,5 +1,5 @@
 {% block sw_media_quickinfo_custom_field_sets %}
-    {{ parent() }}
+    {% parent %}
 
     <mgd-ai-media-preview
         v-if="item.mediaType && item.mediaType.name === 'IMAGE'"

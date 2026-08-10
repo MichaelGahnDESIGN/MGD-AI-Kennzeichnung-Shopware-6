@@ -36,6 +36,33 @@ async function collectJavaScriptSources(directory = administrationRoot) {
 }
 
 /**
+ * Liest alle Administration-Templates rekursiv ein. Shopwares Administration
+ * verwendet für die Template-Vererbung eine eigene TwigJS-Erweiterung; der
+ * vollständige Bestand verhindert, dass ein späterer Override versehentlich
+ * die gleichnamige Storefront-Syntax übernimmt.
+ */
+async function collectAdministrationTemplates(directory = administrationRoot) {
+    const entries = await readdir(directory, { withFileTypes: true });
+    const templates = [];
+
+    for (const entry of entries) {
+        const fileUrl = new URL(entry.name, directory);
+
+        if (entry.isDirectory()) {
+            fileUrl.pathname += '/';
+            templates.push(...await collectAdministrationTemplates(fileUrl));
+        } else if (entry.isFile() && entry.name.endsWith('.html.twig')) {
+            templates.push({
+                fileUrl,
+                source: await readFile(fileUrl, 'utf8'),
+            });
+        }
+    }
+
+    return templates;
+}
+
+/**
  * Nutzt Nodes echten ECMAScript-Parser statt regulärer Ausdrücke. So werden
  * Kommentare oder Zeichenketten mit dem Wort `import` nicht fälschlich als
  * Modulabhängigkeit gewertet.
@@ -118,14 +145,27 @@ test('alle relativen Administration-Imports benennen eine vorhandene Datei mit E
     }
 });
 
+test('Administration-Overrides verwenden ausschließlich Shopwares TwigJS-Parent-Tag', async () => {
+    const templates = await collectAdministrationTemplates();
+
+    for (const { fileUrl, source } of templates) {
+        assert.doesNotMatch(
+            source,
+            /\{\{\s*parent\s*\(\s*\)\s*\}\}/,
+            `${fileUrl.href}: Die Storefront-Syntax {{ parent() }} ist in der Administration ungültig.`,
+        );
+    }
+});
+
 test('die Medienerweiterung erhält Shopwares native Custom Fields und ergänzt nur Bildmedien', async () => {
     const template = await readAdministrationFile('extension/sw-media-quickinfo/sw-media-quickinfo.html.twig');
 
-    const parentPosition = template.indexOf('parent()');
+    const parentTags = template.match(/\{%\s*parent\s*%\}/g) ?? [];
+    const parentPosition = template.search(/\{%\s*parent\s*%\}/);
     const previewPosition = template.indexOf('<mgd-ai-media-preview');
 
     assert.match(template, /block sw_media_quickinfo_custom_field_sets/);
-    assert.ok(parentPosition >= 0, 'Der native Inhalt muss über parent() erhalten bleiben.');
+    assert.equal(parentTags.length, 1, 'Der native Inhalt muss genau einmal über {% parent %} erhalten bleiben.');
     assert.ok(previewPosition > parentPosition, 'Die Vorschau muss nach Shopwares nativen Feldern stehen.');
     assert.match(template, /item\.mediaType && item\.mediaType\.name === 'IMAGE'/);
 });
