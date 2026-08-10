@@ -10,6 +10,8 @@ Das Plugin trennt gespeicherte Redaktionseingaben, geprüfte Fachwerte und die s
 
 `src/MGDAIImageLabels.php` koordiniert Installation, Update und Deinstallation. `src/Setup/CustomFieldSetDefinitionFactory.php` erzeugt das eigene Custom-Field-Set mit reproduzierbaren IDs. `src/Setup/CustomFieldSetInstaller.php` prüft vor jeder Änderung Name und Eigentum. Dadurch werden gleichnamige oder kollidierende fremde Datensätze nicht überschrieben.
 
+`ConfigurationRetentionService` koordiniert den Konfigurations-Datenerhalt. `ConfigurationKeys` ist die einzige Positivliste der exakt neun erlaubten Schlüssel. `ConfigurationBackupStorage` liest diese Werte bei einer Keep-Deinstallation direkt aus `system_config`, damit globale und verkaufskanalspezifische Einträge unabhängig vom Aktivierungszustand erfasst werden. Beim Reinstall läuft die Wiederherstellung in `plugin->install()`, nachdem Shopware seine Standardwerte geschrieben hat. Der verbrauchte Snapshot wird in derselben Transaktion gelöscht. Ein normaler Update- oder Installationslauf ohne Snapshot kann deshalb keine alten Werte zurückspielen.
+
 Die drei Medienfelder sind bewusst geschlossen:
 
 - `mgd_ai_status`: fachlicher KI-Status
@@ -50,7 +52,9 @@ Die KI-Philosophie ist ein eigenes CMS-Element mit bereinigtem HTML aus einer en
 
 ## Datenbankentscheidungen
 
-Das Plugin erstellt keine eigene Tabelle. Es nutzt Shopwares Systemkonfiguration, Medien-Custom-Fields und auf ausdrückliche Aktion die Standard-CMS-Entitäten. Das reduziert Migrationen, Zugriffsflächen und Abhängigkeiten. Eine feste Set-ID sowie Eigentumsprüfungen schützen fremde Datensätze.
+Das Plugin nutzt Shopwares Systemkonfiguration, Medien-Custom-Fields und auf ausdrückliche Aktion die Standard-CMS-Entitäten. Zusätzlich existiert genau eine kleine technische Tabelle `mgd_ai_image_labels_config_backup`. Sie enthält eine zufällige technische ID, einen positiv gelisteten Konfigurationsschlüssel, optional die Verkaufskanal-ID, den erwarteten Skalartyp, den Shopware-JSON-Wert und Zeitstempel. Sie enthält keine Bilder, Kunden-, Bestell-, Zahlungs-, Konto- oder Sitzungsdaten.
+
+Der Snapshot wird vor jeder Keep-Deinstallation vollständig ersetzt. Ein vollständiger und typgeprüfter Restore löscht ihn sofort; eine fehlgeschlagene Wiederherstellung rollt alle Änderungen zurück und behält ihn für eine kontrollierte Fehlerbehebung. Ohne Datenerhalt wird die Tabelle explizit entfernt. Feste Set-IDs sowie Eigentumsprüfungen schützen weiterhin fremde Custom-Field-Datensätze.
 
 ## Fehler- und Rückfallverhalten
 

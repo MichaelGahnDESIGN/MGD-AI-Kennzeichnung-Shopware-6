@@ -16,7 +16,7 @@ Das Plugin verwendet:
 - die Sprache und ID des aktuellen Verkaufskanals zur Ausgabe
 - auf ausdrückliche Admin-Aktion ein unverknüpftes Erlebniswelten-Layout mit redaktionellem Text
 
-Die Werte werden in Shopwares vorhandenen Datenstrukturen gespeichert. Es gibt keine eigene Tracking-ID, kein Nutzerprofil und keine eigene Datenbanktabelle. Das Plugin schreibt keine Zahlungs-, Bestell-, Adress-, E-Mail-, Konto- oder Sitzungsdaten.
+Die Werte werden überwiegend in Shopwares vorhandenen Datenstrukturen gespeichert. Für eine Reinstallation nach **Benutzerdaten behalten** nutzt das Plugin zusätzlich die kleine Tabelle `mgd_ai_image_labels_config_backup`. Darin stehen ausschließlich die exakt neun eigenen Konfigurationsschlüssel, deren globale oder verkaufskanalspezifische Zuordnung, Skalartyp, JSON-Wert und technische Zeitstempel. Es gibt keine Tracking-ID und kein Nutzerprofil. Das Plugin schreibt keine Bild-, Zahlungs-, Bestell-, Adress-, E-Mail-, Konto- oder Sitzungsdaten in diese Tabelle.
 
 ## Keine externe Übertragung
 
@@ -48,7 +48,9 @@ Sicherheitsberichte dürfen keine echten Zugangsdaten, Kundendaten, Datenbankexp
 
 ## Aufbewahrung und Löschung
 
-Kennzeichnungswerte bleiben so lange am Medium gespeichert, wie der Shop sie benötigt. Bei einer Deinstallation mit Shopwares Option **Benutzerdaten behalten** bleiben das plugin-eigene Custom-Field-Set und die Plugin-Systemkonfiguration bestehen. Ohne diese Option löscht das Plugin sein eindeutig eigenes Set; Shopwares Kaskade entfernt dessen Felddefinitionen und Medienrelation. Shopwares Plugin-Lebenszyklus löscht außerdem die Plugin-Systemkonfiguration.
+Kennzeichnungswerte bleiben so lange am Medium gespeichert, wie der Shop sie benötigt. Bei einer Deinstallation mit Shopwares Option **Benutzerdaten behalten** bleiben das plugin-eigene Custom-Field-Set und die Plugin-Systemkonfiguration bestehen. Ein lokaler Snapshot bewahrt die neun Einstellungen über Shopwares Default-Import beim Reinstall. Nach erfolgreicher Wiederherstellung wird dieser Snapshot atomar gelöscht; bei einem Fehler bleibt er unverändert erhalten, damit keine Teilwiederherstellung unbemerkt fortgesetzt wird.
+
+Ohne Datenerhalt löscht das Plugin sein eindeutig eigenes Set und die vollständige Snapshot-Tabelle; Shopwares Kaskade entfernt Felddefinitionen und Medienrelation. Shopwares Plugin-Lebenszyklus löscht außerdem die Plugin-Systemkonfiguration. Fremde Schlüssel, Tabellen und Konfigurationen sind weder Teil der Positivliste noch Ziel einer Löschung.
 
 Die Medienentität speichert Custom-Field-Werte als JSON. Das Entfernen der Definition löscht diese drei JSON-Schlüssel nicht nachweisbar aus jedem bestehenden Medium; sie können als technisch ungenutzte Werte verbleiben. Das vermeidet eine schwer kontrollierbare Massenänderung an Medien, bedeutet aber auch, dass eine vollständige fachliche Datenlöschung einen separaten, vorher gesicherten und in Staging geprüften Bereinigungslauf benötigt. Bilddateien, fremde Felder und andere Medienwerte bleiben unberührt.
 

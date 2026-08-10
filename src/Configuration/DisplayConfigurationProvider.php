@@ -14,33 +14,6 @@ use Shopware\Core\System\SystemConfig\SystemConfigService;
  */
 final class DisplayConfigurationProvider
 {
-    /** Schlüssel der globalen Schriftgröße. */
-    private const CONFIG_KEY_FONT_SIZE = 'MGDAIImageLabels.config.fontSize';
-
-    /** Schlüssel des globalen Bildrandabstands. */
-    private const CONFIG_KEY_OFFSET = 'MGDAIImageLabels.config.offset';
-
-    /** Schlüssel des globalen vertikalen Innenabstands. */
-    private const CONFIG_KEY_PADDING_Y = 'MGDAIImageLabels.config.paddingY';
-
-    /** Schlüssel des globalen horizontalen Innenabstands. */
-    private const CONFIG_KEY_PADDING_X = 'MGDAIImageLabels.config.paddingX';
-
-    /** Schlüssel des globalen Eckenradius. */
-    private const CONFIG_KEY_RADIUS = 'MGDAIImageLabels.config.radius';
-
-    /** Schlüssel der globalen Hintergrundunschärfe. */
-    private const CONFIG_KEY_BLUR = 'MGDAIImageLabels.config.blur';
-
-    /** Schlüssel der globalen Position. */
-    private const CONFIG_KEY_POSITION = 'MGDAIImageLabels.config.position';
-
-    /** Schlüssel des globalen Themes. */
-    private const CONFIG_KEY_THEME = 'MGDAIImageLabels.config.theme';
-
-    /** Schlüssel der optional verkaufskanalspezifischen Sprache. */
-    private const CONFIG_KEY_LANGUAGE = 'MGDAIImageLabels.config.language';
-
     /**
      * @param SystemConfigService $systemConfigService Shopwares Dienst für Systemkonfigurationen.
      * @param DisplayConfigurationNormalizer $normalizer Prüft alle gelesenen Werte.
@@ -62,15 +35,15 @@ final class DisplayConfigurationProvider
     public function get(?string $salesChannelId = null): DisplayConfiguration
     {
         return $this->normalizer->normalize([
-            'fontSize' => $this->systemConfigService->get(self::CONFIG_KEY_FONT_SIZE),
-            'offset' => $this->systemConfigService->get(self::CONFIG_KEY_OFFSET),
-            'paddingY' => $this->systemConfigService->get(self::CONFIG_KEY_PADDING_Y),
-            'paddingX' => $this->systemConfigService->get(self::CONFIG_KEY_PADDING_X),
-            'radius' => $this->systemConfigService->get(self::CONFIG_KEY_RADIUS),
-            'blur' => $this->systemConfigService->get(self::CONFIG_KEY_BLUR),
-            'position' => $this->systemConfigService->get(self::CONFIG_KEY_POSITION),
-            'theme' => $this->systemConfigService->get(self::CONFIG_KEY_THEME),
-            'language' => $this->systemConfigService->get(self::CONFIG_KEY_LANGUAGE, $salesChannelId),
+            'fontSize' => $this->systemConfigService->get(ConfigurationKeys::FONT_SIZE),
+            'offset' => $this->systemConfigService->get(ConfigurationKeys::OFFSET),
+            'paddingY' => $this->systemConfigService->get(ConfigurationKeys::PADDING_Y),
+            'paddingX' => $this->systemConfigService->get(ConfigurationKeys::PADDING_X),
+            'radius' => $this->systemConfigService->get(ConfigurationKeys::RADIUS),
+            'blur' => $this->systemConfigService->get(ConfigurationKeys::BLUR),
+            'position' => $this->systemConfigService->get(ConfigurationKeys::POSITION),
+            'theme' => $this->systemConfigService->get(ConfigurationKeys::THEME),
+            'language' => $this->systemConfigService->get(ConfigurationKeys::LANGUAGE, $salesChannelId),
         ]);
     }
 }

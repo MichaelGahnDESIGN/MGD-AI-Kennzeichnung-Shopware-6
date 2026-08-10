@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace MGDAIImageLabels\Tests\Unit\Setup;
 
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DriverManager;
+use MGDAIImageLabels\Configuration\ConfigurationBackupStorage;
+use MGDAIImageLabels\Configuration\ConfigurationKeys;
+use MGDAIImageLabels\Configuration\ConfigurationRetentionService;
 use MGDAIImageLabels\MGDAIImageLabels;
 use MGDAIImageLabels\Setup\CustomFieldSetInstaller;
 use PHPUnit\Framework\TestCase;
@@ -14,6 +19,8 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\Plugin\Context\InstallContext;
 use Shopware\Core\Framework\Plugin\Context\UninstallContext;
 use Shopware\Core\Framework\Plugin\Context\UpdateContext;
+use Shopware\Core\Framework\Uuid\Uuid;
+use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Symfony\Component\DependencyInjection\Container;
 
 /** Prüft die schlanke Weiterleitung der Shopware-Lebenszyklusereignisse. */
@@ -42,9 +49,10 @@ final class PluginLifecycleTest extends TestCase
     /** Bei gewünschtem Datenerhalt bleiben Set und Relation vollständig bestehen. */
     public function testUninstallKeepsDataWhenRequested(): void
     {
-        [$plugin, $setRepository, $relationRepository, $installer] = $this->pluginWithRepositories();
+        [$plugin, $setRepository, $relationRepository, $installer, , $connection] = $this->pluginWithRepositories();
         $context = Context::createDefaultContext();
         $installer->install($context);
+        $this->insertSystemConfig($connection, ConfigurationKeys::LANGUAGE, 'de');
         $uninstallContext = $this->createStub(UninstallContext::class);
         $uninstallContext->method('getContext')->willReturn($context);
         $uninstallContext->method('keepUserData')->willReturn(true);
@@ -54,14 +62,16 @@ final class PluginLifecycleTest extends TestCase
         self::assertCount(1, $setRepository->rows);
         self::assertCount(1, $relationRepository->rows);
         self::assertSame([], $setRepository->deletePayloads);
+        self::assertSame(1, $connection->fetchOne('SELECT COUNT(*) FROM mgd_ai_image_labels_config_backup'));
     }
 
     /** Ohne Datenerhalt entfernt der Plugin-Lebenszyklus das eigene Set. */
     public function testUninstallRemovesDataWhenNotKept(): void
     {
-        [$plugin, $setRepository, , $installer] = $this->pluginWithRepositories();
+        [$plugin, $setRepository, , $installer, , $connection] = $this->pluginWithRepositories();
         $context = Context::createDefaultContext();
         $installer->install($context);
+        (new ConfigurationBackupStorage($connection))->ensureTable();
         $uninstallContext = $this->createStub(UninstallContext::class);
         $uninstallContext->method('getContext')->willReturn($context);
         $uninstallContext->method('keepUserData')->willReturn(false);
@@ -70,6 +80,27 @@ final class PluginLifecycleTest extends TestCase
 
         self::assertSame([], $setRepository->rows);
         self::assertCount(1, $setRepository->deletePayloads);
+        self::assertSame(0, $connection->fetchOne("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'mgd_ai_image_labels_config_backup'"));
+    }
+
+    /** Reinstall stellt den Snapshot auch ohne registrierte Plugin-Dienste nach den Core-Defaults wieder her. */
+    public function testReinstallRestoresBackupWithoutOwnServices(): void
+    {
+        [$plugin, , , , $container, $connection, $systemConfig] = $this->pluginWithRepositories();
+        self::assertFalse($container->has(ConfigurationRetentionService::class));
+        $this->insertSystemConfig($connection, ConfigurationKeys::LANGUAGE, 'de');
+        (new ConfigurationBackupStorage($connection))->replaceSnapshot();
+        $connection->update('system_config', ['configuration_value' => '{"_value":"auto"}'], [
+            'configuration_key' => ConfigurationKeys::LANGUAGE,
+        ]);
+        $systemConfig->expects(self::once())->method('set')->with(ConfigurationKeys::LANGUAGE, 'de', null);
+        $context = Context::createDefaultContext();
+        $installContext = $this->createStub(InstallContext::class);
+        $installContext->method('getContext')->willReturn($context);
+
+        $plugin->install($installContext);
+
+        self::assertSame(0, $connection->fetchOne('SELECT COUNT(*) FROM mgd_ai_image_labels_config_backup'));
     }
 
     /**
@@ -78,7 +109,9 @@ final class PluginLifecycleTest extends TestCase
      *     InMemoryEntityRepository,
      *     InMemoryEntityRepository,
      *     CustomFieldSetInstaller,
-     *     Container
+     *     Container,
+     *     Connection,
+     *     SystemConfigService
      * }
      */
     private function pluginWithRepositories(): array
@@ -92,16 +125,40 @@ final class PluginLifecycleTest extends TestCase
         $container = new Container();
         $container->set('custom_field_set.repository', $this->repository($setRepository));
         $container->set('custom_field_set_relation.repository', $this->repository($relationRepository));
+        $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
+        $connection->executeStatement(<<<'SQL'
+            CREATE TABLE system_config (
+                id BLOB NOT NULL PRIMARY KEY,
+                configuration_key VARCHAR(255) NOT NULL,
+                configuration_value TEXT NOT NULL,
+                sales_channel_id BLOB NULL,
+                created_at TEXT NOT NULL
+            )
+            SQL);
+        $systemConfig = $this->createMock(SystemConfigService::class);
+        $container->set(Connection::class, $connection);
+        $container->set(SystemConfigService::class, $systemConfig);
 
         $plugin = new MGDAIImageLabels(false, dirname(__DIR__, 3));
         $plugin->setContainer($container);
 
-        return [$plugin, $setRepository, $relationRepository, $installer, $container];
+        return [$plugin, $setRepository, $relationRepository, $installer, $container, $connection, $systemConfig];
     }
 
     /** @return EntityRepository<covariant EntityCollection<covariant Entity>> */
     private function repository(InMemoryEntityRepository $state): EntityRepository
     {
         return $state->connect($this->createMock(EntityRepository::class));
+    }
+
+    private function insertSystemConfig(Connection $connection, string $key, int|string $value): void
+    {
+        $connection->insert('system_config', [
+            'id' => Uuid::randomBytes(),
+            'configuration_key' => $key,
+            'configuration_value' => json_encode(['_value' => $value], \JSON_THROW_ON_ERROR),
+            'sales_channel_id' => null,
+            'created_at' => '2026-08-10 00:00:00.000',
+        ]);
     }
 }

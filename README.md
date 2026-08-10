@@ -85,7 +85,9 @@ Die konkrete Barrierefreiheit hängt weiterhin vom verwendeten Theme, dessen Kon
 
 Ein Update aktualisiert die plugin-eigene Custom-Field-Definition wiederholbar. Erstellen Sie trotzdem vor jedem produktiven Update eine Datenbank- und Dateisicherung.
 
-Bei der Deinstallation entscheidet Shopwares Option **Benutzerdaten behalten** über Medienfelder und Systemkonfiguration: Ist sie aktiv, bleiben das plugin-eigene Custom-Field-Set und die Plugin-Einstellungen bestehen. Ohne diese Option entfernt das Plugin sein eindeutig zugeordnetes Set; dessen Felddefinitionen und Medienrelation werden dabei mit entfernt. Shopwares Lebenszyklus löscht zusätzlich die Plugin-Systemkonfiguration.
+Bei der Deinstallation entscheidet Shopwares Option **Benutzerdaten behalten** über Medienfelder und Systemkonfiguration: Ist sie aktiv, bleiben das plugin-eigene Custom-Field-Set und die Plugin-Einstellungen bestehen. Zusätzlich legt das Plugin einen lokalen, eng begrenzten Snapshot seiner exakt neun Einstellungswerte an. Das ist nötig, weil Shopware bei einer späteren Reinstallation zunächst die Plugin-Standardwerte schreibt. Im Installationsschritt werden globale und verkaufskanalspezifische Werte aus dem Snapshot wiederhergestellt; anschließend wird der verbrauchte Snapshot gelöscht.
+
+Ohne **Benutzerdaten behalten** entfernt das Plugin sein eindeutig zugeordnetes Set und seine Snapshot-Tabelle; Shopwares Lebenszyklus löscht zusätzlich die Plugin-Systemkonfiguration. Fremde Konfigurationen und Tabellen werden nicht berührt.
 
 Die Bilddateien und fremde Custom Fields bleiben immer unberührt. Da Medien ihre Custom-Field-Inhalte als JSON speichern, bereinigt das Plugin die drei Schlüssel nicht einzeln in jedem Medium. Sie können nach einer Deinstallation ohne Datenerhalt als technisch ungenutzte Werte verbleiben und bei einer späteren Neuinstallation wieder zugeordnet werden. Wer auch diese Werte löschen muss, benötigt davor einen geprüften, gesicherten Bereinigungslauf. Das vorbereitete Philosophie-Layout wird nicht automatisch entfernt, damit redaktionelle Inhalte nicht überraschend verloren gehen.
 

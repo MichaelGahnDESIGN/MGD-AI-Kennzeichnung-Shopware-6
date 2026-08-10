@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace MGDAIImageLabels;
 
+use Doctrine\DBAL\Connection;
+use MGDAIImageLabels\Configuration\ConfigurationBackupStorage;
+use MGDAIImageLabels\Configuration\ConfigurationRetentionService;
 use MGDAIImageLabels\Setup\CustomFieldSetInstaller;
 use Shopware\Core\Framework\DataAbstractionLayer\Entity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityCollection;
@@ -12,6 +15,7 @@ use Shopware\Core\Framework\Plugin;
 use Shopware\Core\Framework\Plugin\Context\InstallContext;
 use Shopware\Core\Framework\Plugin\Context\UninstallContext;
 use Shopware\Core\Framework\Plugin\Context\UpdateContext;
+use Shopware\Core\System\SystemConfig\SystemConfigService;
 
 /**
  * Einstiegspunkt der Shopware-Erweiterung.
@@ -27,6 +31,7 @@ final class MGDAIImageLabels extends Plugin
         parent::install($installContext);
 
         $this->installer()->install($installContext->getContext());
+        $this->retention()->restoreAfterInstall();
     }
 
     /** Stellt bei Updates ebenfalls die jeweils aktuelle Definition sicher. */
@@ -43,14 +48,17 @@ final class MGDAIImageLabels extends Plugin
      */
     public function uninstall(UninstallContext $uninstallContext): void
     {
-        // Shopwares eigener Lebenszyklus muss unabhängig vom Datenerhalt zuerst abgeschlossen werden.
-        parent::uninstall($uninstallContext);
-
         if ($uninstallContext->keepUserData()) {
+            // Der Snapshot muss vor Shopwares nachgelagerter Konfigurationsbehandlung vollständig sein.
+            $this->retention()->snapshotBeforeKeepUninstall();
+            parent::uninstall($uninstallContext);
+
             return;
         }
 
+        parent::uninstall($uninstallContext);
         $this->installer()->remove($uninstallContext->getContext());
+        $this->retention()->removeBackupWithoutUserData();
     }
 
     /**
@@ -79,6 +87,39 @@ final class MGDAIImageLabels extends Plugin
         return new CustomFieldSetInstaller(
             $this->coreRepository('custom_field_set.repository'),
             $this->coreRepository('custom_field_set_relation.repository'),
+        );
+    }
+
+    /**
+     * Liefert den Datenerhalt-Dienst auch während eines inaktiven Lebenszyklus.
+     *
+     * Beim Reinstall ist die eigene services.xml nicht zuverlässig geladen.
+     * Der Fallback verwendet deshalb nur Shopwares öffentliche Core-Dienste.
+     */
+    private function retention(): ConfigurationRetentionService
+    {
+        if ($this->container === null) {
+            throw new \RuntimeException('Der Shopware-Service-Container ist für den Plugin-Lebenszyklus nicht verfügbar.');
+        }
+
+        if ($this->container->has(ConfigurationRetentionService::class)) {
+            $retention = $this->container->get(ConfigurationRetentionService::class);
+            if (!$retention instanceof ConfigurationRetentionService) {
+                throw new \RuntimeException('Der registrierte Konfigurations-Datenerhalt besitzt einen unerwarteten Typ.');
+            }
+
+            return $retention;
+        }
+
+        $connection = $this->container->get(Connection::class);
+        $systemConfigService = $this->container->get(SystemConfigService::class);
+        if (!$connection instanceof Connection || !$systemConfigService instanceof SystemConfigService) {
+            throw new \RuntimeException('Erforderliche Shopware-Core-Dienste für den Konfigurations-Datenerhalt fehlen.');
+        }
+
+        return new ConfigurationRetentionService(
+            new ConfigurationBackupStorage($connection),
+            $systemConfigService,
         );
     }
 

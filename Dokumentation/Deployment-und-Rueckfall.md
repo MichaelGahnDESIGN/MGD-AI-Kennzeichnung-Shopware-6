@@ -86,7 +86,9 @@ Hat das fehlgeschlagene Update Datenbankzustand oder Inhalte verändert, müssen
 
 ## Deinstallation
 
-Shopwares Option **Benutzerdaten behalten** bewahrt das plugin-eigene Custom-Field-Set und die Plugin-Systemkonfiguration. Ohne diese Option entfernt das Plugin sein eindeutig geprüftes Medienfeld-Set einschließlich Felddefinitionen und Medienrelation; Shopwares Lebenszyklus entfernt zusätzlich die Plugin-Systemkonfiguration. Medien und fremde Custom Fields bleiben erhalten. Bereits in Medien-JSON gespeicherte Schlüssel können als technisch ungenutzte Werte bestehen bleiben, weil keine automatische Massenbereinigung der Medien erfolgt. Ein zuvor erstelltes Philosophie-Layout bleibt ebenfalls bestehen und muss nach redaktioneller Prüfung bei Bedarf manuell entfernt werden.
+Shopwares Option **Benutzerdaten behalten** bewahrt das plugin-eigene Custom-Field-Set und die Plugin-Systemkonfiguration. Das Plugin sichert die exakt neun eigenen Einstellungswerte zusätzlich lokal, damit ein späterer Reinstall globale und verkaufskanalspezifische Werte nach Shopwares Default-Import wiederherstellen kann. Nach einem erfolgreichen Reinstall muss `mgd_ai_image_labels_config_backup` leer sein. Bei einem Fehler darf der Installationslauf nicht als erfolgreich behandelt werden; Snapshot und Datenbankbackup bleiben bis zur Analyse unverändert verfügbar.
+
+Ohne diese Option entfernt das Plugin sein eindeutig geprüftes Medienfeld-Set einschließlich Felddefinitionen und Medienrelation sowie die vollständige Snapshot-Tabelle; Shopwares Lebenszyklus entfernt zusätzlich die Plugin-Systemkonfiguration. Medien, fremde Tabellen und fremde Custom Fields bleiben erhalten. Bereits in Medien-JSON gespeicherte Schlüssel können als technisch ungenutzte Werte bestehen bleiben, weil keine automatische Massenbereinigung der Medien erfolgt. Ein zuvor erstelltes Philosophie-Layout bleibt ebenfalls bestehen und muss nach redaktioneller Prüfung bei Bedarf manuell entfernt werden.
 
 Vor einer Deinstallation ohne Datenerhalt:
 

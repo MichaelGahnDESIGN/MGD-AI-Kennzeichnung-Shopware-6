@@ -15,6 +15,7 @@ Alle wesentlichen Änderungen dieses Projekts werden hier dokumentiert. Das Form
 - datensparsamer Installations-, Update- und Deinstallationsablauf
 - deutsche Betriebs-, Sicherheits-, Architektur- und Theme-Dokumentation sowie englische Kurzanleitung
 - reproduzierbarer, positiv gelisteter Release-Build
+- sicherer Erhalt globaler und verkaufskanalspezifischer Plugin-Einstellungen bei Deinstallation mit Datenerhalt und anschließender Reinstallation
 
 ### Bekannte Einschränkung
 

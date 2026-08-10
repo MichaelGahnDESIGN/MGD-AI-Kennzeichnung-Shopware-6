@@ -13,6 +13,19 @@
             <argument type="service" id="custom_field_set_relation.repository"/>
         </service>
 
+        <!--
+            Der öffentliche Datenerhalt-Dienst wird im aktiven Container genutzt.
+            Der Plugin-Einstieg besitzt für Reinstallationen zusätzlich einen
+            eng begrenzten Fallback aus denselben öffentlichen Core-Diensten.
+        -->
+        <service id="MGDAIImageLabels\Configuration\ConfigurationBackupStorage">
+            <argument type="service" id="Doctrine\DBAL\Connection"/>
+        </service>
+        <service id="MGDAIImageLabels\Configuration\ConfigurationRetentionService" public="true">
+            <argument type="service" id="MGDAIImageLabels\Configuration\ConfigurationBackupStorage"/>
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+        </service>
+
         <!-- Kleine, explizit verdrahtete Dienste für das sichere Storefront-Viewmodell. -->
         <service id="MGDAIImageLabels\Media\MediaLabelMetadataNormalizer"/>
         <service id="MGDAIImageLabels\Configuration\DisplayConfigurationProvider">
