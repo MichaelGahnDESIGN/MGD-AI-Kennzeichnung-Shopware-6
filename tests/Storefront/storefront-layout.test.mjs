@@ -82,9 +82,9 @@ function naturalImagePair(id, layout, mediaClass) {
 }
 
 /** Bild und nachfolgender Text bilden Shopwares echte Float-Nachbarschaft nach. */
-function floatingMethodPair(id, mediaClass) {
-    const original = `<div class="method-slot"><div id="${id}-original-row" class="method-row"><img id="${id}-original" class="${mediaClass}" src="${naturalImage}" alt=""><span id="${id}-original-sibling">Beschreibung der Methode mit ausreichend langem Text</span></div></div>`;
-    const wrapped = `<div class="method-slot"><div id="${id}-wrapped-row" class="method-row"><div id="${id}-wrapper" class="mgd-ai-labeled-media mgd-ai-labeled-media--intrinsic mgd-ai-labeled-media--intrinsic-float-end"><img id="${id}-wrapped" class="${mediaClass}" src="${naturalImage}" alt=""><div class="mgd-ai-labeled-media__overlay"></div></div><span id="${id}-wrapped-sibling">Beschreibung der Methode mit ausreichend langem Text</span></div></div>`;
+function floatingMethodPair(id, mediaClass, direction = 'ltr') {
+    const original = `<div class="method-slot"><div id="${id}-original-row" class="method-row" dir="${direction}"><img id="${id}-original" class="${mediaClass}" src="${naturalImage}" alt=""><span id="${id}-original-sibling">Beschreibung der Methode mit ausreichend langem Text</span></div></div>`;
+    const wrapped = `<div class="method-slot"><div id="${id}-wrapped-row" class="method-row" dir="${direction}"><div id="${id}-wrapper" class="mgd-ai-labeled-media mgd-ai-labeled-media--intrinsic mgd-ai-labeled-media--intrinsic-float-end"><img id="${id}-wrapped" class="${mediaClass}" src="${naturalImage}" alt=""><div class="mgd-ai-labeled-media__overlay"></div></div><span id="${id}-wrapped-sibling">Beschreibung der Methode mit ausreichend langem Text</span></div></div>`;
 
     return `<div class="method-pair method-${id}">${original}${wrapped}</div>`;
 }
@@ -158,6 +158,8 @@ ${presentationPair('video', 'fill', 'video-placeholder-image')}
 ${presentationPair('background', 'fill', 'cms-block-background')}
 ${floatingMethodPair('payment', 'payment-method-image')}
 ${floatingMethodPair('shipping', 'shipping-method-image')}
+${floatingMethodPair('payment-rtl', 'payment-method-image', 'rtl')}
+${floatingMethodPair('shipping-rtl', 'shipping-method-image', 'rtl')}
 <script>
 (async () => {
     await Promise.all([...document.images].map((image) => image.decode()));
@@ -219,7 +221,7 @@ ${floatingMethodPair('shipping', 'shipping-method-image')}
             wrappedPaint: paint(wrapped),
         }];
     }));
-    result.methodPairs = Object.fromEntries(['payment', 'shipping'].map((id) => {
+    result.methodPairs = Object.fromEntries(['payment', 'shipping', 'payment-rtl', 'shipping-rtl'].map((id) => {
         const rectangle = (element) => {
             const value = element.getBoundingClientRect();
             return { left: value.left, top: value.top, right: value.right, bottom: value.bottom, width: value.width, height: value.height };

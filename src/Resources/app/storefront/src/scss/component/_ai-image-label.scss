@@ -20,12 +20,11 @@
     vertical-align: top;
 }
 
-// Zahlungs- und Versandlogos floaten in Shopware selbst am Zeilenende. Der
-// Rahmen übernimmt diesen geschlossenen Vertrag; das Bild wird im Rahmen wieder
-// normal angeordnet, damit Breite und Höhe des Rahmens nicht kollabieren.
+// Zahlungs- und Versandlogos floaten in Shopware ausdrücklich physisch rechts.
+// Der Rahmen übernimmt diesen geschlossenen Vertrag auch in RTL; das Bild wird
+// im Rahmen normal angeordnet, damit Breite und Höhe nicht kollabieren.
 .mgd-ai-labeled-media--intrinsic-float-end {
     float: right;
-    float: inline-end;
 
     > img {
         float: none;
