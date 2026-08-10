@@ -135,16 +135,37 @@ final class DocumentationAndReleaseTest extends TestCase
 
         $restoreStep = $this->workflowStep($steps, 'Veröffentlichbare Composer-Metadaten wiederherstellen');
         self::assertSame('git restore --source=HEAD -- composer.json composer.lock', $restoreStep['run'] ?? null);
-        $diffCommand = $this->workflowStep($steps, 'Git-Arbeitsbaum auf unbeabsichtigte Änderungen prüfen')['run'] ?? null;
-        self::assertSame('git diff --exit-code', $diffCommand);
-        self::assertLessThan(
-            $this->workflowStepIndex($steps, 'Release-ZIP reproduzierbar bauen'),
-            $this->workflowStepIndex($steps, 'Veröffentlichbare Composer-Metadaten wiederherstellen'),
-        );
 
         $releaseStep = $this->workflowStep($steps, 'Release-ZIP reproduzierbar bauen');
         self::assertSame("matrix.shopware == '6.7' && matrix.php == '8.4'", $releaseStep['if'] ?? null);
         self::assertSame('bash scripts/build-release.sh', $releaseStep['run'] ?? null);
+
+        $cleanSourceStep = $this->workflowStep($steps, 'Release-Quellstand vollständig sauber prüfen');
+        self::assertSame($releaseStep['if'] ?? null, $cleanSourceStep['if'] ?? null);
+        self::assertSame(
+            'test -z "$(git status --porcelain=v1 --untracked-files=all)"',
+            $cleanSourceStep['run'] ?? null,
+        );
+
+        $structureStep = $this->workflowStep($steps, 'Vollständigen Release-Strukturvertrag prüfen');
+        self::assertSame($releaseStep['if'] ?? null, $structureStep['if'] ?? null);
+        self::assertSame(
+            'vendor/bin/phpunit --fail-on-skipped tests/Structure/DocumentationAndReleaseTest.php',
+            $structureStep['run'] ?? null,
+        );
+        self::assertStringNotContainsString('--filter', (string) ($structureStep['run'] ?? ''));
+        self::assertLessThan(
+            $this->workflowStepIndex($steps, 'Release-Quellstand vollständig sauber prüfen'),
+            $this->workflowStepIndex($steps, 'Veröffentlichbare Composer-Metadaten wiederherstellen'),
+        );
+        self::assertLessThan(
+            $this->workflowStepIndex($steps, 'Vollständigen Release-Strukturvertrag prüfen'),
+            $this->workflowStepIndex($steps, 'Release-Quellstand vollständig sauber prüfen'),
+        );
+        self::assertLessThan(
+            $this->workflowStepIndex($steps, 'Release-ZIP reproduzierbar bauen'),
+            $this->workflowStepIndex($steps, 'Vollständigen Release-Strukturvertrag prüfen'),
+        );
 
         $validationStep = $this->workflowStep($steps, 'Ausgeliefertes Shopware-Erweiterungspaket validieren');
         self::assertSame($releaseStep['if'] ?? null, $validationStep['if'] ?? null);
@@ -159,10 +180,6 @@ final class DocumentationAndReleaseTest extends TestCase
 
         $shopwareInstallStep = $this->workflowStep($steps, 'Shopware CLI in fester Version installieren');
         self::assertSame($releaseStep['if'] ?? null, $shopwareInstallStep['if'] ?? null);
-
-        $archiveTestStep = $this->workflowStep($steps, 'Release-ZIP prüfen');
-        self::assertSame($releaseStep['if'] ?? null, $archiveTestStep['if'] ?? null);
-        self::assertStringContainsString('testReleaseBuildIsSafeCompleteAndReproducible', (string) ($archiveTestStep['run'] ?? ''));
 
         $uploadStep = $this->workflowStep($steps, 'Release-ZIP als Artefakt bereitstellen');
         self::assertSame(

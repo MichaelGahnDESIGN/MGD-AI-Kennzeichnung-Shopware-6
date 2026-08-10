@@ -6,7 +6,7 @@ use PhpCsFixer\Config;
 use PhpCsFixer\Finder;
 
 /**
- * Gemeinsamer, reproduzierbarer PHP-Stil für Laufzeit- und Testcode.
+ * Gemeinsamer, reproduzierbarer PHP-Stil für den produktiven Laufzeitcode.
  *
  * Die PHP-8.2-Migrationsregeln bilden die niedrigste unterstützte Laufzeit ab.
  * Abhängigkeiten und Release-Pakete werden bewusst nie durchsucht.

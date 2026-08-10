@@ -105,9 +105,6 @@ jobs:
             - name: PHP-Unit-Tests ohne Datenbank ausführen
               run: composer test:unit
 
-            - name: CI-Strukturvertrag prüfen
-              run: vendor/bin/phpunit --filter testQualityWorkflowCoversTheSupportedVersionsAndSafeReleasePath tests/Structure/DocumentationAndReleaseTest.php
-
             - name: PHPStan ausführen
               run: vendor/bin/phpstan analyse -c phpstan.neon.dist --memory-limit=1G
 
@@ -135,8 +132,18 @@ jobs:
             - name: Veröffentlichbare Composer-Metadaten wiederherstellen
               run: git restore --source=HEAD -- composer.json composer.lock
 
-            - name: Git-Arbeitsbaum auf unbeabsichtigte Änderungen prüfen
-              run: git diff --exit-code
+            # Ein unversioniertes Laufzeit- oder Dokumentationsobjekt könnte
+            # sonst über die Positivliste unbemerkt in das ZIP gelangen.
+            # Ignorierte Abhängigkeiten und dist bleiben bewusst unberücksichtigt.
+            - name: Release-Quellstand vollständig sauber prüfen
+              if: matrix.shopware == '6.7' && matrix.php == '8.4'
+              run: test -z "$(git status --porcelain=v1 --untracked-files=all)"
+
+            # Die vollständige Datei prüft auch Paketinhalt, Symlink-Abwehr und
+            # Reproduzierbarkeit. Danach wird das finale ZIP bewusst neu gebaut.
+            - name: Vollständigen Release-Strukturvertrag prüfen
+              if: matrix.shopware == '6.7' && matrix.php == '8.4'
+              run: vendor/bin/phpunit --fail-on-skipped tests/Structure/DocumentationAndReleaseTest.php
 
             # Nur der neueste Matrixlauf baut das tatsächlich auslieferbare
             # Paket. Pull Requests dürfen es prüfen, aber nie veröffentlichen.
@@ -157,10 +164,6 @@ jobs:
             - name: Ausgeliefertes Shopware-Erweiterungspaket validieren
               if: matrix.shopware == '6.7' && matrix.php == '8.4'
               run: shopware-cli --no-interaction extension validate dist/MGDAIImageLabels-0.1.0.zip
-
-            - name: Release-ZIP prüfen
-              if: matrix.shopware == '6.7' && matrix.php == '8.4'
-              run: vendor/bin/phpunit --filter testReleaseBuildIsSafeCompleteAndReproducible tests/Structure/DocumentationAndReleaseTest.php
 
             - name: Release-ZIP als Artefakt bereitstellen
               if: github.event_name != 'pull_request' && matrix.shopware == '6.7' && matrix.php == '8.4'
