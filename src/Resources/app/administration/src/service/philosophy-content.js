@@ -25,23 +25,25 @@ function safelyReadLanguageId(readContext) {
  * öffentliche Store-Liste verhindert deshalb den dort sonst geworfenen Fehler.
  */
 function languageIdFromStore(shopware) {
-    const store = shopware?.Store;
-    if (typeof store?.get !== 'function') {
-        return null;
-    }
+    try {
+        const store = shopware?.Store;
+        const getStore = store?.get;
+        if (typeof getStore !== 'function') {
+            return null;
+        }
 
-    if (typeof store.list === 'function') {
-        try {
-            const registeredStoreIds = store.list();
+        const listStores = store.list;
+        if (typeof listStores === 'function') {
+            const registeredStoreIds = listStores.call(store);
             if (!Array.isArray(registeredStoreIds) || !registeredStoreIds.includes('context')) {
                 return null;
             }
-        } catch {
-            return null;
         }
-    }
 
-    return safelyReadLanguageId(() => store.get('context'));
+        return safelyReadLanguageId(() => getStore.call(store, 'context'));
+    } catch {
+        return null;
+    }
 }
 
 /** Liefert die aktive CMS-Inhaltssprache reaktiv aus Shopware 6.6 oder 6.7. */

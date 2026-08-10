@@ -33,6 +33,38 @@ test('Shopware 6.6 fängt eine fehlende oder werfende Store-API sicher ab', () =
     assert.equal(activeContentLanguageId(throwingStore), 'state-after-store-error');
 });
 
+test('werfende Store- und Methoden-Getter lassen den Vuex-Fallback unverändert erreichbar', () => {
+    const state = { get: () => ({ api: { languageId: 'safe-state' } }) };
+    const throwingStoreProperty = {
+        get Store() {
+            throw new Error('Store getter failed');
+        },
+        State: state,
+    };
+    const throwingGetProperty = {
+        Store: {
+            get get() {
+                throw new Error('get getter failed');
+            },
+        },
+        State: state,
+    };
+    const throwingListProperty = {
+        Store: {
+            get: () => ({ api: { languageId: 'unreachable-store' } }),
+            get list() {
+                throw new Error('list getter failed');
+            },
+        },
+        State: state,
+    };
+
+    for (const shopware of [throwingStoreProperty, throwingGetProperty, throwingListProperty]) {
+        assert.doesNotThrow(() => activeContentLanguageId(shopware));
+        assert.equal(activeContentLanguageId(shopware), 'safe-state');
+    }
+});
+
 test('Shopware 6.7 bevorzugt den registrierten Pinia-Kontext vor veraltetem Vuex-Zustand', () => {
     assert.equal(activeContentLanguageId({
         Store: {
