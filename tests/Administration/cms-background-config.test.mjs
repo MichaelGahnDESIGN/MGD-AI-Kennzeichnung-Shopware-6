@@ -6,6 +6,7 @@ import {
     normalizeBackgroundConfig,
     normalizeBoolean,
     normalizeEditorialAltText,
+    resolveBackgroundAltText,
 } from '../../src/Resources/app/administration/src/service/cms-background-config.js';
 
 test('fehlende und manipulierte Werte werden auf feste sichere Werte begrenzt', () => {
@@ -28,10 +29,24 @@ test('fehlende und manipulierte Werte werden auf feste sichere Werte begrenzt', 
 
 test('redaktioneller Alt-Text akzeptiert nur Text und wird begrenzt', () => {
     assert.equal(normalizeEditorialAltText('  Ein sinnvoller Text  '), 'Ein sinnvoller Text');
+    assert.equal(normalizeEditorialAltText('<strong>Hallo</strong>\nWelt'), 'Hallo Welt');
+    assert.equal(normalizeEditorialAltText('<script>alert(1)</script>'), '');
+    assert.equal(normalizeEditorialAltText('<strong></strong>\u0000\u001F'), '');
     assert.equal(normalizeEditorialAltText(['Text']), '');
     assert.equal(normalizeEditorialAltText({ text: 'Text' }), '');
     assert.equal(normalizeEditorialAltText(42), '');
     assert.equal(normalizeEditorialAltText('x'.repeat(600)).length, 512);
+});
+
+test('Alt-Text-Warnung berücksichtigt denselben redaktionellen Medienfallback wie der Server', () => {
+    assert.equal(resolveBackgroundAltText(' Redaktionell ', null), 'Redaktionell');
+    assert.equal(resolveBackgroundAltText('', { translated: { alt: ' Medien-Alt ', title: 'Titel' } }), 'Medien-Alt');
+    assert.equal(resolveBackgroundAltText('', { translated: { alt: '', title: ' Medientitel ' } }), 'Medientitel');
+    assert.equal(resolveBackgroundAltText('<script>alert(1)</script>', {
+        translated: { alt: '<strong></strong>', title: '\u0000\u001F' },
+    }), '');
+    assert.equal(resolveBackgroundAltText('', { translated: { alt: 'ä'.repeat(600) } }).length, 512);
+    assert.equal(resolveBackgroundAltText('', { fileName: 'kein-fallback' }), '');
 });
 
 test('Medienauswahl akzeptiert ausschließlich echte Bildmedien', () => {

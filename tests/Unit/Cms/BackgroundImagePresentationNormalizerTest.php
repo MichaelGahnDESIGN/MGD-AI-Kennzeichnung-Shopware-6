@@ -109,6 +109,16 @@ final class BackgroundImagePresentationNormalizerTest extends TestCase
         self::assertSame('Hallo Welt', $presentation->altText);
     }
 
+    public function testScriptMarkupAndControlCharactersAreNotMeaningfulAltText(): void
+    {
+        $presentation = (new BackgroundImagePresentationNormalizer())->normalize(
+            $this->config(['altText' => '<script>alert(1)</script>']),
+            $this->media('<strong></strong>', "\0\x1F"),
+        );
+
+        self::assertSame('', $presentation->altText);
+    }
+
     public function testEditorialAltTextIsLimitedOnTheServerToo(): void
     {
         $presentation = (new BackgroundImagePresentationNormalizer())->normalize(

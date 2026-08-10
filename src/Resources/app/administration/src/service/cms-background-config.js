@@ -29,7 +29,29 @@ export function normalizeEditorialAltText(value) {
         return '';
     }
 
-    return [...value.trim()].slice(0, 512).join('');
+    const plainText = value
+        .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1\s*>/giu, '')
+        .replace(/<[^>]*>/gu, '')
+        .replace(/[\u0000-\u001F\u007F]+/gu, ' ')
+        .trim();
+
+    return [...plainText].slice(0, 512).join('');
+}
+
+/** Nutzt exakt dieselbe Alt-Text-Reihenfolge wie der serverseitige Resolver. */
+export function resolveBackgroundAltText(editorialAltText, media) {
+    const translated = typeof media?.translated === 'object' && media.translated !== null
+        ? media.translated
+        : {};
+
+    for (const candidate of [editorialAltText, translated.alt, translated.title]) {
+        const normalized = normalizeEditorialAltText(candidate);
+        if (normalized !== '') {
+            return normalized;
+        }
+    }
+
+    return '';
 }
 
 /** MIME- und Shopware-Medientyp müssen einander als Bild bestätigen. */

@@ -63,6 +63,9 @@ final class IntegrationTestConfigurationTest extends TestCase
         self::assertStringContainsString("self::getContainer()->get(BackgroundImageCmsElementResolver::class)", $source);
         self::assertStringContainsString("self::getContainer()->get('media.repository')", $source);
         self::assertStringContainsString("'mimeType' => 'application/pdf'", $source);
+        self::assertStringContainsString('Context::SYSTEM_SCOPE', $source);
+        self::assertStringContainsString("'mediaTypeRaw' => serialize(new ImageType())", $source);
+        self::assertStringContainsString("'mediaTypeRaw' => serialize(new DocumentType())", $source);
         self::assertStringContainsString('testRealPdfMediaIsRejectedDuringEnrichment', $source);
 
         $pluginPosition = strpos($source, '->addCallingPlugin(');

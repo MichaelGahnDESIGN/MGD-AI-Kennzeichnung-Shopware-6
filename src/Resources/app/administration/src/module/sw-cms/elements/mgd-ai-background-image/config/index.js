@@ -6,6 +6,7 @@ import {
     normalizeBackgroundConfig,
     normalizeBoolean,
     normalizeEditorialAltText,
+    resolveBackgroundAltText,
 } from '../../../../../service/cms-background-config';
 
 const { Mixin } = Shopware;
@@ -49,7 +50,10 @@ export default {
         },
         missingAltText() {
             return this.element?.config?.decorative?.value !== true
-                && normalizeEditorialAltText(this.element?.config?.altText?.value) === '';
+                && resolveBackgroundAltText(
+                    this.element?.config?.altText?.value,
+                    this.element?.data?.media,
+                ) === '';
         },
     },
 

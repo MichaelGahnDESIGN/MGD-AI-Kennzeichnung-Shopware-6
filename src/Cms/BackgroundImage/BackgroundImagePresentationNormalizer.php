@@ -64,6 +64,13 @@ final class BackgroundImagePresentationNormalizer
             return '';
         }
 
+        // Script- und Style-Inhalte sind keine Bildbeschreibung. Sie werden vor
+        // der allgemeinen HTML-Entfernung vollständig samt Inhalt verworfen.
+        $value = preg_replace('#<(script|style)\b[^>]*>.*?</\1\s*>#isu', '', $value);
+        if (!is_string($value)) {
+            return '';
+        }
+
         $value = preg_replace('/[\x00-\x1F\x7F]+/u', ' ', strip_tags($value));
 
         return is_string($value) ? mb_substr(trim($value), 0, 512) : '';

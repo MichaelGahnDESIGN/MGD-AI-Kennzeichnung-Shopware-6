@@ -16,6 +16,8 @@ use Shopware\Core\Content\Cms\DataResolver\FieldConfigCollection;
 use Shopware\Core\Content\Cms\DataResolver\ResolverContext\ResolverContext;
 use Shopware\Core\Content\Media\MediaCollection;
 use Shopware\Core\Content\Media\MediaDefinition;
+use Shopware\Core\Content\Media\MediaType\DocumentType;
+use Shopware\Core\Content\Media\MediaType\ImageType;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\Test\TestCaseBase\IntegrationTestBehaviour;
@@ -30,6 +32,8 @@ use Symfony\Component\HttpFoundation\Request;
  * Der Test startet nur nach doppelter ausdrücklicher Freigabe: Flag und durch
  * den gemeinsamen Task-4-Validator bestätigte isolierte Testdatenbank. Shopware
  * lädt keine .env-Datei. Das Transaktionsverhalten rollt jedes Medium zurück.
+ * Die Fixtures folgen dem FileSaver-Vertrag der offiziellen Shopware-Tags
+ * 6.6.10.22 und 6.7.13.0: serialisierter Medientyp im Systemkontext.
  */
 #[Group('integration')]
 final class BackgroundImageCmsElementResolverTest extends TestCase
@@ -74,13 +78,14 @@ final class BackgroundImageCmsElementResolverTest extends TestCase
 
         $mediaId = Uuid::randomHex();
         $slotId = Uuid::randomHex();
-        $context = Context::createDefaultContext();
+        $context = $this->systemContext();
         $repository = $this->mediaRepository();
         $repository->create([[
             'id' => $mediaId,
             'fileName' => 'mgd-cms-resolver-' . Uuid::randomHex(),
             'fileExtension' => 'png',
             'mimeType' => 'image/png',
+            'mediaTypeRaw' => serialize(new ImageType()),
         ]], $context);
         $slot = $this->slot($slotId, $mediaId);
 
@@ -123,13 +128,14 @@ final class BackgroundImageCmsElementResolverTest extends TestCase
         self::assertInstanceOf(BackgroundImageCmsElementResolver::class, $resolver);
         $mediaId = Uuid::randomHex();
         $slotId = Uuid::randomHex();
-        $context = Context::createDefaultContext();
+        $context = $this->systemContext();
         $repository = $this->mediaRepository();
         $repository->create([[
             'id' => $mediaId,
             'fileName' => 'mgd-cms-pdf-' . Uuid::randomHex(),
             'fileExtension' => 'pdf',
             'mimeType' => 'application/pdf',
+            'mediaTypeRaw' => serialize(new DocumentType()),
         ]], $context);
         $slot = $this->slot($slotId, $mediaId);
         $collection = $resolver->collect($slot, $this->resolverContext());
@@ -167,5 +173,14 @@ final class BackgroundImageCmsElementResolverTest extends TestCase
     private function resolverContext(): ResolverContext
     {
         return new ResolverContext($this->createStub(SalesChannelContext::class), new Request());
+    }
+
+    /** Schreibgeschützte Medienfelder dürfen ausschließlich im Systemkontext gesetzt werden. */
+    private function systemContext(): Context
+    {
+        $context = Context::createDefaultContext();
+        self::assertSame(Context::SYSTEM_SCOPE, $context->getScope());
+
+        return $context;
     }
 }
