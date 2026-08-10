@@ -25,6 +25,24 @@
                 "dark": "dunkel"
             }
         },
+        "philosophy": {
+            "label": "Unsere Haltung zu KI-Bildern",
+            "preview": "Transparente Informationen zur Erstellung und Bearbeitung von Bildern.",
+            "contentLabel": "Inhalt",
+            "defaultContent": "<h2>Unser Umgang mit KI-Bildern</h2><p>Wir kennzeichnen Bilder transparent, wenn sie vollständig oder teilweise mit künstlicher Intelligenz erstellt oder bearbeitet wurden.</p><p>So können Sie Inhalte bewusst einordnen. Die Kennzeichnung verändert weder Produktinformationen noch Ihre Privatsphäre.</p>"
+        },
+        "settings": {
+            "title": "MGD KI-Bildkennzeichnung",
+            "description": "Erstellen Sie einmalig ein unverknüpftes Erlebniswelten-Layout mit Ihrer zweisprachigen AI-Philosophie.",
+            "cardTitle": "AI-Philosophie als Erlebniswelt",
+            "noPublishNotice": "Die Aktion veröffentlicht oder verknüpft nichts. Prüfen, bearbeiten und veröffentlichen Sie das Layout anschließend bewusst in den Erlebniswelten.",
+            "action": "Erlebniswelt vorbereiten",
+            "missingPermission": "Für diese Aktion fehlt die Berechtigung zum Ändern der Systemkonfiguration.",
+            "successCreated": "Die Erlebniswelt wurde sicher vorbereitet.",
+            "successExisting": "Die bereits vorhandene plugin-eigene Erlebniswelt wurde gefunden.",
+            "error": "Die Erlebniswelt konnte nicht vorbereitet werden. Bitte prüfen Sie Berechtigung und Systemprotokoll.",
+            "openEditor": "In Erlebniswelten öffnen"
+        },
         "cms": {
             "background": {
                 "label": "Gekennzeichnetes Hintergrundbild",

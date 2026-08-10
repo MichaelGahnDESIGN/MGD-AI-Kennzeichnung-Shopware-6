@@ -10,6 +10,8 @@ import enGB from './snippet/en-GB.json';
 import './component/mgd-ai-media-preview';
 import './extension/sw-media-quickinfo';
 import './module/sw-cms/elements/mgd-ai-background-image';
+import './module/sw-cms/elements/mgd-ai-philosophy';
+import './module/mgd-ai-settings';
 
 /**
  * Deutsch und Englisch gehören bereits zu Shopwares Locale-Registry. `extend`

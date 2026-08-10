@@ -25,6 +25,24 @@
                 "dark": "dark"
             }
         },
+        "philosophy": {
+            "label": "Our approach to AI imagery",
+            "preview": "Transparent information about how images are created and edited.",
+            "contentLabel": "Content",
+            "defaultContent": "<h2>Our approach to AI imagery</h2><p>We label images transparently when they were created or edited wholly or partly with artificial intelligence.</p><p>This helps you assess content consciously. The label changes neither product information nor your privacy.</p>"
+        },
+        "settings": {
+            "title": "MGD AI Image Labels",
+            "description": "Create an unassigned Shopping Experiences layout containing your bilingual AI philosophy once.",
+            "cardTitle": "AI philosophy Shopping Experience",
+            "noPublishNotice": "This action publishes or assigns nothing. Review, edit and publish the layout consciously in Shopping Experiences afterwards.",
+            "action": "Prepare Shopping Experience",
+            "missingPermission": "You do not have permission to change system configuration for this action.",
+            "successCreated": "The Shopping Experience was prepared safely.",
+            "successExisting": "The existing plugin-owned Shopping Experience was found.",
+            "error": "The Shopping Experience could not be prepared. Please check your permission and the system log.",
+            "openEditor": "Open in Shopping Experiences"
+        },
         "cms": {
             "background": {
                 "label": "Labeled background image",

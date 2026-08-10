@@ -1,0 +1,9 @@
+.cms-element-mgd-ai-philosophy {
+    max-width: 72ch;
+    margin-inline: auto;
+    padding: clamp(1.5rem, 4vw, 4rem) 1rem;
+
+    > :last-child {
+        margin-bottom: 0;
+    }
+}

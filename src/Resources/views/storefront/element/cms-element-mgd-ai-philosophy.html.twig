@@ -1,0 +1,23 @@
+{% block element_mgd_ai_philosophy %}
+    {% set rawContent = element.fieldConfig.elements.content.value|default('') %}
+    {% set safeContent = mgd_ai_philosophy_content(rawContent) %}
+    <section class="cms-element-mgd-ai-philosophy">
+        {{ safeContent|sw_sanitize({
+            'a': ['href', 'title', 'rel', 'target'],
+            'abbr': ['title'],
+            'blockquote': [],
+            'br': [],
+            'code': [],
+            'em': [],
+            'h2': [],
+            'h3': [],
+            'h4': [],
+            'li': [],
+            'ol': [],
+            'p': [],
+            'pre': [],
+            'strong': [],
+            'ul': []
+        }, true) }}
+    </section>
+{% endblock %}

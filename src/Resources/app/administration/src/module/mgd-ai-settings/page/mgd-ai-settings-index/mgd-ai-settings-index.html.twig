@@ -1,0 +1,29 @@
+{% block mgd_ai_settings_index %}
+<sw-page class="mgd-ai-settings-index">
+    <template #smart-bar-header>
+        <h2>{{ $tc('mgd-ai-image-labels.settings.title') }}</h2>
+    </template>
+
+    <template #content>
+        <sw-card-view>
+            <sw-card :title="$tc('mgd-ai-image-labels.settings.cardTitle')">
+                <p>{{ $tc('mgd-ai-image-labels.settings.description') }}</p>
+                <sw-alert variant="info">{{ $tc('mgd-ai-image-labels.settings.noPublishNotice') }}</sw-alert>
+                <sw-button-process
+                    v-if="canPrepare"
+                    variant="primary"
+                    :is-loading="isLoading"
+                    :disabled="isLoading"
+                    @click="preparePage"
+                >
+                    {{ $tc('mgd-ai-image-labels.settings.action') }}
+                </sw-button-process>
+                <sw-alert v-else variant="warning">{{ $tc('mgd-ai-image-labels.settings.missingPermission') }}</sw-alert>
+                <router-link v-if="cmsPageRoute" :to="cmsPageRoute">
+                    {{ $tc('mgd-ai-image-labels.settings.openEditor') }}
+                </router-link>
+            </sw-card>
+        </sw-card-view>
+    </template>
+</sw-page>
+{% endblock %}
