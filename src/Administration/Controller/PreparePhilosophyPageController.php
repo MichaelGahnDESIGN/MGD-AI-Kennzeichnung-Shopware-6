@@ -8,14 +8,19 @@ use MGDAIImageLabels\Cms\Philosophy\PhilosophyPageCreator;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\Routing\ApiRouteScope;
 use Shopware\Core\PlatformRequest;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
-/** Authentifizierte Admin-API-Grenze für die ausdrücklich ausgelöste Erstellung. */
+/**
+ * Authentifizierte Admin-API-Grenze für die ausdrücklich ausgelöste Erstellung.
+ *
+ * Der Controller ist bewusst eine einfache aufrufbare Klasse. Er benötigt keine
+ * Komfortmethoden und damit auch keinen versteckten Symfony-Service-Container.
+ * Das hält die Auflösung der Route unter Shopware 6.6 und 6.7 identisch.
+ */
 #[Route(defaults: [PlatformRequest::ATTRIBUTE_ROUTE_SCOPE => [ApiRouteScope::ID]])]
-final class PreparePhilosophyPageController extends AbstractController
+final readonly class PreparePhilosophyPageController
 {
     public function __construct(private readonly PhilosophyPageCreator $creator)
     {

@@ -40,7 +40,6 @@
         <service id="MGDAIImageLabels\Cms\Philosophy\PhilosophyDefaultContent"/>
         <service id="MGDAIImageLabels\Administration\Controller\PreparePhilosophyPageController" public="true">
             <argument type="service" id="MGDAIImageLabels\Cms\Philosophy\PhilosophyPageCreator"/>
-            <tag name="controller.service_arguments"/>
         </service>
 
         <!-- Das Tag ist in Shopware 6.6 und 6.7 der stabile Twig-Erweiterungsvertrag. -->
