@@ -1,0 +1,167 @@
+name: Qualität und Shopware-Kompatibilität
+
+on:
+    push:
+    pull_request:
+
+# Der Workflow liest Quellcode, veröffentlicht aber weder Releases noch
+# Änderungen. Auch Pull Requests aus Forks erhalten dadurch keine Schreibrechte.
+permissions:
+    contents: read
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    secret-scan:
+        name: Geheimnisscan
+        runs-on: ubuntu-latest
+        steps:
+            - name: Quellcode sicher auschecken
+              # Quelle: https://github.com/actions/checkout/releases/tag/v7.0.1
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+              with:
+                  fetch-depth: 0
+                  persist-credentials: false
+
+            - name: Go einrichten
+              # Quelle: https://github.com/actions/setup-go/releases/tag/v6.5.0
+              uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16
+              with:
+                  go-version: '1.25.x'
+                  cache: false
+
+            - name: Gitleaks in fester Version installieren
+              # Der offizielle Repository-Umzug behält diesen Go-Modulpfad bei.
+              # Quelle: https://github.com/gitleaks/gitleaks/releases/tag/v8.30.1
+              run: |
+                  go install github.com/zricethezav/gitleaks/v8@v8.30.1
+                  echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+            - name: Git-Historie und Arbeitsbaum auf Geheimnisse prüfen
+              run: |
+                  gitleaks git . --no-banner --redact
+                  gitleaks dir . --no-banner --redact --max-target-megabytes=5
+
+    quality:
+        name: Shopware ${{ matrix.shopware }} / PHP ${{ matrix.php }}
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                shopware: ['6.6.10', '6.7']
+                php: ['8.2', '8.4']
+
+        steps:
+            - name: Quellcode sicher auschecken
+              # Quelle: https://github.com/actions/checkout/releases/tag/v7.0.1
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+              with:
+                  persist-credentials: false
+
+            - name: PHP einrichten
+              # Quelle: https://github.com/shivammathur/setup-php/releases/tag/2.35.5
+              uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f
+              with:
+                  php-version: ${{ matrix.php }}
+                  extensions: dom, intl, json, mbstring, zip
+                  coverage: none
+                  tools: composer:v2
+
+            - name: Node.js einrichten
+              # Quelle: https://github.com/actions/setup-node/releases/tag/v6.5.0
+              uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+              with:
+                  node-version: '24.x'
+
+            - name: Go einrichten
+              # Quelle: https://github.com/actions/setup-go/releases/tag/v6.5.0
+              uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16
+              with:
+                  go-version: '1.25.x'
+                  cache: false
+
+            - name: Composer-Metadaten prüfen
+              run: composer validate --strict --no-check-version
+
+            - name: Shopware-Abhängigkeiten frisch auflösen
+              shell: bash
+              run: |
+                  case "${{ matrix.shopware }}" in
+                      '6.6.10') shopware_constraint='~6.6.10.0' ;;
+                      '6.7') shopware_constraint='~6.7.0' ;;
+                      *) echo 'Unbekannte Shopware-Linie.' >&2; exit 1 ;;
+                  esac
+                  composer config platform.php "${{ matrix.php }}"
+                  composer require --no-update \
+                      "shopware/core:${shopware_constraint}" \
+                      "shopware/storefront:${shopware_constraint}"
+                  composer update --prefer-dist --no-interaction --no-progress --with-all-dependencies
+
+            - name: Abhängigkeiten auf bekannte Schwachstellen prüfen
+              run: composer audit --locked --no-interaction
+
+            - name: PHP-Unit-Tests ohne Datenbank ausführen
+              run: composer test:unit
+
+            - name: CI-Strukturvertrag prüfen
+              run: vendor/bin/phpunit --filter testQualityWorkflowCoversTheSupportedVersionsAndSafeReleasePath tests/Structure/DocumentationAndReleaseTest.php
+
+            - name: PHPStan ausführen
+              run: vendor/bin/phpstan analyse -c phpstan.neon.dist --memory-limit=1G
+
+            - name: PHP-Code-Stil prüfen
+              run: vendor/bin/php-cs-fixer fix --dry-run --diff
+
+            - name: Administration headless testen
+              run: npm run test:administration
+
+            - name: Storefront headless testen
+              run: npm run test:storefront
+
+            - name: JSON und XML prüfen
+              shell: bash
+              run: |
+                  while IFS= read -r -d '' json_file; do
+                      jq empty "${json_file}"
+                  done < <(find src/Resources -type f -name '*.json' -print0)
+                  while IFS= read -r -d '' xml_file; do
+                      php -r '$document = new DOMDocument(); exit($document->load($argv[1]) ? 0 : 1);' "${xml_file}"
+                  done < <(find src/Resources -type f -name '*.xml' -print0)
+
+            # Die Matrix darf das veröffentlichte Plugin-Paket nicht auf eine
+            # einzelne Prüfversion oder PHP-Nebenversion verengen.
+            - name: Veröffentlichbare Composer-Metadaten wiederherstellen
+              run: git restore --source=HEAD -- composer.json composer.lock
+
+            - name: Shopware CLI in fester Version installieren
+              # Offizielle Installation: https://github.com/shopware/shopware-cli#install
+              # Verwendete Version: https://github.com/shopware/shopware-cli/releases/tag/0.15.12
+              run: |
+                  go install github.com/shopware/shopware-cli@0.15.12
+                  echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+            - name: Shopware-Erweiterung validieren
+              run: shopware-cli --no-interaction extension validate .
+
+            - name: Git-Arbeitsbaum auf unbeabsichtigte Änderungen prüfen
+              run: git diff --exit-code
+
+            - name: Release-ZIP reproduzierbar bauen
+              if: github.event_name != 'pull_request' && matrix.shopware == '6.7' && matrix.php == '8.4'
+              run: bash scripts/build-release.sh
+
+            - name: Release-ZIP prüfen
+              if: github.event_name != 'pull_request' && matrix.shopware == '6.7' && matrix.php == '8.4'
+              run: vendor/bin/phpunit --filter testReleaseBuildIsSafeCompleteAndReproducible tests/Structure/DocumentationAndReleaseTest.php
+
+            - name: Release-ZIP als Artefakt bereitstellen
+              if: github.event_name != 'pull_request' && matrix.shopware == '6.7' && matrix.php == '8.4'
+              # Quelle: https://github.com/actions/upload-artifact/releases/tag/v7.0.1
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+              with:
+                  name: MGDAIImageLabels-${{ github.sha }}
+                  path: dist/MGDAIImageLabels-*.zip
+                  if-no-files-found: error
+                  retention-days: 14

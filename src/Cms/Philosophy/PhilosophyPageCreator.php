@@ -168,15 +168,28 @@ final readonly class PhilosophyPageCreator
         $ids = $this->cmsPageRepository->searchIds($criteria, $context)->getIds();
         $normalized = [];
         foreach ($ids as $id) {
-            if (!Uuid::isValid($id)) {
-                throw new \RuntimeException('Die AI-Philosophie-Seite besitzt keine gültige Shopware-ID.');
-            }
-            $normalized[] = $id;
+            $normalized[] = self::normalizeCmsPageId($id);
         }
 
         sort($normalized);
 
         return $normalized;
+    }
+
+    /**
+     * Gleicht den breiteren DAL-Vertrag von Shopware 6.6 an 6.7 an.
+     *
+     * CMS-Seiten besitzen immer genau eine UUID. Zusammengesetzte Primärschlüssel,
+     * die der generische 6.6-Rückgabetyp ebenfalls erlaubt, werden geschlossen
+     * abgewiesen statt stillschweigend in eine Zeichenkette umgewandelt zu werden.
+     */
+    private static function normalizeCmsPageId(mixed $id): string
+    {
+        if (!is_string($id) || !Uuid::isValid($id)) {
+            throw new \RuntimeException('Die AI-Philosophie-Seite besitzt keine gültige Shopware-ID.');
+        }
+
+        return $id;
     }
 
     /** @return array{content: array{source: string, value: string}} */

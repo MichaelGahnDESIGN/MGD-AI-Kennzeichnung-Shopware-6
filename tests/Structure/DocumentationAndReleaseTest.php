@@ -6,6 +6,7 @@ namespace MGDAIImageLabels\Tests\Structure;
 
 use PHPUnit\Framework\Attributes\CoversNothing;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Schützt den menschenlesbaren Dokumentations- und Release-Vertrag.
@@ -32,6 +33,171 @@ final class DocumentationAndReleaseTest extends TestCase
         'Dokumentation/Integration-eigener-Themes.md',
         'Dokumentation/Deployment-und-Rueckfall.md',
     ];
+
+    /**
+     * Prüft den CI-Vertrag anhand der tatsächlich geparsten YAML-Struktur.
+     *
+     * Reine Text- oder Regex-Prüfungen könnten auskommentierte bzw. wirkungslose
+     * Zeilen irrtümlich als aktive CI-Schritte akzeptieren. Die Strukturprüfung
+     * navigiert deshalb durch Jobs, Matrix, Schritte und Bedingungen.
+     */
+    public function testQualityWorkflowCoversTheSupportedVersionsAndSafeReleasePath(): void
+    {
+        $workflowPath = self::ROOT . '/.github/workflows/quality.yml';
+        self::assertFileExists($workflowPath);
+
+        $workflow = Yaml::parseFile($workflowPath);
+        self::assertIsArray($workflow);
+        self::assertSame(['contents' => 'read'], $workflow['permissions'] ?? null);
+
+        $triggers = $workflow['on'] ?? null;
+        self::assertIsArray($triggers);
+        self::assertArrayHasKey('push', $triggers);
+        self::assertArrayHasKey('pull_request', $triggers);
+
+        $concurrency = $workflow['concurrency'] ?? null;
+        self::assertIsArray($concurrency);
+        self::assertSame('${{ github.workflow }}-${{ github.ref }}', $concurrency['group'] ?? null);
+        self::assertTrue($concurrency['cancel-in-progress'] ?? false);
+
+        $jobs = $workflow['jobs'] ?? null;
+        self::assertIsArray($jobs);
+        $qualityJob = $jobs['quality'] ?? null;
+        self::assertIsArray($qualityJob);
+        self::assertSame('ubuntu-latest', $qualityJob['runs-on'] ?? null);
+
+        $strategy = $qualityJob['strategy'] ?? null;
+        self::assertIsArray($strategy);
+        self::assertFalse($strategy['fail-fast'] ?? true);
+        $matrix = $strategy['matrix'] ?? null;
+        self::assertIsArray($matrix);
+        self::assertSame(['6.6.10', '6.7'], $matrix['shopware'] ?? null);
+        self::assertSame(['8.2', '8.4'], $matrix['php'] ?? null);
+
+        $steps = $qualityJob['steps'] ?? null;
+        self::assertIsArray($steps);
+        self::assertSame(
+            'actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1',
+            $this->workflowStep($steps, 'Quellcode sicher auschecken')['uses'] ?? null,
+        );
+        self::assertSame(
+            'shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f',
+            $this->workflowStep($steps, 'PHP einrichten')['uses'] ?? null,
+        );
+        self::assertSame('${{ matrix.php }}', $this->workflowStep($steps, 'PHP einrichten')['with']['php-version'] ?? null);
+        self::assertSame('composer:v2', $this->workflowStep($steps, 'PHP einrichten')['with']['tools'] ?? null);
+        self::assertSame(
+            'actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38',
+            $this->workflowStep($steps, 'Node.js einrichten')['uses'] ?? null,
+        );
+        self::assertSame('24.x', $this->workflowStep($steps, 'Node.js einrichten')['with']['node-version'] ?? null);
+        self::assertSame(
+            'actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16',
+            $this->workflowStep($steps, 'Go einrichten')['uses'] ?? null,
+        );
+        self::assertSame('1.25.x', $this->workflowStep($steps, 'Go einrichten')['with']['go-version'] ?? null);
+
+        $dependencyStep = $this->workflowStep($steps, 'Shopware-Abhängigkeiten frisch auflösen');
+        $dependencyCommand = $dependencyStep['run'] ?? null;
+        self::assertIsString($dependencyCommand);
+        self::assertStringContainsString('composer require --no-update', $dependencyCommand);
+        self::assertStringContainsString('shopware/core:', $dependencyCommand);
+        self::assertStringContainsString('shopware/storefront:', $dependencyCommand);
+        self::assertStringContainsString('composer update --prefer-dist --no-interaction --no-progress --with-all-dependencies', $dependencyCommand);
+
+        $requiredCommands = [
+            'Composer-Metadaten prüfen' => 'composer validate --strict --no-check-version',
+            'Abhängigkeiten auf bekannte Schwachstellen prüfen' => 'composer audit --locked --no-interaction',
+            'PHP-Unit-Tests ohne Datenbank ausführen' => 'composer test:unit',
+            'PHPStan ausführen' => 'vendor/bin/phpstan analyse -c phpstan.neon.dist',
+            'PHP-Code-Stil prüfen' => 'vendor/bin/php-cs-fixer fix --dry-run --diff',
+            'Administration headless testen' => 'npm run test:administration',
+            'Storefront headless testen' => 'npm run test:storefront',
+            'JSON und XML prüfen' => 'jq empty',
+            'Shopware-Erweiterung validieren' => 'shopware-cli --no-interaction extension validate .',
+        ];
+        foreach ($requiredCommands as $stepName => $command) {
+            $run = $this->workflowStep($steps, $stepName)['run'] ?? null;
+            self::assertIsString($run, sprintf('CI-Schritt "%s" benötigt einen ausführbaren Befehl.', $stepName));
+            self::assertStringContainsString($command, $run);
+        }
+
+        $shopwareCliInstall = $this->workflowStep($steps, 'Shopware CLI in fester Version installieren')['run'] ?? null;
+        self::assertIsString($shopwareCliInstall);
+        self::assertStringContainsString('go install github.com/shopware/shopware-cli@0.15.12', $shopwareCliInstall);
+
+        $unitCommand = $this->workflowStep($steps, 'PHP-Unit-Tests ohne Datenbank ausführen')['run'] ?? '';
+        self::assertStringNotContainsString('test:integration', (string) $unitCommand);
+        self::assertStringNotContainsString('MGD_SHOPWARE_INTEGRATION_TESTS', (string) $unitCommand);
+
+        $restoreStep = $this->workflowStep($steps, 'Veröffentlichbare Composer-Metadaten wiederherstellen');
+        self::assertSame('git restore --source=HEAD -- composer.json composer.lock', $restoreStep['run'] ?? null);
+        $diffCommand = $this->workflowStep($steps, 'Git-Arbeitsbaum auf unbeabsichtigte Änderungen prüfen')['run'] ?? null;
+        self::assertSame('git diff --exit-code', $diffCommand);
+        self::assertLessThan(
+            $this->workflowStepIndex($steps, 'Release-ZIP reproduzierbar bauen'),
+            $this->workflowStepIndex($steps, 'Veröffentlichbare Composer-Metadaten wiederherstellen'),
+        );
+
+        $releaseStep = $this->workflowStep($steps, 'Release-ZIP reproduzierbar bauen');
+        self::assertSame(
+            "github.event_name != 'pull_request' && matrix.shopware == '6.7' && matrix.php == '8.4'",
+            $releaseStep['if'] ?? null,
+        );
+        self::assertSame('bash scripts/build-release.sh', $releaseStep['run'] ?? null);
+
+        $archiveTestStep = $this->workflowStep($steps, 'Release-ZIP prüfen');
+        self::assertSame($releaseStep['if'] ?? null, $archiveTestStep['if'] ?? null);
+        self::assertStringContainsString('testReleaseBuildIsSafeCompleteAndReproducible', (string) ($archiveTestStep['run'] ?? ''));
+
+        $uploadStep = $this->workflowStep($steps, 'Release-ZIP als Artefakt bereitstellen');
+        self::assertSame($releaseStep['if'] ?? null, $uploadStep['if'] ?? null);
+        self::assertSame(
+            'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a',
+            $uploadStep['uses'] ?? null,
+        );
+        self::assertSame('error', $uploadStep['with']['if-no-files-found'] ?? null);
+
+        $secretJob = $jobs['secret-scan'] ?? null;
+        self::assertIsArray($secretJob);
+        $secretSteps = $secretJob['steps'] ?? null;
+        self::assertIsArray($secretSteps);
+        self::assertSame('1.25.x', $this->workflowStep($secretSteps, 'Go einrichten')['with']['go-version'] ?? null);
+        $secretInstall = $this->workflowStep($secretSteps, 'Gitleaks in fester Version installieren')['run'] ?? null;
+        self::assertIsString($secretInstall);
+        self::assertStringContainsString('go install github.com/zricethezav/gitleaks/v8@v8.30.1', $secretInstall);
+        self::assertStringContainsString('echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"', $secretInstall);
+        $secretScan = $this->workflowStep($secretSteps, 'Git-Historie und Arbeitsbaum auf Geheimnisse prüfen')['run'] ?? null;
+        self::assertIsString($secretScan);
+        self::assertStringContainsString('gitleaks git', $secretScan);
+        self::assertStringContainsString('gitleaks dir', $secretScan);
+        self::assertStringContainsString('--redact', $secretScan);
+
+        $serializedWorkflow = json_encode($workflow, JSON_THROW_ON_ERROR);
+        self::assertStringNotContainsString('secrets.', $serializedWorkflow);
+        self::assertStringNotContainsString('pull_request_target', $serializedWorkflow);
+        self::assertStringNotContainsString('contents: write', (string) file_get_contents($workflowPath));
+
+        foreach ($jobs as $job) {
+            self::assertIsArray($job);
+            $jobSteps = $job['steps'] ?? null;
+            self::assertIsArray($jobSteps);
+            foreach ($jobSteps as $step) {
+                self::assertIsArray($step);
+                if (!isset($step['uses'])) {
+                    continue;
+                }
+                self::assertIsString($step['uses']);
+                self::assertMatchesRegularExpression(
+                    '~^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+@[0-9a-f]{40}$~',
+                    $step['uses'],
+                    'Externe Actions müssen auf einen unveränderlichen Commit festgesetzt sein.',
+                );
+            }
+        }
+
+        $this->assertShopwareMetadataIsComplete();
+    }
 
     public function testRequiredDocumentationIsCompleteAndSafeToPublish(): void
     {
@@ -343,6 +509,64 @@ final class DocumentationAndReleaseTest extends TestCase
             }
         }
         rmdir($path);
+    }
+
+    /**
+     * @param array<array-key, mixed> $steps
+     *
+     * @return array<string, mixed>
+     */
+    private function workflowStep(array $steps, string $name): array
+    {
+        foreach ($steps as $step) {
+            if (is_array($step) && ($step['name'] ?? null) === $name) {
+                return $step;
+            }
+        }
+
+        self::fail(sprintf('Der CI-Schritt "%s" fehlt.', $name));
+    }
+
+    /** @param array<array-key, mixed> $steps */
+    private function workflowStepIndex(array $steps, string $name): int
+    {
+        foreach ($steps as $index => $step) {
+            if (is_int($index) && is_array($step) && ($step['name'] ?? null) === $name) {
+                return $index;
+            }
+        }
+
+        self::fail(sprintf('Der CI-Schritt "%s" besitzt keine Position.', $name));
+    }
+
+    /** Prüft die von Shopware CLI verlangten öffentlichen Plugin-Angaben. */
+    private function assertShopwareMetadataIsComplete(): void
+    {
+        $composer = json_decode((string) file_get_contents(self::ROOT . '/composer.json'), true, 512, JSON_THROW_ON_ERROR);
+        self::assertIsArray($composer);
+        self::assertSame('Michael Gahn DESIGN', $composer['authors'][0]['name'] ?? null);
+
+        $extra = $composer['extra'] ?? null;
+        self::assertIsArray($extra);
+        foreach (['de-DE', 'en-GB'] as $locale) {
+            self::assertIsString($extra['label'][$locale] ?? null);
+            $description = $extra['description'][$locale] ?? null;
+            self::assertIsString($description);
+            self::assertGreaterThanOrEqual(150, mb_strlen($description));
+            self::assertLessThanOrEqual(185, mb_strlen($description));
+            self::assertSame('https://github.com/MichaelGahnDESIGN', $extra['manufacturerLink'][$locale] ?? null);
+            self::assertSame(
+                'https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/blob/main/SECURITY.md',
+                $extra['supportLink'][$locale] ?? null,
+            );
+        }
+
+        $iconPath = self::ROOT . '/src/Resources/config/plugin.png';
+        self::assertFileExists($iconPath);
+        $imageSize = getimagesize($iconPath);
+        self::assertIsArray($imageSize);
+        self::assertSame([128, 128], [$imageSize[0], $imageSize[1]]);
+        self::assertSame(IMAGETYPE_PNG, $imageSize[2]);
     }
 
     /** @return list<string> */

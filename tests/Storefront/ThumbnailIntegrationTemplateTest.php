@@ -9,7 +9,6 @@ use MGDAIImageLabels\Storefront\Thumbnail\ThumbnailPresentationResolver;
 use PHPUnit\Framework\TestCase;
 use Shopware\Core\Framework\Adapter\Twig\TemplateFinderInterface;
 use Shopware\Core\Framework\Adapter\Twig\TemplateScopeDetector;
-use Shopware\Core\Framework\Adapter\Twig\TokenParser\EmbedTokenParser;
 use Shopware\Core\Framework\Adapter\Twig\TokenParser\ExtendsTokenParser;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Twig\Environment;
@@ -71,6 +70,8 @@ final class ThumbnailIntegrationTemplateTest extends TestCase
         self::assertSame(1, substr_count($template, 'mgd_ai_thumbnail_presentation('));
         self::assertSame(1, substr_count($template, 'parent()'));
         self::assertSame(1, substr_count($template, 'labeled-media.html.twig'));
+        self::assertStringContainsString("{%- embed '@MGDAIImageLabels/", $template);
+        self::assertStringNotContainsString('sw_embed', $template);
         self::assertStringContainsString('presentation.labelAllowed', $template);
         self::assertStringContainsString('presentation.intrinsicLayout', $template);
         self::assertStringContainsString('presentation.floatEndLayout', $template);
@@ -221,14 +222,13 @@ TWIG;
         $twig = new Environment(
             new ArrayLoader([
                 'shopware-thumbnail' => $this->parentTemplate(),
-                'labeled-media' => $labeledMedia,
+                '@MGDAIImageLabels/storefront/component/mgd-ai-image-label/labeled-media.html.twig' => $labeledMedia,
                 'override' => $this->readTemplate(),
             ]),
             ['autoescape' => 'html'],
         );
         $finder = $this->createTemplateFinder();
         $twig->addTokenParser(new ExtendsTokenParser($finder, new TemplateScopeDetector(new RequestStack())));
-        $twig->addTokenParser(new EmbedTokenParser($finder));
         $twig->addFunction(new TwigFunction(
             'mgd_ai_image_label',
             static function () use ($label, &$labelResolverCalls): array {
@@ -295,7 +295,6 @@ TWIG;
             {
                 return match ($template) {
                     '@Storefront/storefront/utilities/thumbnail.html.twig' => 'shopware-thumbnail',
-                    '@MGDAIImageLabels/storefront/component/mgd-ai-image-label/labeled-media.html.twig' => 'labeled-media',
                     default => throw new \LogicException('Unerwarteter Template-Pfad: ' . $template),
                 };
             }

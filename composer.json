@@ -4,6 +4,12 @@
     "type": "shopware-platform-plugin",
     "version": "0.1.0",
     "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Michael Gahn DESIGN",
+            "homepage": "https://github.com/MichaelGahnDESIGN"
+        }
+    ],
     "require": {
         "php": "^8.2",
         "shopware/core": "~6.6.10 || ~6.7.0",
@@ -29,6 +35,18 @@
         "label": {
             "de-DE": "MGD KI-Bildkennzeichnung",
             "en-GB": "MGD AI Image Labels"
+        },
+        "description": {
+            "de-DE": "Kennzeichnet KI-generierte, teilweise KI-generierte, bearbeitete und Deepfake-Bilder sicher, transparent, barrierefrei und zweisprachig direkt in Shopware 6.",
+            "en-GB": "Labels AI-generated, partially AI-generated, edited and deepfake images transparently, accessibly and bilingually throughout the Shopware 6 storefront."
+        },
+        "manufacturerLink": {
+            "de-DE": "https://github.com/MichaelGahnDESIGN",
+            "en-GB": "https://github.com/MichaelGahnDESIGN"
+        },
+        "supportLink": {
+            "de-DE": "https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/blob/main/SECURITY.md",
+            "en-GB": "https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/blob/main/SECURITY.md"
         }
     },
     "config": {
@@ -45,10 +63,14 @@
             "@php tests/Integration/preflight.php",
             "phpunit --testsuite integration --fail-on-skipped"
         ],
+        "analyse:phpstan": "phpstan analyse -c phpstan.neon.dist --memory-limit=1G",
+        "check:style": "php-cs-fixer fix --dry-run --diff",
         "check:php": [
             "composer validate --strict --no-check-version",
             "php -l src/MGDAIImageLabels.php",
-            "@test:unit"
+            "@test:unit",
+            "@analyse:phpstan",
+            "@check:style"
         ]
     }
 }

@@ -35,13 +35,17 @@
          # Der PHP-Resolver liefert ausschließlich einen geprüften Boolean. Freie
          # Theme-Werte können den Layoutmodus nicht direkt beeinflussen.
          #}
-        {%- sw_embed '@MGDAIImageLabels/storefront/component/mgd-ai-image-label/labeled-media.html.twig' with {
+        {#
+         # Der native Twig-Embed-Parser ist in Shopware 6.6 und 6.7 vorhanden.
+         # Shopwares eigener Präfix-Parser existiert dagegen erst ab 6.7.
+         #}
+        {%- embed '@MGDAIImageLabels/storefront/component/mgd-ai-image-label/labeled-media.html.twig' with {
             label: label,
             intrinsicLayout: presentation.intrinsicLayout,
             floatEndLayout: presentation.floatEndLayout,
             thumbnailContent: thumbnailContent
         } only -%}
             {%- block mediaContent -%}{{- thumbnailContent -}}{%- endblock -%}
-        {%- end_sw_embed -%}
+        {%- endembed -%}
     {%- endif -%}
 {%- endblock %}

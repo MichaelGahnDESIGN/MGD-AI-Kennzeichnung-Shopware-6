@@ -1,0 +1,11 @@
+parameters:
+    # Level max ist strenger als der zugesagte Mindestwert 8 und schützt die
+    # typisierten Grenzflächen des Plugins vor schleichenden Unklarheiten.
+    level: max
+    paths:
+        - src
+    tmpDir: .phpstan-cache
+    excludePaths:
+        analyse:
+            - vendor
+            - dist
