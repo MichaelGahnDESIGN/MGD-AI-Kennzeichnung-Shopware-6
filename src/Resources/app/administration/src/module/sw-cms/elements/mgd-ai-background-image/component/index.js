@@ -19,6 +19,7 @@ export default {
                 verticalPosition: this.element?.config?.verticalPosition?.value,
                 fallbackColor: this.element?.config?.fallbackColor?.value,
                 decorative: this.element?.config?.decorative?.value,
+                altText: this.element?.config?.altText?.value,
             });
         },
 

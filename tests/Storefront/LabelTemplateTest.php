@@ -236,7 +236,6 @@ final class LabelTemplateTest extends TestCase
         self::assertSame($german, $neutralGerman);
         self::assertSame($english, $neutralEnglish);
         self::assertSame([
-            'mgd-ai-image-labels.cms.background.fallbackAlt',
             'mgd-ai-image-labels.screenReader.deepfake',
             'mgd-ai-image-labels.status.deepfake',
             'mgd-ai-image-labels.status.generated',

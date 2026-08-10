@@ -6,6 +6,7 @@ namespace MGDAIImageLabels\Tests\Unit\Cms;
 
 use Composer\InstalledVersions;
 use MGDAIImageLabels\Cms\BackgroundImage\BackgroundImageCmsElementResolver;
+use MGDAIImageLabels\Cms\BackgroundImage\BackgroundImagePresentationNormalizer;
 use MGDAIImageLabels\Cms\BackgroundImage\CmsElementMediaStruct;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -17,6 +18,8 @@ use Shopware\Core\Content\Cms\DataResolver\ResolverContext\ResolverContext;
 use Shopware\Core\Content\Media\MediaCollection;
 use Shopware\Core\Content\Media\MediaDefinition;
 use Shopware\Core\Content\Media\MediaEntity;
+use Shopware\Core\Content\Media\MediaType\DocumentType;
+use Shopware\Core\Content\Media\MediaType\ImageType;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -34,14 +37,14 @@ final class BackgroundImageCmsElementResolverTest extends TestCase
 
     public function testExposesDedicatedElementType(): void
     {
-        self::assertSame('mgd-ai-background-image', (new BackgroundImageCmsElementResolver())->getType());
+        self::assertSame('mgd-ai-background-image', $this->resolver()->getType());
     }
 
     public function testCollectsOnlyTheStaticValidMediaIdWithStableKey(): void
     {
         $slot = $this->slot(self::MEDIA_ID);
 
-        $collection = (new BackgroundImageCmsElementResolver())->collect($slot, $this->context());
+        $collection = $this->resolver()->collect($slot, $this->context());
 
         self::assertNotNull($collection);
         $all = $collection->all();
@@ -59,7 +62,7 @@ final class BackgroundImageCmsElementResolverTest extends TestCase
     ): void {
         $slot = $this->slot($value, $source);
 
-        self::assertNull((new BackgroundImageCmsElementResolver())->collect($slot, $this->context()));
+        self::assertNull($this->resolver()->collect($slot, $this->context()));
     }
 
     /** @return iterable<string, array{array<mixed>|bool|float|int|string|null, string}> */
@@ -78,6 +81,8 @@ final class BackgroundImageCmsElementResolverTest extends TestCase
         $slot = $this->slot(self::MEDIA_ID);
         $media = new MediaEntity();
         $media->setId(self::MEDIA_ID);
+        $media->setMimeType('image/png');
+        $media->setMediaType(new ImageType());
         $result = new ElementDataCollection();
         $result->add(
             'mgd_ai_background_media_' . self::SLOT_ID . '_' . self::MEDIA_ID,
@@ -91,16 +96,51 @@ final class BackgroundImageCmsElementResolverTest extends TestCase
             ),
         );
 
-        (new BackgroundImageCmsElementResolver())->enrich($slot, $this->context(), $result);
+        $this->resolver()->enrich($slot, $this->context(), $result);
 
         self::assertInstanceOf(CmsElementMediaStruct::class, $slot->getData());
         self::assertSame(self::MEDIA_ID, $slot->getData()->mediaId);
         self::assertSame($media, $slot->getData()->media);
+        self::assertSame('mgd-ai-background-image--height-320', $slot->getData()->presentation->heightClass);
+    }
+
+    public function testEnrichRejectsPdfAndContradictingMediaType(): void
+    {
+        foreach ([
+            ['application/pdf', new DocumentType()],
+            ['application/pdf', new ImageType()],
+            ['image/png', new DocumentType()],
+            ['image/png', null],
+        ] as [$mimeType, $mediaType]) {
+            $slot = $this->slot(self::MEDIA_ID);
+            $media = new MediaEntity();
+            $media->setId(self::MEDIA_ID);
+            $media->setMimeType($mimeType);
+            if ($mediaType !== null) {
+                $media->setMediaType($mediaType);
+            }
+            $result = new ElementDataCollection();
+            $result->add(
+                'mgd_ai_background_media_' . self::SLOT_ID . '_' . self::MEDIA_ID,
+                new EntitySearchResult(
+                    MediaDefinition::ENTITY_NAME,
+                    1,
+                    new MediaCollection([$media]),
+                    null,
+                    new Criteria([self::MEDIA_ID]),
+                    Context::createDefaultContext(),
+                ),
+            );
+
+            $this->resolver()->enrich($slot, $this->context(), $result);
+
+            self::assertNull($slot->getData());
+        }
     }
 
     public function testEnrichRemainsNullSafeWhenSearchResultOrMediaIsMissing(): void
     {
-        $resolver = new BackgroundImageCmsElementResolver();
+        $resolver = $this->resolver();
 
         foreach ([$this->slot(''), $this->slot(self::MEDIA_ID)] as $slot) {
             $resolver->enrich($slot, $this->context(), new ElementDataCollection());
@@ -113,6 +153,11 @@ final class BackgroundImageCmsElementResolverTest extends TestCase
         $xml = file_get_contents(__DIR__ . '/../../../src/Resources/config/services.xml');
         self::assertIsString($xml);
         self::assertStringContainsString(BackgroundImageCmsElementResolver::class, $xml);
+        self::assertStringContainsString(BackgroundImagePresentationNormalizer::class, $xml);
+        self::assertStringContainsString(
+            '<argument type="service" id="MGDAIImageLabels\Cms\BackgroundImage\BackgroundImagePresentationNormalizer"/>',
+            $xml,
+        );
         self::assertStringContainsString('<tag name="shopware.cms.data_resolver"/>', $xml);
     }
 
@@ -146,5 +191,10 @@ final class BackgroundImageCmsElementResolverTest extends TestCase
     private function context(): ResolverContext
     {
         return new ResolverContext($this->createStub(SalesChannelContext::class), new Request());
+    }
+
+    private function resolver(): BackgroundImageCmsElementResolver
+    {
+        return new BackgroundImageCmsElementResolver(new BackgroundImagePresentationNormalizer());
     }
 }

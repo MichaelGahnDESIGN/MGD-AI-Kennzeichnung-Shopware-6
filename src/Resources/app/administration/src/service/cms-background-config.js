@@ -15,11 +15,39 @@ const DEFAULTS = Object.freeze({
     verticalPosition: 'center',
     fallbackColor: 'neutral-light',
     decorative: false,
+    altText: '',
 });
 
 /** Nur ein echter Boolean darf die Bildsemantik verändern. */
 export function normalizeBoolean(value) {
     return value === true;
+}
+
+/** Redaktioneller Alternativtext bleibt reiner, begrenzter Text. */
+export function normalizeEditorialAltText(value) {
+    if (typeof value !== 'string') {
+        return '';
+    }
+
+    return [...value.trim()].slice(0, 512).join('');
+}
+
+/** MIME- und Shopware-Medientyp müssen einander als Bild bestätigen. */
+export function isImageMedia(media) {
+    if (typeof media !== 'object' || media === null || typeof media.mimeType !== 'string') {
+        return false;
+    }
+    if (!media.mimeType.startsWith('image/')) {
+        return false;
+    }
+
+    const mediaType = media.mediaType;
+    return (
+        typeof mediaType === 'object'
+        && mediaType !== null
+        && typeof mediaType.name === 'string'
+        && mediaType.name === 'IMAGE'
+    );
 }
 
 function choice(value, allowed, fallback) {
@@ -46,5 +74,6 @@ export function normalizeBackgroundConfig(value = {}) {
         ),
         fallbackColor: choice(input.fallbackColor, BACKGROUND_OPTIONS.fallbackColor, DEFAULTS.fallbackColor),
         decorative: normalizeBoolean(input.decorative),
+        altText: normalizeEditorialAltText(input.altText),
     };
 }

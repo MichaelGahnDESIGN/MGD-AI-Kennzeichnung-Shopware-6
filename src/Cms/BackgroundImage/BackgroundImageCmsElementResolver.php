@@ -24,6 +24,10 @@ final class BackgroundImageCmsElementResolver extends AbstractCmsElementResolver
 {
     private const TYPE = 'mgd-ai-background-image';
 
+    public function __construct(
+        private readonly BackgroundImagePresentationNormalizer $presentationNormalizer,
+    ) {}
+
     public function getType(): string
     {
         return self::TYPE;
@@ -55,11 +59,15 @@ final class BackgroundImageCmsElementResolver extends AbstractCmsElementResolver
         }
 
         $media = $searchResult->getEntities()->get($mediaId);
-        if (!$media instanceof MediaEntity) {
+        if (!$media instanceof MediaEntity || !$this->isImage($media)) {
             return;
         }
 
-        $slot->setData(new CmsElementMediaStruct($mediaId, $media));
+        $slot->setData(new CmsElementMediaStruct(
+            $mediaId,
+            $media,
+            $this->presentationNormalizer->normalize($slot->getFieldConfig(), $media),
+        ));
     }
 
     /**
@@ -86,5 +94,18 @@ final class BackgroundImageCmsElementResolver extends AbstractCmsElementResolver
     private function searchKey(CmsSlotEntity $slot, string $mediaId): string
     {
         return 'mgd_ai_background_media_' . $slot->getUniqueIdentifier() . '_' . $mediaId;
+    }
+
+    /** MIME-Typ und Shopware-Medientyp müssen sich eindeutig als Bild bestätigen. */
+    private function isImage(MediaEntity $media): bool
+    {
+        $mimeType = $media->getMimeType();
+        if (!is_string($mimeType) || !str_starts_with($mimeType, 'image/')) {
+            return false;
+        }
+
+        $mediaType = $media->getMediaType();
+
+        return $mediaType !== null && $mediaType->getName() === 'IMAGE';
     }
 }

@@ -36,7 +36,13 @@
                     "horizontalPosition": "Horizontal image position",
                     "verticalPosition": "Vertical image position",
                     "decorative": "Image is purely decorative",
-                    "fallbackColor": "Safe background colour"
+                    "fallbackColor": "Safe background colour",
+                    "altText": "Alternative text",
+                    "altTextHelp": "Briefly describe the image content or purpose. Leave this field empty only for explicitly decorative images."
+                },
+                "validation": {
+                    "imageOnly": "Please select an image medium only. Documents, videos and other files are not permitted.",
+                    "missingAltText": "A non-decorative image is missing alternative text. Without a description, blind users cannot understand the image content."
                 },
                 "options": {
                     "minHeight": { "240": "Compact (240 px)", "320": "Standard (320 px)", "480": "Large (480 px)", "640": "Extra large (640 px)" },

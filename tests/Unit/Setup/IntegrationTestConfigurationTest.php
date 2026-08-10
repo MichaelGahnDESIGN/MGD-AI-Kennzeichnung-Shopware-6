@@ -62,6 +62,8 @@ final class IntegrationTestConfigurationTest extends TestCase
         self::assertStringContainsString('->setForceInstallPlugins(true)', $source);
         self::assertStringContainsString("self::getContainer()->get(BackgroundImageCmsElementResolver::class)", $source);
         self::assertStringContainsString("self::getContainer()->get('media.repository')", $source);
+        self::assertStringContainsString("'mimeType' => 'application/pdf'", $source);
+        self::assertStringContainsString('testRealPdfMediaIsRejectedDuringEnrichment', $source);
 
         $pluginPosition = strpos($source, '->addCallingPlugin(');
         $bootstrapPosition = strpos($source, '->bootstrap();');

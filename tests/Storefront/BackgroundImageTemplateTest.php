@@ -30,16 +30,18 @@ final class BackgroundImageTemplateTest extends TestCase
         self::assertStringNotContainsString('style=', $template);
         self::assertStringNotContainsString('|raw', $template);
         self::assertDoesNotMatchRegularExpression('/https?:\/\//i', $template);
-        self::assertStringContainsString("'240px': 'mgd-ai-background-image--height-240'", $template);
-        self::assertStringContainsString("'neutral-light': 'mgd-ai-background-image--fallback-neutral-light'", $template);
+        self::assertStringContainsString('presentation.heightClass', $template);
+        self::assertStringContainsString('presentation.fallbackClass', $template);
+        self::assertStringNotContainsString('element.translated.config', $template);
+        self::assertStringNotContainsString('[minHeight]', $template);
     }
 
     public function testTemplateParsesWithShopwaresRealThumbnailTokenParser(): void
     {
         $twig = new Environment(new ArrayLoader());
         $twig->addTokenParser(new ThumbnailTokenParser());
-        $twig->addFunction(new TwigFunction('mgd_ai_image_label', static fn (): array => ['visible' => false]));
-        $twig->addFilter(new TwigFilter('trans', static fn (string $value): string => $value));
+        $twig->addFunction(new TwigFunction('mgd_ai_image_label', static fn(): array => ['visible' => false]));
+        $twig->addFilter(new TwigFilter('trans', static fn(string $value): string => $value));
 
         $module = $twig->parse($twig->tokenize(new Source($this->template(), 'mgd-ai-background-image')));
 
@@ -50,13 +52,14 @@ final class BackgroundImageTemplateTest extends TestCase
     {
         $template = $this->template();
 
-        self::assertStringContainsString("decorative is same as(true)", $template);
+        self::assertStringContainsString("presentation.decorative is same as(true)", $template);
         self::assertStringContainsString("'aria-hidden': 'true'", $template);
         self::assertStringContainsString("'alt': ''", $template);
-        self::assertStringContainsString('element.data.media.translated.alt', $template);
-        self::assertStringContainsString('element.data.media.translated.title', $template);
-        self::assertStringContainsString('element.data.media.fileName', $template);
-        self::assertStringContainsString("'mgd-ai-image-labels.cms.background.fallbackAlt'|trans", $template);
+        self::assertStringContainsString("'alt': presentation.altText", $template);
+        self::assertStringNotContainsString('element.data.media.translated.alt', $template);
+        self::assertStringNotContainsString('element.data.media.translated.title', $template);
+        self::assertStringNotContainsString('element.data.media.fileName', $template);
+        self::assertStringNotContainsString('fallbackAlt', $template);
     }
 
     public function testPassesTheResolvedLabelIntoStandardThumbnailIntegrationExactlyOnce(): void
@@ -92,7 +95,7 @@ final class BackgroundImageTemplateTest extends TestCase
 <img class="{{ attributes.class }}" alt="{{ attributes.alt }}"{% if attributes['aria-hidden'] is defined %} aria-hidden="{{ attributes['aria-hidden'] }}"{% endif %}>{% if mgdAiLabel.visible %}<span class="rendered-label" role="note"></span>{% endif %}
 TWIG,
         ]), ['autoescape' => 'html']);
-        $twig->addFilter(new TwigFilter('trans', static fn (string $value): string => $value));
+        $twig->addFilter(new TwigFilter('trans', static fn(string $value): string => $value));
         $twig->addFunction(new TwigFunction(
             'mgd_ai_image_label',
             static function () use (&$labelCalls): array {
@@ -115,6 +118,12 @@ TWIG,
         self::assertStringNotContainsString('aria-hidden=', $semantic);
         self::assertStringContainsString('alt="&lt;script&gt;alert(1)&lt;/script&gt;"', $semantic);
         self::assertStringNotContainsString('<script>', $semantic);
+
+        $emptySemantic = $twig->render('cms-background', $this->renderContext(false, ''));
+        self::assertSame(3, $labelCalls);
+        self::assertSame(1, substr_count($emptySemantic, 'rendered-label'));
+        self::assertStringContainsString('alt=""', $emptySemantic);
+        self::assertStringNotContainsString('aria-hidden=', $emptySemantic);
     }
 
     public function testResponsiveStylesUseOnlyFixedClassesAndPreserveBadgeLayout(): void
@@ -142,16 +151,23 @@ TWIG,
     {
         return ['element' => [
             'translated' => ['config' => [
-                'minHeight' => ['value' => '320px'],
-                'horizontalPosition' => ['value' => 'center'],
-                'verticalPosition' => ['value' => 'center'],
-                'fallbackColor' => ['value' => 'neutral-light'],
-                'decorative' => ['value' => $decorative],
+                'minHeight' => ['value' => ['manipuliert']],
+                'horizontalPosition' => ['value' => new \stdClass()],
+                'verticalPosition' => ['value' => true],
+                'fallbackColor' => ['value' => 42],
+                'decorative' => ['value' => '<script>'],
             ]],
             'data' => ['media' => [
                 'translated' => ['alt' => $alt, 'title' => 'Titel'],
                 'fileName' => 'bild',
                 'thumbnails' => [],
+            ], 'presentation' => [
+                'heightClass' => 'mgd-ai-background-image--height-320',
+                'horizontalClass' => 'mgd-ai-background-image--horizontal-center',
+                'verticalClass' => 'mgd-ai-background-image--vertical-center',
+                'fallbackClass' => 'mgd-ai-background-image--fallback-neutral-light',
+                'decorative' => $decorative,
+                'altText' => $alt,
             ]],
         ]];
     }

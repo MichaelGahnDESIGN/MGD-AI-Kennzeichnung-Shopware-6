@@ -27,7 +27,9 @@
         <service id="MGDAIImageLabels\Storefront\Thumbnail\ThumbnailPresentationResolver"/>
 
         <!-- Resolver für das lokale, sicher konfigurierte CMS-Hintergrundmedium. -->
+        <service id="MGDAIImageLabels\Cms\BackgroundImage\BackgroundImagePresentationNormalizer"/>
         <service id="MGDAIImageLabels\Cms\BackgroundImage\BackgroundImageCmsElementResolver">
+            <argument type="service" id="MGDAIImageLabels\Cms\BackgroundImage\BackgroundImagePresentationNormalizer"/>
             <tag name="shopware.cms.data_resolver"/>
         </service>
 

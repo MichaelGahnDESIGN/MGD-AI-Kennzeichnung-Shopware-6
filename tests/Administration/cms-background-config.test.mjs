@@ -2,8 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+    isImageMedia,
     normalizeBackgroundConfig,
     normalizeBoolean,
+    normalizeEditorialAltText,
 } from '../../src/Resources/app/administration/src/service/cms-background-config.js';
 
 test('fehlende und manipulierte Werte werden auf feste sichere Werte begrenzt', () => {
@@ -13,13 +15,32 @@ test('fehlende und manipulierte Werte werden auf feste sichere Werte begrenzt', 
         verticalPosition: 'outside',
         fallbackColor: 'url(https://example.invalid)',
         decorative: 'false',
+        altText: { html: '<script>' },
     }), {
         minHeight: '320px',
         horizontalPosition: 'center',
         verticalPosition: 'center',
         fallbackColor: 'neutral-light',
         decorative: false,
+        altText: '',
     });
+});
+
+test('redaktioneller Alt-Text akzeptiert nur Text und wird begrenzt', () => {
+    assert.equal(normalizeEditorialAltText('  Ein sinnvoller Text  '), 'Ein sinnvoller Text');
+    assert.equal(normalizeEditorialAltText(['Text']), '');
+    assert.equal(normalizeEditorialAltText({ text: 'Text' }), '');
+    assert.equal(normalizeEditorialAltText(42), '');
+    assert.equal(normalizeEditorialAltText('x'.repeat(600)).length, 512);
+});
+
+test('Medienauswahl akzeptiert ausschließlich echte Bildmedien', () => {
+    assert.equal(isImageMedia({ mimeType: 'image/png', mediaType: { name: 'IMAGE' } }), true);
+    assert.equal(isImageMedia({ mimeType: 'image/svg+xml' }), false);
+    assert.equal(isImageMedia({ mimeType: 'application/pdf', mediaType: { name: 'DOCUMENT' } }), false);
+    assert.equal(isImageMedia({ mimeType: 'image/png', mediaType: { name: 'DOCUMENT' } }), false);
+    assert.equal(isImageMedia({ mimeType: ['image/png'], mediaType: { name: 'IMAGE' } }), false);
+    assert.equal(isImageMedia(null), false);
 });
 
 test('jede erlaubte Auswahl bleibt unverändert erhalten', () => {

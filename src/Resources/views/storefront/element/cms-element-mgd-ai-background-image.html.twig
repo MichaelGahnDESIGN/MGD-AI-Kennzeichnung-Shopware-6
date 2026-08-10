@@ -2,43 +2,11 @@
  # Gekennzeichnetes CMS-Hintergrundbild ohne freie URL-, HTML- oder CSS-Werte.
  # Sämtliche Klassen werden serverseitig aus festen Positivlisten gewählt.
  #}
-{% set config = element.translated.config %}
-{% set minHeight = config.minHeight.value|default('320px') %}
-{% set horizontal = config.horizontalPosition.value|default('center') %}
-{% set vertical = config.verticalPosition.value|default('center') %}
-{% set fallback = config.fallbackColor.value|default('neutral-light') %}
-{% set decorative = config.decorative.value|default(false) %}
-
-{% set heightClass = {
-    '240px': 'mgd-ai-background-image--height-240',
-    '320px': 'mgd-ai-background-image--height-320',
-    '480px': 'mgd-ai-background-image--height-480',
-    '640px': 'mgd-ai-background-image--height-640'
-}[minHeight] ?? 'mgd-ai-background-image--height-320' %}
-{% set horizontalClass = {
-    'left': 'mgd-ai-background-image--horizontal-left',
-    'center': 'mgd-ai-background-image--horizontal-center',
-    'right': 'mgd-ai-background-image--horizontal-right'
-}[horizontal] ?? 'mgd-ai-background-image--horizontal-center' %}
-{% set verticalClass = {
-    'top': 'mgd-ai-background-image--vertical-top',
-    'center': 'mgd-ai-background-image--vertical-center',
-    'bottom': 'mgd-ai-background-image--vertical-bottom'
-}[vertical] ?? 'mgd-ai-background-image--vertical-center' %}
-{% set fallbackClass = {
-    'neutral-light': 'mgd-ai-background-image--fallback-neutral-light',
-    'neutral-dark': 'mgd-ai-background-image--fallback-neutral-dark',
-    'brand': 'mgd-ai-background-image--fallback-brand'
-}[fallback] ?? 'mgd-ai-background-image--fallback-neutral-light' %}
-
-<div class="mgd-ai-background-image {{ heightClass }} {{ horizontalClass }} {{ verticalClass }} {{ fallbackClass }}">
-    {% if element.data.media %}
+{% set presentation = element.data.presentation|default(null) %}
+<div class="mgd-ai-background-image {{ presentation ? presentation.heightClass : 'mgd-ai-background-image--height-320' }} {{ presentation ? presentation.horizontalClass : 'mgd-ai-background-image--horizontal-center' }} {{ presentation ? presentation.verticalClass : 'mgd-ai-background-image--vertical-center' }} {{ presentation ? presentation.fallbackClass : 'mgd-ai-background-image--fallback-neutral-light' }}">
+    {% if element.data.media and presentation %}
         {% set label = mgd_ai_image_label(element.data.media) %}
-        {% set meaningfulAlt = element.data.media.translated.alt
-            ?: element.data.media.translated.title
-            ?: element.data.media.fileName
-            ?: 'mgd-ai-image-labels.cms.background.fallbackAlt'|trans %}
-        {% if decorative is same as(true) %}
+        {% if presentation.decorative is same as(true) %}
             {% set attributes = {
                 'class': 'mgd-ai-background-image__media',
                 'alt': '',
@@ -48,7 +16,7 @@
         {% else %}
             {% set attributes = {
                 'class': 'mgd-ai-background-image__media',
-                'alt': meaningfulAlt,
+                'alt': presentation.altText,
                 'loading': 'lazy'
             } %}
         {% endif %}

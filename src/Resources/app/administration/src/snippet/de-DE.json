@@ -36,7 +36,13 @@
                     "horizontalPosition": "Horizontale Bildposition",
                     "verticalPosition": "Vertikale Bildposition",
                     "decorative": "Bild ist rein dekorativ",
-                    "fallbackColor": "Sichere Hintergrundfarbe"
+                    "fallbackColor": "Sichere Hintergrundfarbe",
+                    "altText": "Alternativtext",
+                    "altTextHelp": "Beschreiben Sie knapp den Inhalt oder Zweck des Bildes. Lassen Sie das Feld nur bei ausdrücklich dekorativen Bildern leer."
+                },
+                "validation": {
+                    "imageOnly": "Bitte wählen Sie ausschließlich ein Bildmedium. Dokumente, Videos und andere Dateien sind nicht zulässig.",
+                    "missingAltText": "Für ein nicht dekoratives Bild fehlt ein Alternativtext. Ohne Beschreibung können blinde Nutzer den Bildinhalt nicht erfassen."
                 },
                 "options": {
                     "minHeight": { "240": "Kompakt (240 px)", "320": "Standard (320 px)", "480": "Groß (480 px)", "640": "Sehr groß (640 px)" },

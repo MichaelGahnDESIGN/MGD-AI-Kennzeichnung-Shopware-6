@@ -116,6 +116,34 @@ final class BackgroundImageCmsElementResolverTest extends TestCase
         }
     }
 
+    /** Ein echtes PDF aus dem DAL darf trotz valider Medien-ID kein Bild-Struct erzeugen. */
+    public function testRealPdfMediaIsRejectedDuringEnrichment(): void
+    {
+        $resolver = self::getContainer()->get(BackgroundImageCmsElementResolver::class);
+        self::assertInstanceOf(BackgroundImageCmsElementResolver::class, $resolver);
+        $mediaId = Uuid::randomHex();
+        $slotId = Uuid::randomHex();
+        $context = Context::createDefaultContext();
+        $repository = $this->mediaRepository();
+        $repository->create([[
+            'id' => $mediaId,
+            'fileName' => 'mgd-cms-pdf-' . Uuid::randomHex(),
+            'fileExtension' => 'pdf',
+            'mimeType' => 'application/pdf',
+        ]], $context);
+        $slot = $this->slot($slotId, $mediaId);
+        $collection = $resolver->collect($slot, $this->resolverContext());
+        self::assertNotNull($collection);
+        $all = $collection->all();
+        $key = 'mgd_ai_background_media_' . $slotId . '_' . $mediaId;
+        $result = new ElementDataCollection();
+        $result->add($key, $repository->search($all[MediaDefinition::class][$key], $context));
+
+        $resolver->enrich($slot, $this->resolverContext(), $result);
+
+        self::assertNull($slot->getData());
+    }
+
     /** @return EntityRepository<MediaCollection> */
     private function mediaRepository(): EntityRepository
     {

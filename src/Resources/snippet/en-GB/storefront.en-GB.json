@@ -8,11 +8,6 @@
         },
         "screenReader": {
             "deepfake": "Notice: This image is labeled as a deepfake."
-        },
-        "cms": {
-            "background": {
-                "fallbackAlt": "Background image"
-            }
         }
     }
 }

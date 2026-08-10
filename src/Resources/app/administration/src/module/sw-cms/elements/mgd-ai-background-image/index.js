@@ -22,5 +22,6 @@ Shopware.Service('cmsService').registerCmsElement({
         verticalPosition: { source: 'static', value: 'center' },
         decorative: { source: 'static', value: false },
         fallbackColor: { source: 'static', value: 'neutral-light' },
+        altText: { source: 'static', value: '' },
     },
 });

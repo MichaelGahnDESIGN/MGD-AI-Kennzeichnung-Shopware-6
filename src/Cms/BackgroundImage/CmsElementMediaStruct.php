@@ -10,15 +10,16 @@ use Shopware\Core\Framework\Struct\Struct;
 /**
  * Enges CMS-Viewmodell für genau ein lokales Shopware-Medium.
  *
- * Freie URLs oder Darstellungswerte gehören absichtlich nicht in diese
- * Struktur. Dadurch kann das Storefront-Template nur das vom DAL geladene
- * Medium und die separat geschlossenen CMS-Auswahlen verwenden.
+ * Freie URLs oder rohe Darstellungswerte gehören absichtlich nicht in diese
+ * Struktur. Das Storefront-Template erhält nur das vom DAL geladene Medium und
+ * die serverseitig normalisierte Darstellung.
  */
 final class CmsElementMediaStruct extends Struct
 {
     public function __construct(
         public readonly string $mediaId,
         public readonly MediaEntity $media,
+        public readonly BackgroundImagePresentation $presentation,
     ) {}
 
     public function getApiAlias(): string
