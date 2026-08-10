@@ -83,7 +83,7 @@ jobs:
                   cache: false
 
             - name: Composer-Metadaten prüfen
-              run: composer validate --strict --no-check-version
+              run: composer validate --strict
 
             - name: Shopware-Abhängigkeiten frisch auflösen
               shell: bash
@@ -135,6 +135,34 @@ jobs:
             - name: Veröffentlichbare Composer-Metadaten wiederherstellen
               run: git restore --source=HEAD -- composer.json composer.lock
 
+            # Composer erwartet im Quell-Repository keine feste Root-Version.
+            # Shopware CLI verlangt sie dagegen für ein installierbares Plugin.
+            # Deshalb wird ausschließlich diese temporäre Prüfkopie ergänzt.
+            - name: Shopware-Prüfkopie mit Release-Version vorbereiten
+              id: shopware-validation-copy
+              shell: bash
+              run: |
+                  validation_parent="$(mktemp -d "${RUNNER_TEMP}/mgd-shopware-validation.XXXXXX")"
+                  validation_path="${validation_parent}/MGDAIImageLabels"
+                  install -d -m 0755 "${validation_path}"
+                  cp composer.json "${validation_path}/composer.json"
+                  cp -R src "${validation_path}/src"
+                  php -r '
+                      $path = $argv[1];
+                      $composer = json_decode(file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
+                      $releaseVersion = $composer["extra"]["mgd-release-version"] ?? null;
+                      if (!is_string($releaseVersion)) {
+                          throw new RuntimeException("Die MGD-Release-Version fehlt.");
+                      }
+                      $composer["version"] = $releaseVersion;
+                      file_put_contents(
+                          $path,
+                          json_encode($composer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . "\n",
+                          LOCK_EX,
+                      );
+                  ' "${validation_path}/composer.json"
+                  echo "path=${validation_path}" >> "$GITHUB_OUTPUT"
+
             - name: Shopware CLI in fester Version installieren
               # Offizielle Installation: https://github.com/shopware/shopware-cli#install
               # Verwendete Version: https://github.com/shopware/shopware-cli/releases/tag/0.15.12
@@ -143,7 +171,7 @@ jobs:
                   echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
 
             - name: Shopware-Erweiterung validieren
-              run: shopware-cli --no-interaction extension validate .
+              run: shopware-cli --no-interaction extension validate "${{ steps.shopware-validation-copy.outputs.path }}"
 
             - name: Git-Arbeitsbaum auf unbeabsichtigte Änderungen prüfen
               run: git diff --exit-code

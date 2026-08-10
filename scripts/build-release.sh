@@ -16,11 +16,16 @@ fi
 # die falsche Versionsangabe aus einer Abhängigkeit erwischen.
 version="$(php -r '
     $data = json_decode(file_get_contents($argv[1]), true, 512, JSON_THROW_ON_ERROR);
-    if (!isset($data["version"]) || !is_string($data["version"])) {
-        fwrite(STDERR, "Fehler: composer.json enthält keine gültige Version.\n");
+    if (array_key_exists("version", $data)) {
+        fwrite(STDERR, "Fehler: Die Quell-composer.json darf keine Composer-Root-Version enthalten.\n");
         exit(1);
     }
-    echo $data["version"];
+    $version = $data["extra"]["mgd-release-version"] ?? null;
+    if (!is_string($version)) {
+        fwrite(STDERR, "Fehler: composer.json enthält keine gültige MGD-Release-Version.\n");
+        exit(1);
+    }
+    echo $version;
 ' "${composer_file}")"
 
 if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
@@ -129,6 +134,21 @@ for relative_directory in "${allowed_directories[@]}"; do
         install -m 0644 "${source_file}" "${target_file}"
     done < <(find "${source_directory}" -type f -print | LC_ALL=C sort)
 done
+
+# Composer empfiehlt für das Quell-Repository keine feste Root-Version, während
+# Shopware sie im installierbaren Plugin-Paket verlangt. Erst die isolierte
+# Paketkopie erhält deshalb die zuvor validierte Release-Version.
+php -r '
+    $path = $argv[1];
+    $releaseVersion = $argv[2];
+    $composer = json_decode(file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
+    $composer["version"] = $releaseVersion;
+    $encoded = json_encode(
+        $composer,
+        JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR,
+    );
+    file_put_contents($path, $encoded . "\n", LOCK_EX);
+' "${package_root}/composer.json" "${version}"
 
 dist_directory="${project_root}/dist"
 if [[ -L "${dist_directory}" ]]; then

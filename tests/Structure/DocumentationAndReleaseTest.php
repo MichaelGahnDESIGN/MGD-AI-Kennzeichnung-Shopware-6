@@ -105,8 +105,12 @@ final class DocumentationAndReleaseTest extends TestCase
         self::assertStringContainsString('shopware/storefront:', $dependencyCommand);
         self::assertStringContainsString('composer update --prefer-dist --no-interaction --no-progress --with-all-dependencies', $dependencyCommand);
 
+        self::assertSame(
+            'composer validate --strict',
+            $this->workflowStep($steps, 'Composer-Metadaten prüfen')['run'] ?? null,
+        );
+
         $requiredCommands = [
-            'Composer-Metadaten prüfen' => 'composer validate --strict --no-check-version',
             'Abhängigkeiten auf bekannte Schwachstellen prüfen' => 'composer audit --locked --no-interaction',
             'PHP-Unit-Tests ohne Datenbank ausführen' => 'composer test:unit',
             'PHPStan ausführen' => 'vendor/bin/phpstan analyse -c phpstan.neon.dist',
@@ -114,7 +118,7 @@ final class DocumentationAndReleaseTest extends TestCase
             'Administration headless testen' => 'npm run test:administration',
             'Storefront headless testen' => 'npm run test:storefront',
             'JSON und XML prüfen' => 'jq empty',
-            'Shopware-Erweiterung validieren' => 'shopware-cli --no-interaction extension validate .',
+            'Shopware-Erweiterung validieren' => 'shopware-cli --no-interaction extension validate "${{ steps.shopware-validation-copy.outputs.path }}"',
         ];
         foreach ($requiredCommands as $stepName => $command) {
             $run = $this->workflowStep($steps, $stepName)['run'] ?? null;
@@ -125,6 +129,12 @@ final class DocumentationAndReleaseTest extends TestCase
         $shopwareCliInstall = $this->workflowStep($steps, 'Shopware CLI in fester Version installieren')['run'] ?? null;
         self::assertIsString($shopwareCliInstall);
         self::assertStringContainsString('go install github.com/shopware/shopware-cli@0.15.12', $shopwareCliInstall);
+
+        $validationCopy = $this->workflowStep($steps, 'Shopware-Prüfkopie mit Release-Version vorbereiten');
+        self::assertSame('shopware-validation-copy', $validationCopy['id'] ?? null);
+        self::assertStringContainsString('mktemp -d', (string) ($validationCopy['run'] ?? ''));
+        self::assertStringContainsString('mgd-release-version', (string) ($validationCopy['run'] ?? ''));
+        self::assertStringContainsString('$composer["version"] = $releaseVersion;', (string) ($validationCopy['run'] ?? ''));
 
         $unitCommand = $this->workflowStep($steps, 'PHP-Unit-Tests ohne Datenbank ausführen')['run'] ?? '';
         self::assertStringNotContainsString('test:integration', (string) $unitCommand);
@@ -174,6 +184,7 @@ final class DocumentationAndReleaseTest extends TestCase
         self::assertStringContainsString('--redact', $secretScan);
 
         $serializedWorkflow = json_encode($workflow, JSON_THROW_ON_ERROR);
+        self::assertStringNotContainsString('--no-check-' . 'version', $serializedWorkflow);
         self::assertStringNotContainsString('secrets.', $serializedWorkflow);
         self::assertStringNotContainsString('pull_request_target', $serializedWorkflow);
         self::assertStringNotContainsString('contents: write', (string) file_get_contents($workflowPath));
@@ -197,6 +208,28 @@ final class DocumentationAndReleaseTest extends TestCase
         }
 
         $this->assertShopwareMetadataIsComplete();
+    }
+
+    public function testReleaseVersionIsStoredOutsideTheComposerRootVersion(): void
+    {
+        $composer = json_decode((string) file_get_contents(self::ROOT . '/composer.json'), true, 512, JSON_THROW_ON_ERROR);
+        self::assertIsArray($composer);
+        self::assertArrayNotHasKey('version', $composer);
+        self::assertSame('0.1.0', $composer['extra']['mgd-release-version'] ?? null);
+
+        $scripts = $composer['scripts'] ?? null;
+        self::assertIsArray($scripts);
+        $serializedScripts = json_encode($scripts, JSON_THROW_ON_ERROR);
+        self::assertStringContainsString('composer validate --strict', $serializedScripts);
+        self::assertStringNotContainsString('--no-check-' . 'version', $serializedScripts);
+
+        $buildScript = (string) file_get_contents(self::ROOT . '/scripts/build-release.sh');
+        self::assertStringContainsString('$data["extra"]["mgd-release-version"]', $buildScript);
+        self::assertStringNotContainsString('$data["version"]', $buildScript);
+
+        $contributing = (string) file_get_contents(self::ROOT . '/CONTRIBUTING.md');
+        self::assertStringContainsString('composer validate --strict', $contributing);
+        self::assertStringNotContainsString('--no-check-' . 'version', $contributing);
     }
 
     public function testRequiredDocumentationIsCompleteAndSafeToPublish(): void
@@ -270,6 +303,13 @@ final class DocumentationAndReleaseTest extends TestCase
 
         $archive = new \ZipArchive();
         self::assertTrue($archive->open($archivePath));
+
+        $packagedComposer = $archive->getFromName('MGDAIImageLabels/composer.json');
+        self::assertIsString($packagedComposer);
+        $packagedMetadata = json_decode($packagedComposer, true, 512, JSON_THROW_ON_ERROR);
+        self::assertIsArray($packagedMetadata);
+        self::assertSame('0.1.0', $packagedMetadata['version'] ?? null);
+        self::assertSame('0.1.0', $packagedMetadata['extra']['mgd-release-version'] ?? null);
 
         $entries = [];
         for ($index = 0; $index < $archive->numFiles; ++$index) {
@@ -443,7 +483,7 @@ final class DocumentationAndReleaseTest extends TestCase
         mkdir($fixture . '/Dokumentation', 0700);
         copy(self::ROOT . '/scripts/build-release.sh', $fixture . '/scripts/build-release.sh');
         chmod($fixture . '/scripts/build-release.sh', 0700);
-        file_put_contents($fixture . '/composer.json', '{"version":"0.1.0"}');
+        file_put_contents($fixture . '/composer.json', '{"extra":{"mgd-release-version":"0.1.0"}}');
         foreach (['LICENSE', 'README.md', 'README.en.md', 'SECURITY.md', 'CONTRIBUTING.md', 'CHANGELOG.md'] as $file) {
             file_put_contents($fixture . '/' . $file, $file);
         }

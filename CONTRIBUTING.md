@@ -22,7 +22,7 @@ Für den vollständigen Entwicklungs- und Releasevertrag werden Bash, PHP, Compo
 Installieren Sie Entwicklungsabhängigkeiten mit Composer und führen Sie mindestens aus:
 
 ```bash
-composer validate --strict --no-check-version
+composer validate --strict
 vendor/bin/phpunit --testsuite unit
 vendor/bin/phpstan analyse src tests --level=max
 npm run test:administration
