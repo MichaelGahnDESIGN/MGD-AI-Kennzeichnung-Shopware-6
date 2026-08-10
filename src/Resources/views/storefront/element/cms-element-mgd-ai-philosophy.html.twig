@@ -1,6 +1,7 @@
 {% block element_mgd_ai_philosophy %}
     {% set rawContent = element.fieldConfig.elements.content.value|default('') %}
-    {% set safeContent = mgd_ai_philosophy_content(rawContent) %}
+    {% set locale = app.request.locale|default('en-GB') %}
+    {% set safeContent = mgd_ai_philosophy_content(rawContent, locale) %}
     <section class="cms-element-mgd-ai-philosophy">
         {{ safeContent|sw_sanitize({
             'a': ['href', 'title', 'rel', 'target'],

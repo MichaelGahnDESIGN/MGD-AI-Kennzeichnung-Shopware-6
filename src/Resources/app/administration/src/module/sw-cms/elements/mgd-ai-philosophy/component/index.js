@@ -1,4 +1,8 @@
 import template from './component.html.twig';
+import {
+    currentAdministrationLocale,
+    resolvePhilosophyContent,
+} from '../../../../../service/philosophy-content';
 
 const { Mixin } = Shopware;
 
@@ -9,11 +13,10 @@ export default {
 
     computed: {
         plainContent() {
-            const value = this.element?.config?.content?.value;
-            if (typeof value !== 'string') {
-                return '';
-            }
-
+            const value = resolvePhilosophyContent(
+                this.element?.config?.content?.value,
+                currentAdministrationLocale(Shopware),
+            );
             return value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
         },
     },

@@ -1,18 +1,29 @@
 import template from './config.html.twig';
+import {
+    currentAdministrationLocale,
+    resolvePhilosophyContent,
+} from '../../../../../service/philosophy-content';
 
 const { Mixin } = Shopware;
 
 /** Übersetzbare Rich-Text-Konfiguration auf Shopwares CMS-Element-Mixin. */
 export default {
     template,
+    compatConfig: Shopware.compatConfig,
     emits: ['element-update'],
     mixins: [Mixin.getByName('cms-element')],
 
+    computed: {
+        currentLocale() {
+            return currentAdministrationLocale(Shopware);
+        },
+        resolvedContent() {
+            return resolvePhilosophyContent(this.element?.config?.content?.value, this.currentLocale);
+        },
+    },
+
     created() {
         this.initElementConfig('mgd-ai-philosophy');
-        if (typeof this.element.config.content.value !== 'string' || this.element.config.content.value.trim() === '') {
-            this.element.config.content.value = this.$tc('mgd-ai-image-labels.philosophy.defaultContent');
-        }
     },
 
     methods: {

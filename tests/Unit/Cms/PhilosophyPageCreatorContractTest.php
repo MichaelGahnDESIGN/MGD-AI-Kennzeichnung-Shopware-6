@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MGDAIImageLabels\Tests\Unit\Cms;
 
 use MGDAIImageLabels\Cms\Philosophy\PhilosophyPageCreator;
+use MGDAIImageLabels\Cms\Philosophy\PhilosophyDefaultContent;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Shopware\Core\Content\Cms\CmsPageCollection;
@@ -65,7 +66,9 @@ final class PhilosophyPageCreatorContractTest extends TestCase
             ['de-DE', 'en-GB'],
             array_keys($translations),
         );
-        foreach ($translations as $translation) {
+        $localizedValues = [];
+        foreach ($translations as $locale => $translation) {
+            self::assertIsString($locale);
             self::assertIsArray($translation);
             $config = $translation['config'];
             self::assertIsArray($config);
@@ -74,7 +77,16 @@ final class PhilosophyPageCreatorContractTest extends TestCase
             self::assertSame('static', $content['source']);
             self::assertIsString($content['value']);
             self::assertNotSame('', trim($content['value']));
+            $localizedValues[$locale] = $content['value'];
         }
+        self::assertSame(
+            PhilosophyDefaultContent::german(),
+            $localizedValues['de-DE'],
+        );
+        self::assertSame(
+            PhilosophyDefaultContent::english(),
+            $localizedValues['en-GB'],
+        );
     }
 
     public function testCmsPageDefinitionOfficiallyExposesTranslatedCustomFields(): void

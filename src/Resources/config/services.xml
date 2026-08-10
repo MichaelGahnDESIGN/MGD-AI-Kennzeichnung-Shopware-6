@@ -37,6 +37,7 @@
         <service id="MGDAIImageLabels\Cms\Philosophy\PhilosophyPageCreator">
             <argument type="service" id="cms_page.repository"/>
         </service>
+        <service id="MGDAIImageLabels\Cms\Philosophy\PhilosophyDefaultContent"/>
         <service id="MGDAIImageLabels\Administration\Controller\PreparePhilosophyPageController" public="true">
             <argument type="service" id="MGDAIImageLabels\Cms\Philosophy\PhilosophyPageCreator"/>
             <tag name="controller.service_arguments"/>
@@ -53,6 +54,7 @@
             <tag name="twig.extension"/>
         </service>
         <service id="MGDAIImageLabels\Storefront\Twig\PhilosophyTwigExtension">
+            <argument type="service" id="MGDAIImageLabels\Cms\Philosophy\PhilosophyDefaultContent"/>
             <tag name="twig.extension"/>
         </service>
     </services>

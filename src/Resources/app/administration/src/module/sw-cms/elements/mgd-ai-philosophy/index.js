@@ -19,8 +19,7 @@ Shopware.Service('cmsService').registerCmsElement({
     defaultConfig: {
         content: {
             source: 'static',
-            value: '',
-            translated: true,
+            value: null,
         },
     },
 });
