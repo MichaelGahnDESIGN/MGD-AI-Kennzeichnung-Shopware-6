@@ -48,7 +48,7 @@ Sicherheitsberichte dürfen keine echten Zugangsdaten, Kundendaten, Datenbankexp
 
 ## Aufbewahrung und Löschung
 
-Kennzeichnungswerte bleiben so lange am Medium gespeichert, wie der Shop sie benötigt. Bei einer Deinstallation mit Shopwares Option **Benutzerdaten behalten** bleiben das plugin-eigene Custom-Field-Set und die Plugin-Systemkonfiguration bestehen. Ein lokaler Snapshot bewahrt die neun Einstellungen über Shopwares Default-Import beim Reinstall. Nach erfolgreicher Wiederherstellung wird dieser Snapshot atomar gelöscht; bei einem Fehler bleibt er unverändert erhalten, damit keine Teilwiederherstellung unbemerkt fortgesetzt wird.
+Kennzeichnungswerte bleiben so lange am Medium gespeichert, wie der Shop sie benötigt. Bei einer Deinstallation mit Shopwares Option **Benutzerdaten behalten** bleiben das plugin-eigene Custom-Field-Set und die Plugin-Systemkonfiguration bestehen. Ein lokaler Snapshot bewahrt die neun Einstellungen über Shopwares Default-Import beim Reinstall. Nach dem Schreiben wird der vollständige Datenbankzustand noch einmal direkt und strikt gegen den Snapshot geprüft. Erst danach wird der Snapshot atomar gelöscht; bei einem Fehler oder einer stillen Veränderung bleibt er unverändert erhalten, damit keine Teilwiederherstellung unbemerkt fortgesetzt wird.
 
 Ohne Datenerhalt löscht das Plugin sein eindeutig eigenes Set und die vollständige Snapshot-Tabelle; Shopwares Kaskade entfernt Felddefinitionen und Medienrelation. Shopwares Plugin-Lebenszyklus löscht außerdem die Plugin-Systemkonfiguration. Fremde Schlüssel, Tabellen und Konfigurationen sind weder Teil der Positivliste noch Ziel einer Löschung.
 

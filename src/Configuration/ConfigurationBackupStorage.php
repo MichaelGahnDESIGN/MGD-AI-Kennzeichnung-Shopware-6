@@ -26,22 +26,7 @@ class ConfigurationBackupStorage
 
         try {
             $this->connection->transactional(function (): void {
-                $rows = $this->connection->executeQuery(
-                    <<<'SQL'
-                        SELECT configuration_key, configuration_value, sales_channel_id
-                        FROM system_config
-                        WHERE configuration_key IN (:keys)
-                        ORDER BY configuration_key ASC, sales_channel_id ASC
-                        SQL,
-                    ['keys' => ConfigurationKeys::all()],
-                    ['keys' => ArrayParameterType::STRING],
-                )->fetchAllAssociative();
-
-                $entries = [];
-                foreach ($rows as $row) {
-                    $entries[] = $this->entryFromSystemConfigRow($row);
-                }
-
+                $entries = $this->readOwnedSystemConfiguration();
                 $this->assertUniqueScopes($entries);
                 $this->connection->executeStatement('DELETE FROM `' . self::TABLE_NAME . '`');
 
@@ -86,6 +71,11 @@ class ConfigurationBackupStorage
 
                 $this->assertUniqueScopes($entries);
                 $restore($entries);
+                // Eine leere Tabelle kennzeichnet den ersten Installationslauf ohne Keep-Snapshot.
+                // Shopwares zuvor geschriebene Standardwerte müssen dann unverändert bestehen bleiben.
+                if ($entries !== []) {
+                    $this->assertSnapshotMatchesSystemConfiguration($entries);
+                }
                 $this->connection->executeStatement('DELETE FROM `' . self::TABLE_NAME . '`');
             });
         } catch (\Throwable $exception) {
@@ -155,6 +145,28 @@ class ConfigurationBackupStorage
         );
     }
 
+    /** @return list<ConfigurationBackupEntry> */
+    private function readOwnedSystemConfiguration(): array
+    {
+        $rows = $this->connection->executeQuery(
+            <<<'SQL'
+                SELECT configuration_key, configuration_value, sales_channel_id
+                FROM system_config
+                WHERE configuration_key IN (:keys)
+                ORDER BY configuration_key ASC, sales_channel_id ASC
+                SQL,
+            ['keys' => ConfigurationKeys::all()],
+            ['keys' => ArrayParameterType::STRING],
+        )->fetchAllAssociative();
+
+        $entries = [];
+        foreach ($rows as $row) {
+            $entries[] = $this->entryFromSystemConfigRow($row);
+        }
+
+        return $entries;
+    }
+
     /** @param array<string, mixed> $row */
     private function entryFromBackupRow(array $row): ConfigurationBackupEntry
     {
@@ -220,6 +232,34 @@ class ConfigurationBackupStorage
                 throw new \RuntimeException('Die gesicherte Plugin-Konfiguration enthält eine ungültige Zuordnung.');
             }
             $seen[$scope] = true;
+        }
+    }
+
+    /**
+     * @param list<ConfigurationBackupEntry> $snapshot
+     *
+     * Vergleicht bewusst Schlüssel, Scope, PHP-Typ und Wert einzeln. Eine lose
+     * Objekt- oder JSON-Prüfung könnte etwa die Zeichenkette „13“ mit 13 verwechseln.
+     */
+    private function assertSnapshotMatchesSystemConfiguration(array $snapshot): void
+    {
+        $actual = $this->readOwnedSystemConfiguration();
+        $this->assertUniqueScopes($actual);
+
+        if (count($actual) !== count($snapshot)) {
+            throw new \RuntimeException('Die wiederhergestellte Plugin-Konfiguration weicht vom Snapshot ab.');
+        }
+
+        foreach ($snapshot as $index => $expected) {
+            $restored = $actual[$index];
+            if (
+                $restored->key !== $expected->key
+                || $restored->salesChannelId !== $expected->salesChannelId
+                || gettype($restored->value) !== gettype($expected->value)
+                || $restored->value !== $expected->value
+            ) {
+                throw new \RuntimeException('Die wiederhergestellte Plugin-Konfiguration weicht vom Snapshot ab.');
+            }
         }
     }
 }

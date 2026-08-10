@@ -93,7 +93,15 @@ final class PluginLifecycleTest extends TestCase
         $connection->update('system_config', ['configuration_value' => '{"_value":"auto"}'], [
             'configuration_key' => ConfigurationKeys::LANGUAGE,
         ]);
-        $systemConfig->expects(self::once())->method('set')->with(ConfigurationKeys::LANGUAGE, 'de', null);
+        $systemConfig->expects(self::once())
+            ->method('set')
+            ->with(ConfigurationKeys::LANGUAGE, 'de', null)
+            ->willReturnCallback(static function () use ($connection): void {
+                // Bildet den echten SystemConfigService-Schreibzugriff für die Post-Verify-Abfrage ab.
+                $connection->update('system_config', ['configuration_value' => '{"_value":"de"}'], [
+                    'configuration_key' => ConfigurationKeys::LANGUAGE,
+                ]);
+            });
         $context = Context::createDefaultContext();
         $installContext = $this->createStub(InstallContext::class);
         $installContext->method('getContext')->willReturn($context);

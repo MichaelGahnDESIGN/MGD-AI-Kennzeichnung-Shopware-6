@@ -12,7 +12,6 @@ use MGDAIImageLabels\Tests\Integration\Setup\ShopwareIntegrationTestBootstrap;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use Shopware\Core\Framework\Test\TestCaseBase\IntegrationTestBehaviour;
-use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 
 /**
@@ -40,7 +39,11 @@ final class ConfigurationRetentionServiceTest extends TestCase
         self::assertInstanceOf(SystemConfigService::class, $systemConfig);
         $storage = new ConfigurationBackupStorage($connection);
         $retention = new ConfigurationRetentionService($storage, $systemConfig);
-        $salesChannelId = Uuid::randomHex();
+        $salesChannelId = $connection->fetchOne(
+            'SELECT LOWER(HEX(id)) FROM sales_channel ORDER BY created_at ASC, id ASC LIMIT 1',
+        );
+        self::assertIsString($salesChannelId, 'Die Shopware-Testinstallation benötigt einen realen Verkaufskanal.');
+        self::assertMatchesRegularExpression('/^[0-9a-f]{32}$/', $salesChannelId);
 
         $systemConfig->set(ConfigurationKeys::LANGUAGE, 'de');
         $systemConfig->set(ConfigurationKeys::FONT_SIZE, 17);

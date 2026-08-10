@@ -172,6 +172,74 @@ final class ConfigurationBackupStorageTest extends TestCase
         self::assertSame(1, $this->backupCount());
     }
 
+    public function testSilentValueMutationFailsVerificationAndRollsBack(): void
+    {
+        $this->insertSystemConfig(ConfigurationKeys::LANGUAGE, 'de');
+        $this->storage->replaceSnapshot();
+        $this->connection->update('system_config', ['configuration_value' => '{"_value":"auto"}'], [
+            'configuration_key' => ConfigurationKeys::LANGUAGE,
+        ]);
+
+        $this->assertRestoreMismatchRollsBack(function (): void {
+            $this->connection->update('system_config', ['configuration_value' => '{"_value":"en"}'], [
+                'configuration_key' => ConfigurationKeys::LANGUAGE,
+            ]);
+        });
+
+        self::assertSame('{"_value":"auto"}', $this->systemConfigValue(ConfigurationKeys::LANGUAGE));
+    }
+
+    public function testSilentDeletionFailsVerificationAndRollsBack(): void
+    {
+        $this->insertSystemConfig(ConfigurationKeys::LANGUAGE, 'de');
+        $this->storage->replaceSnapshot();
+        $this->connection->update('system_config', ['configuration_value' => '{"_value":"auto"}'], [
+            'configuration_key' => ConfigurationKeys::LANGUAGE,
+        ]);
+
+        $this->assertRestoreMismatchRollsBack(function (): void {
+            $this->connection->delete('system_config', ['configuration_key' => ConfigurationKeys::LANGUAGE]);
+        });
+
+        self::assertSame('{"_value":"auto"}', $this->systemConfigValue(ConfigurationKeys::LANGUAGE));
+    }
+
+    public function testSilentExtraWhitelistRowFailsVerificationAndRollsBack(): void
+    {
+        $this->insertSystemConfig(ConfigurationKeys::LANGUAGE, 'de');
+        $this->storage->replaceSnapshot();
+        $this->connection->update('system_config', ['configuration_value' => '{"_value":"auto"}'], [
+            'configuration_key' => ConfigurationKeys::LANGUAGE,
+        ]);
+
+        $this->assertRestoreMismatchRollsBack(function (): void {
+            $this->insertSystemConfig(ConfigurationKeys::FONT_SIZE, 18);
+        });
+
+        self::assertSame(0, $this->connection->fetchOne(
+            'SELECT COUNT(*) FROM system_config WHERE configuration_key = ?',
+            [ConfigurationKeys::FONT_SIZE],
+        ));
+        self::assertSame('{"_value":"auto"}', $this->systemConfigValue(ConfigurationKeys::LANGUAGE));
+    }
+
+    public function testSilentTypeCoercionFailsVerificationAndRollsBack(): void
+    {
+        $this->insertSystemConfig(ConfigurationKeys::FONT_SIZE, 13);
+        $this->storage->replaceSnapshot();
+        $this->connection->update('system_config', ['configuration_value' => '{"_value":6}'], [
+            'configuration_key' => ConfigurationKeys::FONT_SIZE,
+        ]);
+
+        $this->assertRestoreMismatchRollsBack(function (): void {
+            $this->connection->update('system_config', ['configuration_value' => '{"_value":"13"}'], [
+                'configuration_key' => ConfigurationKeys::FONT_SIZE,
+            ]);
+        });
+
+        self::assertSame('{"_value":6}', $this->systemConfigValue(ConfigurationKeys::FONT_SIZE));
+    }
+
     public function testDropRemovesOnlyOwnedBackupTable(): void
     {
         $this->storage->replaceSnapshot();
@@ -208,5 +276,36 @@ final class ConfigurationBackupStorageTest extends TestCase
     private function backupCount(): int
     {
         return (int) $this->connection->fetchOne('SELECT COUNT(*) FROM mgd_ai_image_labels_config_backup');
+    }
+
+    /** @param callable(): void $silentMutation */
+    private function assertRestoreMismatchRollsBack(callable $silentMutation): void
+    {
+        $completed = false;
+        try {
+            $this->storage->restoreTransaction(static function () use ($silentMutation): void {
+                $silentMutation();
+            });
+            $completed = true;
+        } catch (\RuntimeException $exception) {
+            self::assertSame(
+                'Die Plugin-Konfiguration konnte nicht vollständig wiederhergestellt werden.',
+                $exception->getMessage(),
+            );
+        }
+
+        self::assertFalse($completed, 'Ein vom Snapshot abweichender Datenbankzustand muss den Restore abbrechen.');
+        self::assertSame(1, $this->backupCount(), 'Der Snapshot muss nach einem Verify-Fehler erhalten bleiben.');
+    }
+
+    private function systemConfigValue(string $key): string
+    {
+        $value = $this->connection->fetchOne(
+            'SELECT configuration_value FROM system_config WHERE configuration_key = ?',
+            [$key],
+        );
+        self::assertIsString($value);
+
+        return $value;
     }
 }
