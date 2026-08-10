@@ -13,8 +13,10 @@ use Shopware\Core\Content\Cms\CmsPageEntity;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Test\TestCaseBase\IntegrationTestBehaviour;
 use Shopware\Core\Framework\Uuid\Uuid;
+use Shopware\Core\System\SalesChannel\SalesChannelCollection;
 
 /** Prüft Idempotenz, Eigentum und den exakten unverknüpften DAL-Baum. */
 #[Group('integration')]
@@ -52,7 +54,6 @@ final class PhilosophyPageCreatorTest extends TestCase
             'sections.blocks.slots',
             'categories',
             'landingPages',
-            'homeSalesChannels',
         ]);
         $page = $this->repository()->search($criteria, $context)->first();
         self::assertInstanceOf(CmsPageEntity::class, $page);
@@ -75,7 +76,12 @@ final class PhilosophyPageCreatorTest extends TestCase
         self::assertSame('content', $slot->getSlot());
         self::assertCount(0, $page->getCategories() ?? []);
         self::assertCount(0, $page->getLandingPages() ?? []);
-        self::assertCount(0, $page->getHomeSalesChannels() ?? []);
+
+        // Shopware 6.6 und 6.7 deklarieren den Rückgabetyp des CMS-Getters falsch.
+        // Die DAL-Abfrage prüft dieselbe Nichtzuordnung, ohne den defekten Getter aufzurufen.
+        $assignedHomeSalesChannels = new Criteria();
+        $assignedHomeSalesChannels->addFilter(new EqualsFilter('homeCmsPageId', $first->cmsPageId));
+        self::assertCount(0, $this->salesChannelRepository()->search($assignedHomeSalesChannels, $context));
 
         $foreign = $this->repository()->search(new Criteria([$foreignId]), $context)->first();
         self::assertInstanceOf(CmsPageEntity::class, $foreign);
@@ -140,6 +146,15 @@ final class PhilosophyPageCreatorTest extends TestCase
     {
         /** @var EntityRepository<CmsPageCollection> $repository */
         $repository = self::getContainer()->get('cms_page.repository');
+
+        return $repository;
+    }
+
+    /** @return EntityRepository<SalesChannelCollection> */
+    private function salesChannelRepository(): EntityRepository
+    {
+        /** @var EntityRepository<SalesChannelCollection> $repository */
+        $repository = self::getContainer()->get('sales_channel.repository');
 
         return $repository;
     }
