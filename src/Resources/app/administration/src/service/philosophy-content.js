@@ -3,11 +3,52 @@ export const PHILOSOPHY_DEFAULT_CONTENT = Object.freeze({
     'en-GB': '<h2>Our approach to AI imagery</h2><p>We label images transparently when they were created or edited wholly or partly with artificial intelligence.</p><p>This helps you assess content consciously. The label changes neither product information nor your privacy.</p>',
 });
 
+/**
+ * Liest eine Sprach-ID ohne Annahmen über die konkrete Store-Struktur.
+ * Ungültige Zwischenwerte werden bewusst wie ein nicht vorhandener Store behandelt.
+ */
+function safelyReadLanguageId(readContext) {
+    try {
+        const languageId = readContext()?.api?.languageId;
+
+        return typeof languageId === 'string' && languageId.trim() !== ''
+            ? languageId.trim()
+            : null;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Liest den Pinia-Kontext von Shopware 6.7. In Shopware 6.6 existiert die
+ * Store-API bereits, der Kontext ist dort aber noch nicht registriert. Die
+ * öffentliche Store-Liste verhindert deshalb den dort sonst geworfenen Fehler.
+ */
+function languageIdFromStore(shopware) {
+    const store = shopware?.Store;
+    if (typeof store?.get !== 'function') {
+        return null;
+    }
+
+    if (typeof store.list === 'function') {
+        try {
+            const registeredStoreIds = store.list();
+            if (!Array.isArray(registeredStoreIds) || !registeredStoreIds.includes('context')) {
+                return null;
+            }
+        } catch {
+            return null;
+        }
+    }
+
+    return safelyReadLanguageId(() => store.get('context'));
+}
+
 /** Liefert die aktive CMS-Inhaltssprache reaktiv aus Shopware 6.6 oder 6.7. */
 export function activeContentLanguageId(shopware = globalThis.Shopware) {
-    return shopware?.Store?.get?.('context')?.api?.languageId
-        ?? shopware?.State?.get?.('context')?.api?.languageId
-        ?? shopware?.Context?.api?.languageId
+    return languageIdFromStore(shopware)
+        ?? safelyReadLanguageId(() => shopware?.State?.get?.('context'))
+        ?? safelyReadLanguageId(() => shopware?.Context)
         ?? null;
 }
 

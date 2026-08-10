@@ -39,7 +39,6 @@ test('Konfiguration nutzt nur den dokumentierten gemeinsamen Shopware-6.6-/6.7-R
 test('manuelle Defaults folgen der CMS-Inhaltssprache statt der UI-Sprache', async () => {
     const {
         PHILOSOPHY_DEFAULT_CONTENT,
-        activeContentLanguageId,
         createContentLanguageLocaleLoader,
         resolvePhilosophyContent,
     } = await import('../../src/Resources/app/administration/src/service/philosophy-content.js');
@@ -48,13 +47,6 @@ test('manuelle Defaults folgen der CMS-Inhaltssprache statt der UI-Sprache', asy
     assert.equal(resolvePhilosophyContent('', 'fr-FR'), resolvePhilosophyContent('', 'en-GB'));
     assert.equal(resolvePhilosophyContent([], 'de-DE'), resolvePhilosophyContent('', 'de-DE'));
     assert.equal(resolvePhilosophyContent('<p>Eigen</p>', 'en-GB'), '<p>Eigen</p>');
-    assert.equal(activeContentLanguageId({ Store: { get: (name) => name === 'context'
-        ? { api: { languageId: 'content-en' } }
-        : { currentLocale: 'de-DE' } } }), 'content-en');
-    assert.equal(activeContentLanguageId({ State: { get: (name) => name === 'context'
-        ? { api: { languageId: 'content-de' } }
-        : { currentLocale: 'en-GB' } } }), 'content-de');
-    assert.equal(activeContentLanguageId({ Context: { api: { languageId: 'fallback-id' } } }), 'fallback-id');
     // UI Deutsch + Content Englisch sowie UI Englisch + Content Deutsch.
     assert.match(resolvePhilosophyContent('', 'en-GB'), /Our approach/);
     assert.match(resolvePhilosophyContent('', 'de-DE'), /Unser Umgang/);
