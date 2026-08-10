@@ -1,6 +1,6 @@
 import template from './config.html.twig';
 import {
-    currentAdministrationLocale,
+    philosophyContentLanguageMixin,
     resolvePhilosophyContent,
 } from '../../../../../service/philosophy-content';
 
@@ -11,14 +11,11 @@ export default {
     template,
     compatConfig: Shopware.compatConfig,
     emits: ['element-update'],
-    mixins: [Mixin.getByName('cms-element')],
+    mixins: [Mixin.getByName('cms-element'), philosophyContentLanguageMixin],
 
     computed: {
-        currentLocale() {
-            return currentAdministrationLocale(Shopware);
-        },
         resolvedContent() {
-            return resolvePhilosophyContent(this.element?.config?.content?.value, this.currentLocale);
+            return resolvePhilosophyContent(this.element?.config?.content?.value, this.contentLocale);
         },
     },
 

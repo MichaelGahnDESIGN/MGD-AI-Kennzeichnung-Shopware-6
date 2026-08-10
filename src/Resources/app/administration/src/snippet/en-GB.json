@@ -37,7 +37,7 @@
             "cardTitle": "AI philosophy Shopping Experience",
             "noPublishNotice": "This action publishes or assigns nothing. Review, edit and publish the layout consciously in Shopping Experiences afterwards.",
             "action": "Prepare Shopping Experience",
-            "missingPermission": "You do not have permission to change system configuration for this action.",
+            "missingPermission": "This action requires permissions for system configuration, CMS pages, sections, blocks and elements.",
             "successCreated": "The Shopping Experience was prepared safely.",
             "successExisting": "The existing plugin-owned Shopping Experience was found.",
             "error": "The Shopping Experience could not be prepared. Please check your permission and the system log.",

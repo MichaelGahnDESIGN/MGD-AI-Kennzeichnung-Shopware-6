@@ -97,7 +97,21 @@ final class PhilosophyPageCreatorTest extends TestCase
         $creator->prepare($context);
     }
 
-    public function testForeignOwnershipMarkerFailsBeforeMutation(): void
+    /** Simuliert den bereits abgeschlossenen Insert eines parallelen Prozesses im echten DAL. */
+    public function testCompletedConcurrentOwnInsertReturnsCreatedFalse(): void
+    {
+        $context = Context::createDefaultContext();
+        $this->repository()->create([PhilosophyPageCreator::createPayload()], $context);
+        $creator = self::getContainer()->get(PhilosophyPageCreator::class);
+        self::assertInstanceOf(PhilosophyPageCreator::class, $creator);
+
+        $result = $creator->prepare($context);
+
+        self::assertFalse($result->created);
+        self::assertSame(PhilosophyPageCreator::pageId(), $result->cmsPageId);
+    }
+
+    public function testForeignOwnershipMarkerDoesNotBlockOrChangeOwnPage(): void
     {
         $context = Context::createDefaultContext();
         $foreignId = Uuid::randomHex();
@@ -112,8 +126,13 @@ final class PhilosophyPageCreatorTest extends TestCase
 
         $creator = self::getContainer()->get(PhilosophyPageCreator::class);
         self::assertInstanceOf(PhilosophyPageCreator::class, $creator);
-        $this->expectException(\RuntimeException::class);
-        $creator->prepare($context);
+        $result = $creator->prepare($context);
+
+        self::assertTrue($result->created);
+        self::assertSame(PhilosophyPageCreator::pageId(), $result->cmsPageId);
+        $foreign = $this->repository()->search(new Criteria([$foreignId]), $context)->first();
+        self::assertInstanceOf(CmsPageEntity::class, $foreign);
+        self::assertSame('Fremde Kennung', $foreign->getName());
     }
 
     /** @return EntityRepository<CmsPageCollection> */

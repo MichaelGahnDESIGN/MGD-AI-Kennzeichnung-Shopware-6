@@ -134,26 +134,28 @@ final readonly class PhilosophyPageCreator
         ];
     }
 
-    /** Prüft ID und Marker getrennt, bevor irgendeine Mutation stattfinden darf. */
+    /**
+     * Verwendet ausschließlich die deterministische ID als atomare Grenze.
+     *
+     * Der Marker ist ein zusätzlicher Eigentumsnachweis an genau dieser ID. Er
+     * ist bewusst kein global eindeutiger Schlüssel, weil Shopwares JSON-Feld
+     * dafür keinen Datenbank-Constraint bereitstellt.
+     */
     private function verifyOwnershipState(Context $context): bool
     {
-        $idsWithMarker = $this->searchIds(
-            (new Criteria())->addFilter(new EqualsFilter(
-                'customFields.' . self::OWNERSHIP_FIELD . '.token',
-                self::OWNERSHIP_VALUE,
-            )),
-            $context,
-        );
-        if ($idsWithMarker !== [] && $idsWithMarker !== [self::pageId()]) {
-            throw new \RuntimeException('Die Eigentumskennung der AI-Philosophie-Seite ist bereits einem fremden Datensatz zugeordnet.');
-        }
-
         $idsAtOwnPrimaryKey = $this->searchIds(new Criteria([self::pageId()]), $context);
         if ($idsAtOwnPrimaryKey === []) {
             return false;
         }
 
-        if ($idsAtOwnPrimaryKey !== [self::pageId()] || $idsWithMarker !== [self::pageId()]) {
+        $ownedCriteria = new Criteria([self::pageId()]);
+        $ownedCriteria->addFilter(new EqualsFilter(
+            'customFields.' . self::OWNERSHIP_FIELD . '.token',
+            self::OWNERSHIP_VALUE,
+        ));
+        $ownedIds = $this->searchIds($ownedCriteria, $context);
+
+        if ($idsAtOwnPrimaryKey !== [self::pageId()] || $ownedIds !== [self::pageId()]) {
             throw new \RuntimeException('Die stabile ID der AI-Philosophie-Seite ist bereits von einem fremden Datensatz belegt.');
         }
 

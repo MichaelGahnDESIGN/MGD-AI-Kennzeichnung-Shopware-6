@@ -150,6 +150,18 @@ vorbereiten. Es veröffentlicht keine Seite selbstständig und verändert keine
 Footer-Navigation automatisch. Veröffentlichung, Zuweisung zum Verkaufskanal
 und Footer-Verlinkung bleiben bewusste Handlungen einer berechtigten Person.
 
+Für manuell eingefügte, noch leere Elemente wird der Standardtext anhand der
+aktiven CMS-Inhaltssprache aufgelöst, nicht anhand der Sprache der
+Administrationsoberfläche. Die Administration lädt dafür die Locale der
+aktuellen `languageId`; unbekannte oder verspätete Antworten fallen auf
+Englisch zurück und werden nicht automatisch als Übersetzung gespeichert.
+
+Die optionale Seite besitzt eine deterministische ID als atomare
+Eigentumsgrenze. Nur an genau dieser ID bestätigt ein zusätzlicher Marker in
+`customFields` das Plugin-Eigentum. Ein gleichlautender Marker an einer anderen
+Seite ist kein globaler Eindeutigkeitsnachweis und darf die Erstellung nicht
+blockieren, da Shopware dafür keinen Datenbank-Constraint garantiert.
+
 ## 5. Architektur
 
 ### 5.1 Speicherung

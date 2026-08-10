@@ -1,12 +1,12 @@
 {
     "6.6.10.22": {
         "source": "https://github.com/shopware/shopware/blob/v6.6.10.22/src/Administration/Resources/app/administration/src/module/sw-cms/elements/text/config/sw-cms-el-config-text.html.twig",
-        "sha256": "acd235b29f9a7a4afc633c98109bfd2f8a670cf9cc13cea49a45cbe1e44a49e6",
+        "documentedSha256": "acd235b29f9a7a4afc633c98109bfd2f8a670cf9cc13cea49a45cbe1e44a49e6",
         "components": ["sw-cms-mapping-field", "sw-text-editor"]
     },
     "6.7.13.0": {
         "source": "https://github.com/shopware/shopware/blob/v6.7.13.0/src/Administration/Resources/app/administration/src/module/sw-cms/elements/text/config/sw-cms-el-config-text.html.twig",
-        "sha256": "56b3b31a297d67389980cfb29069cec272d2bb995a7d08c3d05993b7a77e9c8a",
+        "documentedSha256": "56b3b31a297d67389980cfb29069cec272d2bb995a7d08c3d05993b7a77e9c8a",
         "components": ["sw-cms-inherit-wrapper", "sw-cms-mapping-field", "sw-text-editor"]
     }
 }

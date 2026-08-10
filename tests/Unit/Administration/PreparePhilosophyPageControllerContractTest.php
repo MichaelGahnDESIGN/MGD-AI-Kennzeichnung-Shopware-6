@@ -18,19 +18,19 @@ final class PreparePhilosophyPageControllerContractTest extends TestCase
     {
         $controller = new \ReflectionClass(PreparePhilosophyPageController::class);
         $classRoute = $controller->getAttributes(Route::class)[0]->newInstance();
-        self::assertSame(['api'], $classRoute->getDefaults()[PlatformRequest::ATTRIBUTE_ROUTE_SCOPE]);
+        self::assertSame(['api'], $classRoute->defaults[PlatformRequest::ATTRIBUTE_ROUTE_SCOPE]);
 
         $method = $controller->getMethod('__invoke');
         $route = $method->getAttributes(Route::class)[0]->newInstance();
-        self::assertSame([Request::METHOD_POST], $route->getMethods());
+        self::assertSame([Request::METHOD_POST], $route->methods);
         self::assertSame([
             'system_config:update',
             'cms_page:create',
             'cms_section:create',
             'cms_block:create',
             'cms_slot:create',
-        ], $route->getDefaults()[PlatformRequest::ATTRIBUTE_ACL]);
-        $path = $route->getPath();
+        ], $route->defaults[PlatformRequest::ATTRIBUTE_ACL]);
+        $path = $route->path;
         self::assertIsString($path);
         self::assertStringStartsWith('/api/_action/', $path);
         self::assertSame([Context::class], array_map(

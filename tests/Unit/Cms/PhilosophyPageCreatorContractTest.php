@@ -129,29 +129,75 @@ final class PhilosophyPageCreatorContractTest extends TestCase
         self::assertArrayHasKey(PhilosophyPageCreator::pageId(), $rows);
     }
 
-    public function testOwnershipCollisionsFailBeforeMutation(): void
+    public function testForeignStableIdFailsBeforeMutation(): void
     {
-        foreach ([
-            [PhilosophyPageCreator::pageId() => ['id' => PhilosophyPageCreator::pageId(), 'customFields' => []]],
-            [Uuid::randomHex() => [
-                'id' => Uuid::randomHex(),
-                'customFields' => [PhilosophyPageCreator::OWNERSHIP_FIELD => ['token' => PhilosophyPageCreator::OWNERSHIP_VALUE]],
-            ]],
-        ] as $rows) {
-            /* Der zweite Fall benötigt denselben Array-Schlüssel und Payload-ID. */
-            $row = reset($rows);
-            $id = (string) $row['id'];
-            $rows = [$id => $row];
-            $createPayloads = [];
+        $rows = [PhilosophyPageCreator::pageId() => ['id' => PhilosophyPageCreator::pageId(), 'customFields' => []]];
+        $createPayloads = [];
 
-            try {
-                (new PhilosophyPageCreator($this->repository($rows, $createPayloads)))
-                    ->prepare(Context::createDefaultContext());
-                self::fail('Eine fremde Eigentumsbelegung muss vor dem Schreiben abbrechen.');
-            } catch (\RuntimeException) {
-                self::assertSame([], $createPayloads);
-            }
+        $this->expectException(\RuntimeException::class);
+        try {
+            (new PhilosophyPageCreator($this->repository($rows, $createPayloads)))
+                ->prepare(Context::createDefaultContext());
+        } finally {
+            self::assertSame([], $createPayloads);
         }
+    }
+
+    public function testForeignSameMarkerDoesNotBlockOrChangeOwnDeterministicPage(): void
+    {
+        $foreignId = Uuid::randomHex();
+        $foreign = [
+            'id' => $foreignId,
+            'name' => 'Fremdes Layout',
+            'customFields' => [PhilosophyPageCreator::OWNERSHIP_FIELD => ['token' => PhilosophyPageCreator::OWNERSHIP_VALUE]],
+        ];
+        $rows = [$foreignId => $foreign];
+        $createPayloads = [];
+
+        $result = (new PhilosophyPageCreator($this->repository($rows, $createPayloads)))
+            ->prepare(Context::createDefaultContext());
+
+        self::assertTrue($result->created);
+        self::assertSame($foreign, $rows[$foreignId]);
+        self::assertArrayHasKey(PhilosophyPageCreator::pageId(), $rows);
+    }
+
+    public function testConcurrentOwnInsertReturnsCreatedFalseWithoutOverwrite(): void
+    {
+        $rows = [];
+        $createPayloads = [];
+        $result = (new PhilosophyPageCreator($this->repository(
+            $rows,
+            $createPayloads,
+            static function (array &$raceRows): void {
+                $raceRows[PhilosophyPageCreator::pageId()] = PhilosophyPageCreator::createPayload();
+                throw new \RuntimeException('Simulierter Duplicate-Key-Konflikt.');
+            },
+        )))->prepare(Context::createDefaultContext());
+
+        self::assertFalse($result->created);
+        self::assertSame(PhilosophyPageCreator::pageId(), $result->cmsPageId);
+        self::assertCount(1, $createPayloads);
+    }
+
+    public function testConcurrentForeignInsertFailsClosed(): void
+    {
+        $rows = [];
+        $createPayloads = [];
+        $creator = new PhilosophyPageCreator($this->repository(
+            $rows,
+            $createPayloads,
+            static function (array &$raceRows): void {
+                $raceRows[PhilosophyPageCreator::pageId()] = [
+                    'id' => PhilosophyPageCreator::pageId(),
+                    'customFields' => [],
+                ];
+                throw new \RuntimeException('Simulierter fremder Duplicate-Key-Konflikt.');
+            },
+        ));
+
+        $this->expectException(\RuntimeException::class);
+        $creator->prepare(Context::createDefaultContext());
     }
 
     /**
@@ -160,7 +206,7 @@ final class PhilosophyPageCreatorContractTest extends TestCase
      *
      * @return EntityRepository<CmsPageCollection>
      */
-    private function repository(array &$rows, array &$createPayloads): EntityRepository
+    private function repository(array &$rows, array &$createPayloads, ?\Closure $beforeCreate = null): EntityRepository
     {
         /** @var EntityRepository<CmsPageCollection>&MockObject $repository */
         $repository = $this->createMock(EntityRepository::class);
@@ -196,12 +242,15 @@ final class PhilosophyPageCreatorContractTest extends TestCase
             },
         );
         $repository->method('create')->willReturnCallback(
-            static function (array $payloads, Context $context) use (&$rows, &$createPayloads): EntityWrittenContainerEvent {
+            static function (array $payloads, Context $context) use (&$rows, &$createPayloads, $beforeCreate): EntityWrittenContainerEvent {
                 foreach ($payloads as $payload) {
                     if (!is_array($payload) || !isset($payload['id']) || !is_string($payload['id'])) {
                         throw new \InvalidArgumentException('Ungültiger CMS-Testpayload.');
                     }
                     $createPayloads[] = $payload;
+                    if ($beforeCreate !== null) {
+                        $beforeCreate($rows);
+                    }
                     $rows[$payload['id']] = $payload;
                 }
 

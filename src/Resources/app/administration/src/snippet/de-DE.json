@@ -37,7 +37,7 @@
             "cardTitle": "AI-Philosophie als Erlebniswelt",
             "noPublishNotice": "Die Aktion veröffentlicht oder verknüpft nichts. Prüfen, bearbeiten und veröffentlichen Sie das Layout anschließend bewusst in den Erlebniswelten.",
             "action": "Erlebniswelt vorbereiten",
-            "missingPermission": "Für diese Aktion fehlt die Berechtigung zum Ändern der Systemkonfiguration.",
+            "missingPermission": "Für diese Aktion fehlen Rechte für Systemkonfiguration, CMS-Seiten, Sektionen, Blöcke oder Elemente.",
             "successCreated": "Die Erlebniswelt wurde sicher vorbereitet.",
             "successExisting": "Die bereits vorhandene plugin-eigene Erlebniswelt wurde gefunden.",
             "error": "Die Erlebniswelt konnte nicht vorbereitet werden. Bitte prüfen Sie Berechtigung und Systemprotokoll.",

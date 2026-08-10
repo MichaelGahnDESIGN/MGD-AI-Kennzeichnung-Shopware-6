@@ -695,11 +695,29 @@ Expected: FAIL wegen fehlender Dienste.
 
 - [ ] **Step 3: CMS-Element implementieren**
 
-Das Element registriert ein translatables Rich-Text-Feld `content` mit einem deutschen und englischen Standardtext. Die Storefront-Ausgabe nutzt `|sw_sanitize`; Script-, Style-, Iframe-, Object- und Event-Attribute sind unzulässig.
+Das Element registriert ein übersetztes Rich-Text-Feld `content` über den in
+Shopware 6.6 und 6.7 gemeinsamen Vertrag aus `sw-cms-mapping-field` und
+`sw-text-editor`. Bei einem manuell eingefügten, leeren Element wird der
+Standardtext nur zur Anzeige aus der Locale der aktiven CMS-Inhaltssprache
+aufgelöst; er wird nicht automatisch in die aktuelle Übersetzung geschrieben.
+Unbekannte Locales fallen auf Englisch zurück. Die Storefront-Ausgabe nutzt
+`|sw_sanitize`; Script-, Style-, Iframe-, Object- und Event-Attribute sind
+unzulässig.
 
 - [ ] **Step 4: Seitenerstellung und Admin-Aktion implementieren**
 
-`PhilosophyPageCreator` sucht ausschließlich nach einer plugin-eigenen Kennung in `customFields`, erstellt ein `landingpage`-Layout mit genau einem `mgd-ai-philosophy`-Element und weist es keiner Kategorie zu. Der Controller antwortet mit `{ "created": true|false, "cmsPageId": "<uuid>" }`; die Administrationsseite zeigt danach einen Link zur normalen Erlebniswelten-Bearbeitung. Sie veröffentlicht oder verknüpft nichts automatisch.
+`PhilosophyPageCreator` verwendet ausschließlich seine deterministische
+CMS-Seiten-ID als atomare Grenze. Existiert genau diese ID, muss der zusätzliche
+plugin-eigene Marker in `customFields` übereinstimmen; andernfalls bricht der
+Dienst vor einer Mutation ab. Ein Marker an einer anderen Seite bleibt
+unangetastet und blockiert nicht, weil das JSON-Feld keine globale
+Datenbank-Eindeutigkeit garantiert. Nach einem konkurrierenden Duplicate-Insert
+wird nur die deterministische ID erneut geprüft. Der Dienst erstellt ein
+`landingpage`-Layout mit genau einem `mgd-ai-philosophy`-Element und weist es
+keiner Kategorie zu. Der Controller antwortet mit `{ "created": true|false,
+"cmsPageId": "<uuid>" }`; die Administrationsseite zeigt danach einen Link zur
+normalen Erlebniswelten-Bearbeitung. Sie veröffentlicht oder verknüpft nichts
+automatisch.
 
 - [ ] **Step 5: Tests, Builds und Commit**
 
