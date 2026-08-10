@@ -17,6 +17,8 @@ Keine Zugangsdaten, privaten Adressen, Kundendaten, Datenbankkopien, Medien aus 
 
 ## Lokale Prüfung
 
+Für den vollständigen Entwicklungs- und Releasevertrag werden Bash, PHP, Composer, Node.js mit npm und Python 3 benötigt. Das Release-Skript verwendet außerdem die üblichen Unix-Werkzeuge `mktemp`, `install`, `find`, `grep`, `sort`, `dirname`, `rm`, `awk` und `shasum`. Unter Linux stammen viele davon aus Coreutils; auf macOS sind kompatible Systemvarianten vorhanden. Python erzeugt das ZIP über sein Standardmodul `zipfile`, daher ruft das Skript selbst weder `zip` noch `unzip` auf. `unzip` beziehungsweise `zipinfo` sind nur für die manuelle Paketkontrolle hilfreich.
+
 Installieren Sie Entwicklungsabhängigkeiten mit Composer und führen Sie mindestens aus:
 
 ```bash

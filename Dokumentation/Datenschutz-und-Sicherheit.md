@@ -48,7 +48,9 @@ Sicherheitsberichte dürfen keine echten Zugangsdaten, Kundendaten, Datenbankexp
 
 ## Aufbewahrung und Löschung
 
-Kennzeichnungswerte bleiben so lange am Medium gespeichert, wie der Shop sie benötigt. Bei einer Deinstallation mit Shopwares Option **Benutzerdaten behalten** bleiben die plugin-eigenen Felder bestehen. Ohne diese Option entfernt der Lebenszyklus ausschließlich das eindeutig plugin-eigene Custom-Field-Set. Medien selbst und fremde Felder bleiben unberührt.
+Kennzeichnungswerte bleiben so lange am Medium gespeichert, wie der Shop sie benötigt. Bei einer Deinstallation mit Shopwares Option **Benutzerdaten behalten** bleiben das plugin-eigene Custom-Field-Set und die Plugin-Systemkonfiguration bestehen. Ohne diese Option löscht das Plugin sein eindeutig eigenes Set; Shopwares Kaskade entfernt dessen Felddefinitionen und Medienrelation. Shopwares Plugin-Lebenszyklus löscht außerdem die Plugin-Systemkonfiguration.
+
+Die Medienentität speichert Custom-Field-Werte als JSON. Das Entfernen der Definition löscht diese drei JSON-Schlüssel nicht nachweisbar aus jedem bestehenden Medium; sie können als technisch ungenutzte Werte verbleiben. Das vermeidet eine schwer kontrollierbare Massenänderung an Medien, bedeutet aber auch, dass eine vollständige fachliche Datenlöschung einen separaten, vorher gesicherten und in Staging geprüften Bereinigungslauf benötigt. Bilddateien, fremde Felder und andere Medienwerte bleiben unberührt.
 
 Ein vorbereiteter Philosophie-Inhalt wird bewusst nicht automatisch gelöscht, da er redaktionell verändert oder veröffentlicht worden sein kann. Verantwortliche entfernen ihn bei Bedarf manuell über Erlebniswelten.
 

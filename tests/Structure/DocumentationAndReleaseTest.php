@@ -57,6 +57,17 @@ final class DocumentationAndReleaseTest extends TestCase
         self::assertStringContainsString('## Bedienung', $germanReadme);
         self::assertStringContainsString('## Installation', $englishReadme);
         self::assertStringContainsString('## Usage', $englishReadme);
+        self::assertStringContainsString('Systemkonfiguration', $germanReadme);
+        self::assertStringContainsString('technisch ungenutzte Werte', $germanReadme);
+
+        $deployment = (string) file_get_contents(self::ROOT . '/Dokumentation/Deployment-und-Rueckfall.md');
+        self::assertStringContainsString('plugin:update MGDAIImageLabels', $deployment);
+        self::assertStringContainsString('vorherige Release-ZIP', $deployment);
+
+        $contributing = (string) file_get_contents(self::ROOT . '/CONTRIBUTING.md');
+        foreach (['Bash', 'PHP', 'Python 3', '`install`', '`find`', '`grep`', '`sort`', '`awk`', '`shasum`'] as $tool) {
+            self::assertStringContainsString($tool, $contributing);
+        }
     }
 
     public function testLicenseMatchesComposerContract(): void
@@ -128,6 +139,118 @@ final class DocumentationAndReleaseTest extends TestCase
         }
     }
 
+    public function testReleaseRefusesDistSymlinkWithoutTouchingExternalTarget(): void
+    {
+        $fixture = $this->createReleaseFixture();
+        $externalTarget = $this->createTemporaryDirectory('mgd-release-external-');
+        $marker = $externalTarget . '/unbeteiligt.txt';
+        file_put_contents($marker, 'unverändert');
+        self::assertTrue(symlink($externalTarget, $fixture . '/dist'));
+
+        try {
+            [$exitCode, $output] = $this->runFixtureBuild($fixture);
+            self::assertNotSame(0, $exitCode, $output);
+            self::assertTrue(is_link($fixture . '/dist'), 'Der Test-Symlink darf nicht ersetzt werden.');
+            self::assertSame('unverändert', file_get_contents($marker));
+            self::assertSame(['.', '..', 'unbeteiligt.txt'], scandir($externalTarget));
+        } finally {
+            $this->removeTemporaryTree($fixture);
+            $this->removeTemporaryTree($externalTarget);
+        }
+    }
+
+    public function testReleaseRefusesSpecialFileAtDistPath(): void
+    {
+        $fixture = $this->createReleaseFixture();
+        file_put_contents($fixture . '/dist', 'kein Verzeichnis');
+
+        try {
+            [$exitCode, $output] = $this->runFixtureBuild($fixture);
+            self::assertNotSame(0, $exitCode, $output);
+            self::assertSame('kein Verzeichnis', file_get_contents($fixture . '/dist'));
+            self::assertFileDoesNotExist($fixture . '/MGDAIImageLabels-0.1.0.zip');
+        } finally {
+            $this->removeTemporaryTree($fixture);
+        }
+    }
+
+    public function testReleaseUsesAtomicTemporaryArchiveInsideValidatedDist(): void
+    {
+        $script = (string) file_get_contents(self::ROOT . '/scripts/build-release.sh');
+
+        self::assertMatchesRegularExpression(
+            '~mktemp\s+"\$\{(?:validated_)?dist_directory\}/\.MGDAIImageLabels-~',
+            $script,
+            'Die temporäre ZIP-Datei muss im validierten dist-Verzeichnis liegen.',
+        );
+        self::assertStringContainsString('os.replace(sys.argv[1], sys.argv[2])', $script);
+        self::assertStringContainsString('trap cleanup EXIT', $script);
+        self::assertStringNotContainsString('trap cleanup EXIT INT TERM HUP', $script);
+    }
+
+    public function testTerminationStopsBuildWithDedicatedExitCodeAndCleansWorkspace(): void
+    {
+        if (!function_exists('proc_open') || !function_exists('proc_terminate')) {
+            self::markTestSkipped('Für den Signalvertrag werden PHP-Prozessfunktionen benötigt.');
+        }
+
+        $fixture = $this->createReleaseFixture();
+        $controlledTemp = $this->createTemporaryDirectory('mgd-release-signal-');
+        for ($index = 0; $index < 3000; ++$index) {
+            file_put_contents($fixture . '/src/datei-' . $index . '.txt', str_repeat('x', 1024));
+        }
+
+        $pipes = [];
+        $process = proc_open(
+            ['bash', $fixture . '/scripts/build-release.sh'],
+            [1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+            $pipes,
+            $fixture,
+            ['TMPDIR' => $controlledTemp, 'PATH' => (string) getenv('PATH')],
+        );
+        self::assertIsResource($process);
+
+        try {
+            $deadline = microtime(true) + 5.0;
+            do {
+                // Der Paket-Unterordner entsteht erst nach Registrierung aller
+                // Signal-Traps. Das vermeidet ein Rennen direkt nach mktemp.
+                $workspaces = glob($controlledTemp . '/mgd-ai-labels-release.*/MGDAIImageLabels', GLOB_ONLYDIR) ?: [];
+                if ($workspaces !== []) {
+                    break;
+                }
+                usleep(1000);
+            } while (microtime(true) < $deadline);
+            self::assertNotSame([], $workspaces, 'Der Prozess erreichte den abgesicherten Arbeitsbereich nicht.');
+
+            self::assertTrue(proc_terminate($process, 15));
+            foreach ($pipes as $pipe) {
+                // Das Lesen wartet deterministisch auf das Ende des Kindes,
+                // ohne dessen Exitcode vor proc_close() einmalig zu verbrauchen.
+                stream_get_contents($pipe);
+                fclose($pipe);
+            }
+            $exitCode = proc_close($process);
+            $process = null;
+
+            self::assertSame(143, $exitCode, 'SIGTERM muss eindeutig mit Exitcode 143 enden.');
+            self::assertSame([], glob($controlledTemp . '/mgd-ai-labels-release.*') ?: [], 'Der EXIT-Trap muss den Arbeitsbereich entfernen.');
+            self::assertFileDoesNotExist($fixture . '/dist/MGDAIImageLabels-0.1.0.zip');
+        } finally {
+            if (is_resource($process)) {
+                proc_terminate($process, 9);
+                foreach ($pipes as $pipe) {
+                    if (is_resource($pipe)) {
+                        fclose($pipe);
+                    }
+                }
+                proc_close($process);
+            }
+            $this->removeTemporaryTree($fixture);
+            $this->removeTemporaryTree($controlledTemp);
+        }
+    }
+
     private function runReleaseBuild(string $script): string
     {
         $command = sprintf('bash %s 2>&1', escapeshellarg($script));
@@ -135,6 +258,91 @@ final class DocumentationAndReleaseTest extends TestCase
         self::assertSame(0, $exitCode, implode("\n", $lines));
 
         return implode("\n", $lines);
+    }
+
+    /** @return array{int, string} */
+    private function runFixtureBuild(string $fixture): array
+    {
+        $command = sprintf('bash %s 2>&1', escapeshellarg($fixture . '/scripts/build-release.sh'));
+        exec($command, $lines, $exitCode);
+
+        return [$exitCode, implode("\n", $lines)];
+    }
+
+    private function createReleaseFixture(): string
+    {
+        $fixture = $this->createTemporaryDirectory('mgd-release-fixture-');
+        mkdir($fixture . '/scripts', 0700);
+        mkdir($fixture . '/src', 0700);
+        mkdir($fixture . '/Dokumentation', 0700);
+        copy(self::ROOT . '/scripts/build-release.sh', $fixture . '/scripts/build-release.sh');
+        chmod($fixture . '/scripts/build-release.sh', 0700);
+        file_put_contents($fixture . '/composer.json', '{"version":"0.1.0"}');
+        foreach (['LICENSE', 'README.md', 'README.en.md', 'SECURITY.md', 'CONTRIBUTING.md', 'CHANGELOG.md'] as $file) {
+            file_put_contents($fixture . '/' . $file, $file);
+        }
+        file_put_contents($fixture . '/src/Laufzeit.php', '<?php');
+        file_put_contents($fixture . '/Dokumentation/Hinweis.md', '# Hinweis');
+
+        return $fixture;
+    }
+
+    private function createTemporaryDirectory(string $prefix): string
+    {
+        $directory = sys_get_temp_dir() . '/' . $prefix . bin2hex(random_bytes(8));
+        self::assertTrue(mkdir($directory, 0700));
+
+        return $directory;
+    }
+
+    /** Entfernt ausschließlich den zuvor mit zufälligem Testpräfix erzeugten Baum. */
+    private function removeTemporaryTree(string $path): void
+    {
+        $baseName = basename($path);
+        if (!str_starts_with($baseName, 'mgd-release-') || dirname($path) !== rtrim(sys_get_temp_dir(), '/')) {
+            self::fail('Unsicherer temporärer Testpfad wurde nicht entfernt: ' . $path);
+        }
+
+        if (is_link($path) || is_file($path)) {
+            unlink($path);
+
+            return;
+        }
+        if (!is_dir($path)) {
+            return;
+        }
+
+        foreach (scandir($path) ?: [] as $entry) {
+            if ($entry === '.' || $entry === '..') {
+                continue;
+            }
+            $child = $path . '/' . $entry;
+            if (is_link($child) || is_file($child)) {
+                unlink($child);
+            } else {
+                $this->removeTemporaryNestedTree($child, $path);
+            }
+        }
+        rmdir($path);
+    }
+
+    private function removeTemporaryNestedTree(string $path, string $root): void
+    {
+        if (!str_starts_with($path . '/', $root . '/') || is_link($path) || !is_dir($path)) {
+            self::fail('Unsicherer verschachtelter Testpfad wurde nicht entfernt: ' . $path);
+        }
+        foreach (scandir($path) ?: [] as $entry) {
+            if ($entry === '.' || $entry === '..') {
+                continue;
+            }
+            $child = $path . '/' . $entry;
+            if (is_link($child) || is_file($child)) {
+                unlink($child);
+            } else {
+                $this->removeTemporaryNestedTree($child, $root);
+            }
+        }
+        rmdir($path);
     }
 
     /** @return list<string> */
