@@ -24,6 +24,27 @@
                 "light": "light",
                 "dark": "dark"
             }
+        },
+        "cms": {
+            "background": {
+                "label": "Labeled background image",
+                "preview": "Local background image with AI label",
+                "contentPlaceholder": "Shopping Experiences block content",
+                "fields": {
+                    "media": "Image medium",
+                    "minHeight": "Minimum height",
+                    "horizontalPosition": "Horizontal image position",
+                    "verticalPosition": "Vertical image position",
+                    "decorative": "Image is purely decorative",
+                    "fallbackColor": "Safe background colour"
+                },
+                "options": {
+                    "minHeight": { "240": "Compact (240 px)", "320": "Standard (320 px)", "480": "Large (480 px)", "640": "Extra large (640 px)" },
+                    "horizontalPosition": { "left": "Left", "center": "Centre", "right": "Right" },
+                    "verticalPosition": { "top": "Top", "center": "Centre", "bottom": "Bottom" },
+                    "fallbackColor": { "neutral-light": "Neutral light", "neutral-dark": "Neutral dark", "brand": "Blue" }
+                }
+            }
         }
     }
 }

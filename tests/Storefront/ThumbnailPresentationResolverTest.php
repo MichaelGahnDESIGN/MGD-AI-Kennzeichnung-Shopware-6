@@ -76,6 +76,11 @@ final class ThumbnailPresentationResolverTest extends TestCase
     /** @return iterable<string, array{string, array<string, mixed>|list<mixed>|string|null, array<string, mixed>|string|null}> */
     public static function provenFillCallers(): iterable
     {
+        yield 'MGD CMS-Hintergrundbild' => [
+            'mgd-ai-background-image-thumbnails',
+            ['class' => 'mgd-ai-background-image__media'],
+            ['displayMode' => 'cover'],
+        ];
         yield 'CMS-Blockhintergrund' => [
             'cms-block-background',
             ['class' => "cms-block-background\tmedia-mode--cover"],

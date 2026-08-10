@@ -26,6 +26,11 @@
         </service>
         <service id="MGDAIImageLabels\Storefront\Thumbnail\ThumbnailPresentationResolver"/>
 
+        <!-- Resolver für das lokale, sicher konfigurierte CMS-Hintergrundmedium. -->
+        <service id="MGDAIImageLabels\Cms\BackgroundImage\BackgroundImageCmsElementResolver">
+            <tag name="shopware.cms.data_resolver"/>
+        </service>
+
         <!-- Das Tag ist in Shopware 6.6 und 6.7 der stabile Twig-Erweiterungsvertrag. -->
         <service id="MGDAIImageLabels\Storefront\Twig\LabelTwigExtension">
             <argument type="service" id="MGDAIImageLabels\Storefront\Label\LabelViewResolver"/>

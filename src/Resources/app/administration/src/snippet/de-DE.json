@@ -24,6 +24,27 @@
                 "light": "hell",
                 "dark": "dunkel"
             }
+        },
+        "cms": {
+            "background": {
+                "label": "Gekennzeichnetes Hintergrundbild",
+                "preview": "Lokales Hintergrundbild mit KI-Kennzeichnung",
+                "contentPlaceholder": "Inhalte des Erlebniswelten-Blocks",
+                "fields": {
+                    "media": "Bildmedium",
+                    "minHeight": "Mindesthöhe",
+                    "horizontalPosition": "Horizontale Bildposition",
+                    "verticalPosition": "Vertikale Bildposition",
+                    "decorative": "Bild ist rein dekorativ",
+                    "fallbackColor": "Sichere Hintergrundfarbe"
+                },
+                "options": {
+                    "minHeight": { "240": "Kompakt (240 px)", "320": "Standard (320 px)", "480": "Groß (480 px)", "640": "Sehr groß (640 px)" },
+                    "horizontalPosition": { "left": "Links", "center": "Mitte", "right": "Rechts" },
+                    "verticalPosition": { "top": "Oben", "center": "Mitte", "bottom": "Unten" },
+                    "fallbackColor": { "neutral-light": "Neutral hell", "neutral-dark": "Neutral dunkel", "brand": "Blau" }
+                }
+            }
         }
     }
 }

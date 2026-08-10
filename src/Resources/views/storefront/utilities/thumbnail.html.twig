@@ -6,7 +6,16 @@
  # das geprüfte Viewmodell tatsächlich sichtbar ist.
  #}
 {% block thumbnail_utility -%}
-    {%- set label = mgd_ai_image_label(media) -%}
+    {#
+     # Eigene sichere CMS-Aufrufer dürfen ein bereits aufgelöstes Viewmodell
+     # übergeben. Die Verzweigung verhindert einen zweiten Resolver-Aufruf und
+     # damit auch ein doppeltes Badge; fremde Aufrufer bleiben unverändert.
+     #}
+    {%- if name|default(null) == 'mgd-ai-background-image-thumbnails' and mgdAiLabel is defined -%}
+        {%- set label = mgdAiLabel -%}
+    {%- else -%}
+        {%- set label = mgd_ai_image_label(media) -%}
+    {%- endif -%}
     {%- set presentation = mgd_ai_thumbnail_presentation(
         name|default(null),
         attributes|default(null),

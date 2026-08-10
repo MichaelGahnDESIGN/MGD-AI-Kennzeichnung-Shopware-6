@@ -1,0 +1,24 @@
+<div class="sw-cms-el-config-mgd-ai-background-image">
+    <sw-media-upload-v2
+        variant="regular"
+        :upload-tag="uploadTag"
+        :source="previewSource"
+        :allow-multi-select="false"
+        :caption="$tc('mgd-ai-image-labels.cms.background.fields.media')"
+        @media-upload-sidebar-open="mediaModalIsOpen = true"
+        @media-upload-remove-image="onImageRemove"
+    />
+    <sw-upload-listener :upload-tag="uploadTag" auto-upload @media-upload-finish="onImageUpload" />
+    <sw-media-modal-v2
+        v-if="mediaModalIsOpen"
+        :allow-multi-select="false"
+        @media-modal-selection-change="onSelectionChanges"
+        @modal-close="mediaModalIsOpen = false"
+    />
+
+    <mt-select v-model:model-value="element.config.minHeight.value" :label="$tc('mgd-ai-image-labels.cms.background.fields.minHeight')" :options="minHeightOptions" @update:model-value="emitUpdate" />
+    <mt-select v-model:model-value="element.config.horizontalPosition.value" :label="$tc('mgd-ai-image-labels.cms.background.fields.horizontalPosition')" :options="horizontalOptions" @update:model-value="emitUpdate" />
+    <mt-select v-model:model-value="element.config.verticalPosition.value" :label="$tc('mgd-ai-image-labels.cms.background.fields.verticalPosition')" :options="verticalOptions" @update:model-value="emitUpdate" />
+    <mt-select v-model:model-value="element.config.fallbackColor.value" :label="$tc('mgd-ai-image-labels.cms.background.fields.fallbackColor')" :options="fallbackOptions" @update:model-value="emitUpdate" />
+    <mt-switch v-model="element.config.decorative.value" :label="$tc('mgd-ai-image-labels.cms.background.fields.decorative')" @update:model-value="emitUpdate" />
+</div>

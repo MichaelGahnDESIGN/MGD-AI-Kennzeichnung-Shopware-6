@@ -36,6 +36,7 @@ final class ThumbnailPresentationResolver
         'cms-image-slider-thumbnails' => 'image-slider-image',
         'configurator-option-img-thumbnails' => 'product-detail-configurator-option-image',
         'line-item-img-thumbnails' => 'line-item-img',
+        'mgd-ai-background-image-thumbnails' => 'mgd-ai-background-image__media',
         'product-image-thumbnails' => 'product-image',
     ];
 
