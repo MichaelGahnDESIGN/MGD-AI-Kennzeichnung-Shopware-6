@@ -45,6 +45,23 @@ final class IntegrationTestConfigurationTest extends TestCase
         ], $scripts['test:integration'] ?? null);
     }
 
+    /** Der geplante CMS-Test nutzt denselben harten Datenbank- und Transaktionsvertrag. */
+    public function testCmsResolverIntegrationTestIsDiscoverableAndSafelyBootstrapped(): void
+    {
+        $testFile = dirname(__DIR__, 2) . '/Integration/Cms/BackgroundImageCmsElementResolverTest.php';
+        self::assertFileExists($testFile);
+        $source = file_get_contents($testFile);
+        self::assertIsString($source);
+
+        self::assertStringContainsString('use IntegrationTestBehaviour;', $source);
+        self::assertStringContainsString("MGD_SHOPWARE_INTEGRATION_TESTS", $source);
+        self::assertStringContainsString('ShopwareTestDatabaseConfiguration::validate', $source);
+        self::assertStringContainsString('->setLoadEnvFile(false)', $source);
+        self::assertStringContainsString('->setDatabaseUrl($validatedDatabaseUrl)', $source);
+        self::assertStringContainsString("self::getContainer()->get(BackgroundImageCmsElementResolver::class)", $source);
+        self::assertStringContainsString("self::getContainer()->get('media.repository')", $source);
+    }
+
     /** Ohne ausdrückliche Freigabe beendet der vorgeschaltete Prozess den DAL-Test verständlich mit Fehler. */
     public function testIntegrationPreflightFailsWithoutExplicitPermission(): void
     {

@@ -646,6 +646,13 @@ Das Administrations-Element bietet Medium, Mindesthöhe, horizontale und vertika
 
 - [ ] **Step 5: Build, Integrationstest und Commit**
 
+Der Integrationstest wird nur hinter dem gemeinsamen sicheren Task-4-Preflight
+mit einer explizit validierten isolierten Testdatenbank gestartet und nutzt
+Shopwares Transaktions-Rollback. Ein kleiner Prüfsummen-/Reflection-Vertrag
+prüft pro Lauf ausschließlich die installierte offizielle Quelllinie. Der echte
+Kernel-, Administrations- und Storefront-Doppellauf für v6.6.10.22 sowie
+v6.7.13.0 bleibt ausdrücklich Bestandteil von Task 13.
+
 Run: `npm run test:administration && php bin/phpunit custom/plugins/MGDAIImageLabels/tests/Integration/Cms/BackgroundImageCmsElementResolverTest.php && bin/build-administration.sh && bin/build-storefront.sh`
 
 Expected: alle Befehle erfolgreich; Element erscheint in der Erlebniswelten-Auswahl und zeigt das Badge.
