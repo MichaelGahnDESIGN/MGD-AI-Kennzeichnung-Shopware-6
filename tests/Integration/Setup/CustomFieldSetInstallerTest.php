@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MGDAIImageLabels\Tests\Integration\Setup;
 
+use Doctrine\DBAL\Connection;
 use MGDAIImageLabels\MGDAIImageLabels;
 use MGDAIImageLabels\Setup\CustomFieldSetDefinitionFactory;
 use MGDAIImageLabels\Setup\CustomFieldSetInstaller;
@@ -19,6 +20,7 @@ use Shopware\Core\Framework\Plugin\Context\InstallContext;
 use Shopware\Core\Framework\Plugin\Context\UninstallContext;
 use Shopware\Core\Framework\Test\TestCaseBase\IntegrationTestBehaviour;
 use Shopware\Core\Framework\Uuid\Uuid;
+use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Shopware\Core\System\CustomField\Aggregate\CustomFieldSet\CustomFieldSetCollection;
 use Shopware\Core\System\CustomField\Aggregate\CustomFieldSetRelation\CustomFieldSetRelationCollection;
 use Shopware\Core\TestBootstrapper;
@@ -113,6 +115,10 @@ final class CustomFieldSetInstallerTest extends TestCase
         $container = new Container();
         $container->set('custom_field_set.repository', $setRepository);
         $container->set('custom_field_set_relation.repository', $relationRepository);
+        // Der isolierte Container bildet alle öffentlichen Core-Abhängigkeiten
+        // des aktuellen Lifecycles ab, aber bewusst keinen Plugin-Dienst.
+        $container->set(Connection::class, self::getContainer()->get(Connection::class));
+        $container->set(SystemConfigService::class, self::getContainer()->get(SystemConfigService::class));
         self::assertFalse($container->has(CustomFieldSetInstaller::class));
 
         $plugin = new MGDAIImageLabels(false, dirname(__DIR__, 3));
