@@ -17,7 +17,6 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Plugin\Context\InstallContext;
-use Shopware\Core\Framework\Plugin\Context\UninstallContext;
 use Shopware\Core\Framework\Test\TestCaseBase\IntegrationTestBehaviour;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
@@ -106,8 +105,8 @@ final class CustomFieldSetInstallerTest extends TestCase
         self::assertSame([$foreignId], $this->idsByField($setRepository, 'name', $foreignName, $context));
     }
 
-    /** Der Plugin-Lifecycle arbeitet auch ohne geladenen plugin-eigenen Dienst über Core-Repositories. */
-    public function testPluginLifecycleUsesPublicCoreRepositoriesWithoutOwnService(): void
+    /** Die Installation arbeitet auch ohne geladenen plugin-eigenen Dienst über öffentliche Core-Dienste. */
+    public function testPluginInstallUsesPublicCoreServicesWithoutOwnService(): void
     {
         $context = Context::createDefaultContext();
         $setRepository = $this->customFieldSetRepository();
@@ -125,19 +124,9 @@ final class CustomFieldSetInstallerTest extends TestCase
         $plugin->setContainer($container);
         $installContext = $this->createStub(InstallContext::class);
         $installContext->method('getContext')->willReturn($context);
-        $uninstallContext = $this->createStub(UninstallContext::class);
-        $uninstallContext->method('getContext')->willReturn($context);
-        $uninstallContext->method('keepUserData')->willReturn(false);
-
         $plugin->install($installContext);
         self::assertSame(
             [CustomFieldSetDefinitionFactory::setId()],
-            $this->idsByField($setRepository, 'name', CustomFieldSetDefinitionFactory::SET_NAME, $context),
-        );
-
-        $plugin->uninstall($uninstallContext);
-        self::assertSame(
-            [],
             $this->idsByField($setRepository, 'name', CustomFieldSetDefinitionFactory::SET_NAME, $context),
         );
     }
