@@ -102,6 +102,8 @@ Ein sicherer Rückfall ist in [Dokumentation/Deployment-und-Rueckfall.md](Dokume
 
 Hinweise für eigene Themes stehen in [Dokumentation/Integration-eigener-Themes.md](Dokumentation/Integration-eigener-Themes.md). Die technische Aufteilung erklärt [Dokumentation/Architektur.md](Dokumentation/Architektur.md).
 
+Der zusätzliche produktive Referenztest ist in [Dokumentation/TableGuard-Live-Test-2026-08.md](Dokumentation/TableGuard-Live-Test-2026-08.md) zusammengefasst. Der Bericht enthält bewusst keine Zugangsdaten oder internen Betriebsdetails.
+
 ## Entwicklung
 
 Beiträge sind willkommen. Bitte lesen Sie [CONTRIBUTING.md](CONTRIBUTING.md). Das Release-Paket wird reproduzierbar erzeugt mit:
