@@ -187,7 +187,8 @@ final class LabelTemplateTest extends TestCase
         $component = $this->readResource('app/storefront/src/scss/component/_ai-image-label.scss');
         $allAssets = $main . "\n" . $base . "\n" . $component;
 
-        self::assertStringContainsString("import './scss/base.scss';", $main);
+        self::assertStringNotContainsString(".scss'", $main);
+        self::assertStringContainsString('Theme-Compiler', $main);
         self::assertStringContainsString("@import 'component/ai-image-label';", $base);
         self::assertStringContainsString('pointer-events: none', $component);
         self::assertStringContainsString('@media (prefers-reduced-motion: reduce)', $component);
