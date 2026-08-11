@@ -2,6 +2,13 @@
 
 Alle wesentlichen Änderungen dieses Projekts werden hier dokumentiert. Das Format orientiert sich an „Keep a Changelog“; Versionen folgen der semantischen Versionierung.
 
+## [0.1.1] – 2026-08-11
+
+### Korrigiert
+
+- Die in Shopware 6.6.10.22 und 6.7.13.0 identisch erzeugten Administration-Assets sind nun im Installations-ZIP enthalten. Eine normale Plugin-Installation benötigt dadurch keinen eigenen Administration-Build auf dem Zielserver.
+- Die SQLite-Plattformerkennung ist mit Doctrine DBAL 3 und 4 kompatibel.
+
 ## [0.1.0] – 2026-08-11
 
 ### Hinzugefügt

@@ -64,4 +64,4 @@ Ungültige redaktionelle Werte führen zu sicheren Standardwerten oder zu einem 
 
 ## Kompatibilitätsstatus
 
-Zusätzlich zu den statischen, Unit-, JavaScript- und Headless-Tests wurde Version 0.1.0 in frisch installierten, isolierten Shops mit Shopware 6.6.10.22 und 6.7.13.0 geprüft. Die Matrix umfasste Installation, Aktivierung, Datenbankintegration, Administration- und Storefront-Build, Browserabläufe sowie Deinstallation mit und ohne Datenerhalt. Andere Patchstände und eigene Themes bleiben vor dem Produktiveinsatz in Staging zu prüfen.
+Zusätzlich zu den statischen, Unit-, JavaScript- und Headless-Tests wurde Version 0.1.1 in frisch installierten, isolierten Shops mit Shopware 6.6.10.22 und 6.7.13.0 geprüft. Die Matrix umfasste Installation, Aktivierung, Datenbankintegration, Administration- und Storefront-Build, Browserabläufe sowie Deinstallation mit und ohne Datenerhalt. Andere Patchstände und eigene Themes bleiben vor dem Produktiveinsatz in Staging zu prüfen.

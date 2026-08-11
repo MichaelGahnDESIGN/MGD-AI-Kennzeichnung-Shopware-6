@@ -99,7 +99,7 @@ Expected: FAIL mit `./composer.json not found`.
   "name": "michaelgahn-design/mgd-ai-kennzeichnung-shopware-6",
   "description": "Transparente und barrierefreie KI-Bildkennzeichnungen für Shopware 6.",
   "type": "shopware-platform-plugin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "GPL-2.0-or-later",
   "require": {
     "php": "^8.2",
@@ -766,7 +766,7 @@ Das Bash-Skript verwendet `set -euo pipefail`, liest die Version aus `composer.j
 
 - [ ] **Step 5: Paket bauen, prüfen und committen**
 
-Run: `bash scripts/build-release.sh && unzip -l dist/MGDAIImageLabels-0.1.0.zip && vendor/bin/phpunit tests/Structure/DocumentationAndReleaseTest.php`
+Run: `bash scripts/build-release.sh && unzip -l dist/MGDAIImageLabels-0.1.1.zip && vendor/bin/phpunit tests/Structure/DocumentationAndReleaseTest.php`
 
 Expected: ZIP besitzt genau einen obersten Ordner `MGDAIImageLabels`; Tests PASS; keine Entwicklungs- oder Geheimnisdateien.
 
@@ -810,7 +810,7 @@ ungeprüften Pull Requests veröffentlicht.
 
 - [ ] **Step 4: Vollständige lokale Prüfung**
 
-Run: `composer validate --strict && vendor/bin/phpunit && vendor/bin/phpstan analyse -c phpstan.neon.dist && vendor/bin/php-cs-fixer fix --dry-run --diff && npm run test:administration && git diff --check && bash scripts/build-release.sh && shopware-cli --no-interaction extension validate dist/MGDAIImageLabels-0.1.0.zip`
+Run: `composer validate --strict && vendor/bin/phpunit && vendor/bin/phpstan analyse -c phpstan.neon.dist && vendor/bin/php-cs-fixer fix --dry-run --diff && npm run test:administration && git diff --check && bash scripts/build-release.sh && shopware-cli --no-interaction extension validate dist/MGDAIImageLabels-0.1.1.zip`
 
 Expected: alle Befehle Exit-Code 0. Die Shopware CLI prüft bewusst das
 tatsächlich auslieferbare, versionierte ZIP; der strikt validierte Quellbaum
@@ -826,7 +826,7 @@ git commit -m "ci: pruefe Shopware-Kompatibilitaet"
 ### Task 13: Kontrollierte Shopware-6.6- und 6.7-Abnahme
 
 **Files:**
-- Create: `Dokumentation/Testprotokoll-0.1.0.md`
+- Create: `Dokumentation/Testprotokoll-0.1.1.md`
 - Modify: `CHANGELOG.md`
 
 - [ ] **Step 1: Zwei frische Testshops bereitstellen**
@@ -861,11 +861,11 @@ Zuerst mit Benutzerdaten behalten deinstallieren und erneute Installation prüfe
 - [ ] **Step 5: Testprotokoll und Changelog committen**
 
 ```bash
-git add Dokumentation/Testprotokoll-0.1.0.md CHANGELOG.md
+git add Dokumentation/Testprotokoll-0.1.1.md CHANGELOG.md
 git commit -m "test: dokumentiere Shopware-Abnahme"
 ```
 
-### Task 14: Öffentliche GitHub-Repositories und Release 0.1.0
+### Task 14: Öffentliche GitHub-Repositories und Release 0.1.1
 
 **Files:**
 - Modify: remote repository names and release metadata
@@ -897,16 +897,16 @@ Expected: öffentliches Repository mit Default-Branch `main`.
 - [ ] **Step 4: Version taggen und Release veröffentlichen**
 
 ```bash
-git tag -a v0.1.0 -m "MGD AI Kennzeichnung Shopware 6 v0.1.0"
-git push origin v0.1.0
-gh release create v0.1.0 dist/MGDAIImageLabels-0.1.0.zip --title "MGD AI Kennzeichnung Shopware 6 v0.1.0" --notes-file CHANGELOG.md
+git tag -a v0.1.1 -m "MGD AI Kennzeichnung Shopware 6 v0.1.1"
+git push origin v0.1.1
+gh release create v0.1.1 dist/MGDAIImageLabels-0.1.1.zip --title "MGD AI Kennzeichnung Shopware 6 v0.1.1" --notes-file CHANGELOG.md
 ```
 
 Expected: öffentliches Release enthält genau das geprüfte ZIP.
 
 - [ ] **Step 5: Links und Release-Download prüfen**
 
-Run: `gh release view v0.1.0 --repo MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6 --json url,assets,isDraft,isPrerelease`
+Run: `gh release view v0.1.1 --repo MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6 --json url,assets,isDraft,isPrerelease`
 
 Expected: kein Draft, kein Prerelease, ein ZIP-Asset.
 
@@ -927,7 +927,7 @@ Mit dem vorhandenen TableGuard-Backupverfahren ein vollständiges Datei- und Dat
 
 - [ ] **Step 3: Geprüftes Release-ZIP installieren**
 
-In **Erweiterungen → Meine Erweiterungen → Erweiterung hochladen** ausschließlich `MGDAIImageLabels-0.1.0.zip` wählen. Plugin installieren, anschließend Administration und Storefront über das vorhandene TableGuard-Deploymentverfahren bauen, Plugin aktivieren und Cache leeren.
+In **Erweiterungen → Meine Erweiterungen → Erweiterung hochladen** ausschließlich `MGDAIImageLabels-0.1.1.zip` wählen. Plugin installieren, anschließend Administration und Storefront über das vorhandene TableGuard-Deploymentverfahren bauen, Plugin aktivieren und Cache leeren.
 
 - [ ] **Step 4: Minimalen Live-Datensatz testen**
 

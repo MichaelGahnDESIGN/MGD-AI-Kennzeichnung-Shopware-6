@@ -33,7 +33,7 @@ The Shopping Experiences element **Labeled background image** uses a local image
 
 The plugin stores only configuration and media custom fields in Shopware. It does not upload, analyse, fingerprint or automatically classify images. Labels are textual, exposed as notes to assistive technology and do not block image interactions. Accessibility still depends on the active theme and editorial alternative text.
 
-Custom themes that fully replace Shopware's thumbnail template may need an explicit integration. The real Shopware 6.6.10/6.7 installation matrix is still an open release-quality step; treat version 0.1.0 as a pre-release until that matrix has been completed and documented.
+Custom themes that fully replace Shopware's thumbnail template may need an explicit integration. Version 0.1.1 was tested in fresh, isolated Shopware 6.6.10.22 and 6.7.13.0 installations. Custom themes and other patch versions still require a staging test.
 
 When uninstalling with **Keep user data**, the plugin custom-field set and plugin configuration remain. A strictly limited local snapshot of the nine plugin settings preserves global and sales-channel values when Shopware writes defaults during a later reinstall. The snapshot is deleted immediately after a successful restore. Without the keep option, the field definitions, media relation, snapshot table and Shopware plugin configuration are removed. Foreign settings and tables remain untouched. Media files remain untouched; the three JSON keys already stored on media items may remain as technically unused values because the plugin does not rewrite every media record during uninstall.
 

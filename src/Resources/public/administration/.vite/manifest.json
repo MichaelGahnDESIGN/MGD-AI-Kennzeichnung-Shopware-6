@@ -1,0 +1,11 @@
+{
+  "main.js": {
+    "file": "assets/m-g-d-a-i-image-labels-B2oFiM5V.js",
+    "name": "m-g-d-a-i-image-labels",
+    "src": "main.js",
+    "isEntry": true,
+    "css": [
+      "assets/m-g-d-a-i-image-labels-D27nNQ87.css"
+    ]
+  }
+}

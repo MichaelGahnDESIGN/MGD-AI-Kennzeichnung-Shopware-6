@@ -47,7 +47,7 @@
             "de-DE": "https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/blob/main/SECURITY.md",
             "en-GB": "https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/blob/main/SECURITY.md"
         },
-        "mgd-release-version": "0.1.0"
+        "mgd-release-version": "0.1.1"
     },
     "config": {
         "allow-plugins": {

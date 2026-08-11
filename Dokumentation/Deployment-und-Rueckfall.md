@@ -15,7 +15,7 @@ Diese Anleitung beschreibt einen vorsichtigen Weg von Staging in einen produktiv
 7. Prüfen Sie Administration, Medienfelder, Vorschau, Storefront, Erlebniswelten und alle aktiven Verkaufskanäle.
 8. Halten Sie verantwortliche Person, Zeitpunkt, ZIP-Prüfsumme und Prüfergebnis im internen Änderungsprotokoll fest.
 
-Version 0.1.0 wurde real unter Shopware 6.6.10.22 und 6.7.13.0 geprüft. Das ersetzt nicht die Staging-Prüfung des konkreten Zielshops: Theme, weitere Plugins, Infrastruktur und der tatsächlich eingesetzte Patchstand können abweichen.
+Version 0.1.1 wurde real unter Shopware 6.6.10.22 und 6.7.13.0 geprüft. Das ersetzt nicht die Staging-Prüfung des konkreten Zielshops: Theme, weitere Plugins, Infrastruktur und der tatsächlich eingesetzte Patchstand können abweichen.
 
 ## Installation oder Update in Staging
 

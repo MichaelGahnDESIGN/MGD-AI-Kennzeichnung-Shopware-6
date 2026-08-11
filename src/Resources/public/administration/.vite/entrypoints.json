@@ -1,0 +1,25 @@
+{
+  "base": "/bundles/mgdaiimagelabels/administration/",
+  "entryPoints": {
+    "m-g-d-a-i-image-labels": {
+      "css": [
+        "/bundles/mgdaiimagelabels/administration/assets/m-g-d-a-i-image-labels-D27nNQ87.css"
+      ],
+      "dynamic": [],
+      "js": [
+        "/bundles/mgdaiimagelabels/administration/assets/m-g-d-a-i-image-labels-B2oFiM5V.js"
+      ],
+      "legacy": false,
+      "preload": []
+    }
+  },
+  "legacy": false,
+  "metadatas": {},
+  "version": [
+    "7.1.0",
+    7,
+    1,
+    0
+  ],
+  "viteServer": null
+}

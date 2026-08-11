@@ -170,7 +170,7 @@ final class DocumentationAndReleaseTest extends TestCase
         $validationStep = $this->workflowStep($steps, 'Ausgeliefertes Shopware-Erweiterungspaket validieren');
         self::assertSame($releaseStep['if'] ?? null, $validationStep['if'] ?? null);
         self::assertSame(
-            'shopware-cli --no-interaction extension validate dist/MGDAIImageLabels-0.1.0.zip',
+            'shopware-cli --no-interaction extension validate dist/MGDAIImageLabels-0.1.1.zip',
             $validationStep['run'] ?? null,
         );
         self::assertGreaterThan(
@@ -240,7 +240,7 @@ final class DocumentationAndReleaseTest extends TestCase
         $composer = json_decode((string) file_get_contents(self::ROOT . '/composer.json'), true, 512, JSON_THROW_ON_ERROR);
         self::assertIsArray($composer);
         self::assertArrayNotHasKey('version', $composer);
-        self::assertSame('0.1.0', $composer['extra']['mgd-release-version'] ?? null);
+        self::assertSame('0.1.1', $composer['extra']['mgd-release-version'] ?? null);
 
         $scripts = $composer['scripts'] ?? null;
         self::assertIsArray($scripts);
@@ -258,7 +258,7 @@ final class DocumentationAndReleaseTest extends TestCase
 
         $plan = (string) file_get_contents(self::ROOT . '/docs/superpowers/plans/2026-08-09-mgd-ai-kennzeichnung-shopware-6.md');
         self::assertStringContainsString(
-            'bash scripts/build-release.sh && shopware-cli --no-interaction extension validate dist/MGDAIImageLabels-0.1.0.zip',
+            'bash scripts/build-release.sh && shopware-cli --no-interaction extension validate dist/MGDAIImageLabels-0.1.1.zip',
             $plan,
         );
         self::assertStringNotContainsString('shopware-cli extension validate ' . '.', $plan);
@@ -322,15 +322,15 @@ final class DocumentationAndReleaseTest extends TestCase
         self::assertTrue(is_executable($script), 'Das Release-Skript muss ausführbar sein.');
 
         $firstOutput = $this->runReleaseBuild($script);
-        self::assertStringContainsString('MGDAIImageLabels-0.1.0.zip', $firstOutput);
+        self::assertStringContainsString('MGDAIImageLabels-0.1.1.zip', $firstOutput);
 
-        $archivePath = self::ROOT . '/dist/MGDAIImageLabels-0.1.0.zip';
+        $archivePath = self::ROOT . '/dist/MGDAIImageLabels-0.1.1.zip';
         self::assertFileExists($archivePath);
         $firstChecksum = hash_file('sha256', $archivePath);
         self::assertIsString($firstChecksum);
 
         $secondOutput = $this->runReleaseBuild($script);
-        self::assertStringContainsString('MGDAIImageLabels-0.1.0.zip', $secondOutput);
+        self::assertStringContainsString('MGDAIImageLabels-0.1.1.zip', $secondOutput);
         self::assertSame($firstChecksum, hash_file('sha256', $archivePath), 'Zwei Builds müssen bytegleich sein.');
 
         $archive = new \ZipArchive();
@@ -340,8 +340,8 @@ final class DocumentationAndReleaseTest extends TestCase
         self::assertIsString($packagedComposer);
         $packagedMetadata = json_decode($packagedComposer, true, 512, JSON_THROW_ON_ERROR);
         self::assertIsArray($packagedMetadata);
-        self::assertSame('0.1.0', $packagedMetadata['version'] ?? null);
-        self::assertSame('0.1.0', $packagedMetadata['extra']['mgd-release-version'] ?? null);
+        self::assertSame('0.1.1', $packagedMetadata['version'] ?? null);
+        self::assertSame('0.1.1', $packagedMetadata['extra']['mgd-release-version'] ?? null);
 
         $entries = [];
         for ($index = 0; $index < $archive->numFiles; ++$index) {
@@ -371,6 +371,31 @@ final class DocumentationAndReleaseTest extends TestCase
         self::assertContains('MGDAIImageLabels/LICENSE', $entries);
         self::assertContains('MGDAIImageLabels/README.md', $entries);
         self::assertContains('MGDAIImageLabels/README.en.md', $entries);
+        self::assertContains(
+            'MGDAIImageLabels/src/Resources/public/administration/.vite/entrypoints.json',
+            $entries,
+            'Das Installationspaket muss die gebaute Administration ohne Zielserver-Build enthalten.',
+        );
+        self::assertNotEmpty(
+            array_filter(
+                $entries,
+                static fn (string $entry): bool => preg_match(
+                    '~^MGDAIImageLabels/src/Resources/public/administration/assets/.+\.js$~',
+                    $entry,
+                ) === 1,
+            ),
+            'Das gebaute Administration-JavaScript fehlt im Installationspaket.',
+        );
+        self::assertNotEmpty(
+            array_filter(
+                $entries,
+                static fn (string $entry): bool => preg_match(
+                    '~^MGDAIImageLabels/src/Resources/public/administration/assets/.+\.css$~',
+                    $entry,
+                ) === 1,
+            ),
+            'Das gebaute Administration-CSS fehlt im Installationspaket.',
+        );
 
         foreach ($this->runtimeSourceFiles() as $runtimeFile) {
             self::assertContains('MGDAIImageLabels/' . $runtimeFile, $entries, sprintf('%s fehlt im Release.', $runtimeFile));
@@ -406,7 +431,7 @@ final class DocumentationAndReleaseTest extends TestCase
             [$exitCode, $output] = $this->runFixtureBuild($fixture);
             self::assertNotSame(0, $exitCode, $output);
             self::assertSame('kein Verzeichnis', file_get_contents($fixture . '/dist'));
-            self::assertFileDoesNotExist($fixture . '/MGDAIImageLabels-0.1.0.zip');
+            self::assertFileDoesNotExist($fixture . '/MGDAIImageLabels-0.1.1.zip');
         } finally {
             $this->removeTemporaryTree($fixture);
         }
@@ -473,7 +498,7 @@ final class DocumentationAndReleaseTest extends TestCase
 
             self::assertSame(143, $exitCode, 'SIGTERM muss eindeutig mit Exitcode 143 enden.');
             self::assertSame([], glob($controlledTemp . '/mgd-ai-labels-release.*') ?: [], 'Der EXIT-Trap muss den Arbeitsbereich entfernen.');
-            self::assertFileDoesNotExist($fixture . '/dist/MGDAIImageLabels-0.1.0.zip');
+            self::assertFileDoesNotExist($fixture . '/dist/MGDAIImageLabels-0.1.1.zip');
         } finally {
             if (is_resource($process)) {
                 proc_terminate($process, 9);
@@ -515,7 +540,7 @@ final class DocumentationAndReleaseTest extends TestCase
         mkdir($fixture . '/Dokumentation', 0700);
         copy(self::ROOT . '/scripts/build-release.sh', $fixture . '/scripts/build-release.sh');
         chmod($fixture . '/scripts/build-release.sh', 0700);
-        file_put_contents($fixture . '/composer.json', '{"extra":{"mgd-release-version":"0.1.0"}}');
+        file_put_contents($fixture . '/composer.json', '{"extra":{"mgd-release-version":"0.1.1"}}');
         foreach (['LICENSE', 'README.md', 'README.en.md', 'SECURITY.md', 'CONTRIBUTING.md', 'CHANGELOG.md'] as $file) {
             file_put_contents($fixture . '/' . $file, $file);
         }

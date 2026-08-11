@@ -10,7 +10,7 @@ Senden Sie niemals Passwörter, Zugangsschlüssel, Sitzungscookies, personenbezo
 
 ## Unterstützte Versionen
 
-Bis zum Abschluss der realen Kompatibilitätsmatrix wird `0.1.0` als Vorabversion gepflegt. Sicherheitskorrekturen sollen auf der jeweils aktuellen veröffentlichten Version erfolgen. Ältere Stände erhalten nur nach ausdrücklicher Ankündigung Rückportierungen.
+Sicherheitskorrekturen werden für die jeweils aktuelle veröffentlichte Version gepflegt. Die aktuelle Version `0.1.1` wurde unter Shopware 6.6.10.22 und 6.7.13.0 geprüft. Ältere Stände erhalten nur nach ausdrücklicher Ankündigung Rückportierungen.
 
 ## Schutzmodell
 

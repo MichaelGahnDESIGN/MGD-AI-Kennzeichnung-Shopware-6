@@ -73,4 +73,4 @@ Automatisch folgt das Label dem Farbschema des Geräts. Eigene Farben müssen in
 
 ## Updatefestigkeit
 
-Shopware- oder Theme-Updates können Template-Blöcke und Layoutverträge ändern. Dokumentieren Sie eigene Overrides, halten Sie sie klein und prüfen Sie sie in Staging. Version 0.1.0 wurde mit Shopwares Standard-Storefront unter 6.6.10.22 und 6.7.13.0 geprüft; jedes eigene Zieltheme muss weiterhin individuell getestet werden.
+Shopware- oder Theme-Updates können Template-Blöcke und Layoutverträge ändern. Dokumentieren Sie eigene Overrides, halten Sie sie klein und prüfen Sie sie in Staging. Version 0.1.1 wurde mit Shopwares Standard-Storefront unter 6.6.10.22 und 6.7.13.0 geprüft; jedes eigene Zieltheme muss weiterhin individuell getestet werden.
