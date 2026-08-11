@@ -59,9 +59,8 @@ final class ConfigurationRetentionServiceTest extends TestCase
         self::assertSame('de', $systemConfig->get(ConfigurationKeys::LANGUAGE));
         self::assertSame(17, $systemConfig->get(ConfigurationKeys::FONT_SIZE));
         self::assertSame('en', $systemConfig->get(ConfigurationKeys::LANGUAGE, $salesChannelId));
-        self::assertSame(5, $connection->fetchOne(
-            'SELECT COUNT(*) FROM `' . ConfigurationBackupStorage::TABLE_NAME . '`',
-        ), 'Owner, Kopfzeile und drei Werte bleiben für sichere Installations-Retries bestehen.');
+        self::assertSame(12, self::databaseCount($connection),
+            'Owner, Kopfzeile, neun globale XML-Werte und der Kanalwert bleiben für Retries bestehen.');
 
         // Simuliert einen Fehler nach plugin->install(): Ein erneuter Versuch muss
         // dieselbe Generation ohne Datenverlust wiederherstellen können.
@@ -89,8 +88,14 @@ final class ConfigurationRetentionServiceTest extends TestCase
 
         self::assertNull($systemConfig->get(ConfigurationKeys::LANGUAGE));
         self::assertNull($systemConfig->get(ConfigurationKeys::FONT_SIZE));
-        self::assertSame(2, $connection->fetchOne(
-            'SELECT COUNT(*) FROM `' . ConfigurationBackupStorage::TABLE_NAME . '`',
-        ));
+        self::assertSame(2, self::databaseCount($connection));
+    }
+
+    private static function databaseCount(Connection $connection): int
+    {
+        $value = $connection->fetchOne('SELECT COUNT(*) FROM `' . ConfigurationBackupStorage::TABLE_NAME . '`');
+        self::assertTrue(is_int($value) || (is_string($value) && ctype_digit($value)));
+
+        return intval($value);
     }
 }
