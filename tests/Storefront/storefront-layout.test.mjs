@@ -256,10 +256,28 @@ async function inspectWithCdp(browser, htmlPath, temporaryDirectory) {
 
     let socket;
 
+    const bounded = async (promise, label, milliseconds = 15_000) => {
+        let timeout;
+
+        try {
+            return await Promise.race([
+                promise,
+                new Promise((resolve, reject) => {
+                    timeout = setTimeout(() => reject(new Error(`${label} hat das Zeitlimit überschritten.`)), milliseconds);
+                }),
+            ]);
+        } finally {
+            clearTimeout(timeout);
+        }
+    };
+
     try {
         const browserSocketUrl = await new Promise((resolve, reject) => {
-            const timeout = setTimeout(() => reject(new Error('Chromium hat keinen CDP-Endpunkt geöffnet.')), 10_000);
             let diagnostics = '';
+            const timeout = setTimeout(
+                () => reject(new Error(`Chromium hat keinen CDP-Endpunkt geöffnet: ${diagnostics}`)),
+                30_000,
+            );
 
             browserProcess.stderr.on('data', (chunk) => {
                 diagnostics += chunk.toString();
@@ -275,15 +293,18 @@ async function inspectWithCdp(browser, htmlPath, temporaryDirectory) {
             });
         });
         const browserEndpoint = new URL(browserSocketUrl);
-        const targetResponse = await fetch(`http://${browserEndpoint.host}/json/new?${encodeURIComponent(pathToFileURL(htmlPath).href)}`, { method: 'PUT' });
+        const targetResponse = await bounded(
+            fetch(`http://${browserEndpoint.host}/json/new?${encodeURIComponent(pathToFileURL(htmlPath).href)}`, { method: 'PUT' }),
+            'Das Anlegen des CDP-Ziels',
+        );
         assert.ok(targetResponse.ok, `CDP-Ziel konnte nicht erstellt werden: ${targetResponse.status}`);
         const target = await targetResponse.json();
 
         socket = new WebSocket(target.webSocketDebuggerUrl);
-        await new Promise((resolve, reject) => {
+        await bounded(new Promise((resolve, reject) => {
             socket.addEventListener('open', resolve, { once: true });
             socket.addEventListener('error', reject, { once: true });
-        });
+        }), 'Die CDP-WebSocket-Verbindung');
 
         let commandId = 0;
         const pending = new Map();
@@ -302,11 +323,11 @@ async function inspectWithCdp(browser, htmlPath, temporaryDirectory) {
 
             waiter.resolve(message.result);
         });
-        const send = (method, params = {}) => new Promise((resolve, reject) => {
+        const send = (method, params = {}) => bounded(new Promise((resolve, reject) => {
             const id = ++commandId;
             pending.set(id, { resolve, reject });
             socket.send(JSON.stringify({ id, method, params }));
-        });
+        }), `Der CDP-Befehl ${method}`);
 
         await send('Runtime.enable');
         await send('Accessibility.enable');
