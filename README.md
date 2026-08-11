@@ -98,7 +98,7 @@ Ein sicherer Rückfall ist in [Dokumentation/Deployment-und-Rueckfall.md](Dokume
 - Die fachliche Richtigkeit der Kennzeichnung bleibt redaktionelle Verantwortung.
 - Eigenständige Theme-Templates, die Shopwares Thumbnail-Template vollständig ersetzen, können die automatische Einbindung umgehen.
 - Sehr kleine Bilder zeigen den Hinweis aus Platzgründen visuell reduziert; der zugängliche Text bleibt erhalten.
-- Die reale Installations- und Darstellungsmatrix für Shopware 6.6.10 und 6.7 ist als separater Qualitätsschritt noch offen. Vor dessen dokumentiertem Abschluss ist Version 0.1.0 als Vorabversion zu behandeln und nicht ungeprüft produktiv auszurollen.
+- Version 0.1.0 wurde in frisch installierten, isolierten Shops mit Shopware 6.6.10.22 und 6.7.13.0 geprüft. Installation, Aktivierung, Administration- und Storefront-Build, Datenbankintegration, Sprachwahl, Medienvorschau, Erlebniswelten sowie Deinstallation mit und ohne Datenerhalt waren erfolgreich. Eigene Themes und abweichende Shopware-Patchstände benötigen weiterhin eine Staging-Prüfung.
 
 Hinweise für eigene Themes stehen in [Dokumentation/Integration-eigener-Themes.md](Dokumentation/Integration-eigener-Themes.md). Die technische Aufteilung erklärt [Dokumentation/Architektur.md](Dokumentation/Architektur.md).
 

@@ -67,4 +67,4 @@ Ein vorbereiteter Philosophie-Inhalt wird bewusst nicht automatisch gelöscht, d
 - Staging mit anonymisierten oder künstlichen Daten betreiben.
 - Änderungen zuerst in Staging und anschließend in jedem Verkaufskanal prüfen.
 
-Die reale Shopware-6.6.10-/6.7-Kompatibilitätsmatrix ist noch nicht abgeschlossen. Bis zu ihrem dokumentierten Abschluss ist eine individuelle Staging-Prüfung zwingend.
+Die reale Matrix für Version 0.1.0 ist unter Shopware 6.6.10.22 und 6.7.13.0 abgeschlossen. Eine individuelle Staging-Prüfung bleibt wegen shopabhängiger Themes, Plugins, Rollen und Infrastruktur zwingend.

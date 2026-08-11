@@ -2,7 +2,7 @@
 
 Alle wesentlichen Änderungen dieses Projekts werden hier dokumentiert. Das Format orientiert sich an „Keep a Changelog“; Versionen folgen der semantischen Versionierung.
 
-## [0.1.0] – 2026-08-10
+## [0.1.0] – 2026-08-11
 
 ### Hinzugefügt
 
@@ -17,6 +17,6 @@ Alle wesentlichen Änderungen dieses Projekts werden hier dokumentiert. Das Form
 - reproduzierbarer, positiv gelisteter Release-Build
 - sicherer Erhalt globaler und verkaufskanalspezifischer Plugin-Einstellungen bei Deinstallation mit Datenerhalt und anschließender Reinstallation
 
-### Bekannte Einschränkung
+### Geprüft
 
-- Die reale Installations-, Update- und Storefront-Matrix für Shopware 6.6.10 und 6.7 ist als nachgelagerter Qualitätsschritt noch nicht abgeschlossen. Version 0.1.0 ist bis dahin eine Vorabversion.
+- Reale isolierte Matrix mit Shopware 6.6.10.22 und 6.7.13.0: Installation, Aktivierung, Administration- und Storefront-Build, Datenbankintegration, Storefront und Administration sowie Deinstallation mit und ohne Datenerhalt.

@@ -64,4 +64,4 @@ Ungültige redaktionelle Werte führen zu sicheren Standardwerten oder zu einem 
 
 ## Kompatibilitätsstatus
 
-Die statischen, Unit-, JavaScript- und Headless-Tests bilden den Quellcodevertrag ab. Die reale Matrix mit Installation, Update, Administration-Build und Storefront-Prüfung unter Shopware 6.6.10 und 6.7 ist noch offen und muss vor einer stabilen Produktionsfreigabe nachvollziehbar dokumentiert werden.
+Zusätzlich zu den statischen, Unit-, JavaScript- und Headless-Tests wurde Version 0.1.0 in frisch installierten, isolierten Shops mit Shopware 6.6.10.22 und 6.7.13.0 geprüft. Die Matrix umfasste Installation, Aktivierung, Datenbankintegration, Administration- und Storefront-Build, Browserabläufe sowie Deinstallation mit und ohne Datenerhalt. Andere Patchstände und eigene Themes bleiben vor dem Produktiveinsatz in Staging zu prüfen.
