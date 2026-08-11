@@ -7,7 +7,6 @@ namespace MGDAIImageLabels\Configuration;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Platforms\AbstractMySQLPlatform;
-use Doctrine\DBAL\Platforms\SQLitePlatform;
 use Shopware\Core\Defaults;
 use Shopware\Core\Framework\Uuid\Uuid;
 
@@ -236,7 +235,11 @@ class ConfigurationBackupStorage
                     CONSTRAINT `json.mgd_ai_config_backup.value` CHECK (`configuration_value` IS NULL OR JSON_VALID(`configuration_value`))
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
                 SQL);
-        } elseif ($platform instanceof SQLitePlatform) {
+            // Doctrine DBAL 3 schreibt die Klasse „SqlitePlatform“, DBAL 4 dagegen
+            // „SQLitePlatform“. Ein Vergleich des vollständig normalisierten Namens
+            // hält beide Shopware-Linien kompatibel, ohne eine dort fehlende Klasse
+            // bereits beim statischen Analysieren auflösen zu müssen.
+        } elseif (strtolower($platform::class) === 'doctrine\\dbal\\platforms\\sqliteplatform') {
             $this->connection->executeStatement(<<<'SQL'
                 CREATE TABLE IF NOT EXISTS `mgd_ai_image_labels_config_backup` (
                     `id` BLOB NOT NULL PRIMARY KEY,
