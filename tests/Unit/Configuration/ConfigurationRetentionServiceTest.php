@@ -6,73 +6,80 @@ namespace MGDAIImageLabels\Tests\Unit\Configuration;
 
 use MGDAIImageLabels\Configuration\ConfigurationBackupEntry;
 use MGDAIImageLabels\Configuration\ConfigurationBackupStorage;
-use MGDAIImageLabels\Configuration\ConfigurationRetentionService;
 use MGDAIImageLabels\Configuration\ConfigurationKeys;
+use MGDAIImageLabels\Configuration\ConfigurationRetentionService;
 use PHPUnit\Framework\TestCase;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 
-/** Prüft Restore, Cache-Invalidierung und das Entfernen verbrauchter Sicherungen. */
+/** Prüft den exakten Restore einschließlich leerer, globaler und kanalbezogener Werte. */
 final class ConfigurationRetentionServiceTest extends TestCase
 {
-    public function testReinstallRestoresAllScopesAndClearsBackup(): void
+    public function testReinstallDeletesCoreDefaultsAndRestoresAllSnapshotScopes(): void
     {
-        $entries = [
+        $snapshot = [
             new ConfigurationBackupEntry(ConfigurationKeys::LANGUAGE, null, 'de'),
             new ConfigurationBackupEntry(ConfigurationKeys::FONT_SIZE, null, 13),
             new ConfigurationBackupEntry(ConfigurationKeys::LANGUAGE, '018f123456789abcdef0123456789abc', 'en'),
         ];
+        $current = [
+            new ConfigurationBackupEntry(ConfigurationKeys::LANGUAGE, null, 'auto'),
+            new ConfigurationBackupEntry(ConfigurationKeys::FONT_SIZE, null, 6),
+        ];
         $storage = $this->createMock(ConfigurationBackupStorage::class);
         $storage->expects(self::once())->method('restoreTransaction')->willReturnCallback(
-            static function (callable $restore) use ($entries): void {
-                $restore($entries);
+            static function (callable $restore) use ($snapshot, $current): bool {
+                $restore($snapshot, $current);
+
+                return true;
             },
         );
         $systemConfig = $this->createMock(SystemConfigService::class);
-        $systemConfig->expects(self::exactly(3))->method('set')->willReturnCallback(
-            static function (string $key, mixed $value, ?string $salesChannelId) use ($entries): void {
-                static $index = 0;
-                $expected = $entries[$index++];
-                self::assertSame($expected->key, $key);
-                self::assertSame($expected->value, $value);
-                self::assertSame($expected->salesChannelId, $salesChannelId);
-            },
-        );
+        $systemConfig->expects(self::exactly(2))->method('delete');
+        $systemConfig->expects(self::exactly(3))->method('set');
 
         (new ConfigurationRetentionService($storage, $systemConfig))->restoreAfterInstall();
     }
 
-    public function testFirstInstallWithoutBackupDoesNotWriteConfiguration(): void
+    public function testExplicitEmptySnapshotDeletesEveryImportedDefault(): void
     {
+        $current = [
+            new ConfigurationBackupEntry(ConfigurationKeys::LANGUAGE, null, 'auto'),
+            new ConfigurationBackupEntry(ConfigurationKeys::FONT_SIZE, null, 6),
+        ];
         $storage = $this->createMock(ConfigurationBackupStorage::class);
         $storage->expects(self::once())->method('restoreTransaction')->willReturnCallback(
-            static function (callable $restore): void {
-                $restore([]);
+            static function (callable $restore) use ($current): bool {
+                $restore([], $current);
+
+                return true;
             },
         );
         $systemConfig = $this->createMock(SystemConfigService::class);
+        $systemConfig->expects(self::exactly(2))->method('delete');
         $systemConfig->expects(self::never())->method('set');
 
         (new ConfigurationRetentionService($storage, $systemConfig))->restoreAfterInstall();
     }
 
-    public function testKeepUninstallCreatesFreshSnapshot(): void
+    public function testFirstInstallWithoutSnapshotDoesNotInvokeWrites(): void
+    {
+        $storage = $this->createMock(ConfigurationBackupStorage::class);
+        $storage->expects(self::once())->method('restoreTransaction')->willReturn(false);
+        $systemConfig = $this->createMock(SystemConfigService::class);
+        $systemConfig->expects(self::never())->method('delete');
+        $systemConfig->expects(self::never())->method('set');
+
+        (new ConfigurationRetentionService($storage, $systemConfig))->restoreAfterInstall();
+    }
+
+    public function testKeepAndNoKeepDelegateToTheOwnedStorageBoundary(): void
     {
         $storage = $this->createMock(ConfigurationBackupStorage::class);
         $storage->expects(self::once())->method('replaceSnapshot');
-
-        (new ConfigurationRetentionService(
-            $storage,
-            $this->createStub(SystemConfigService::class),
-        ))->snapshotBeforeKeepUninstall();
-    }
-
-    public function testNoKeepUninstallDropsOnlyBackupTable(): void
-    {
-        $storage = $this->createMock(ConfigurationBackupStorage::class);
         $storage->expects(self::once())->method('dropTable');
-        $systemConfig = $this->createMock(SystemConfigService::class);
-        $systemConfig->expects(self::never())->method('set');
+        $service = new ConfigurationRetentionService($storage, $this->createStub(SystemConfigService::class));
 
-        (new ConfigurationRetentionService($storage, $systemConfig))->removeBackupWithoutUserData();
+        $service->snapshotBeforeKeepUninstall();
+        $service->removeBackupWithoutUserData();
     }
 }

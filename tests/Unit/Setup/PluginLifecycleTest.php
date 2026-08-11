@@ -12,6 +12,7 @@ use MGDAIImageLabels\Configuration\ConfigurationRetentionService;
 use MGDAIImageLabels\MGDAIImageLabels;
 use MGDAIImageLabels\Setup\CustomFieldSetInstaller;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Entity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityCollection;
@@ -62,7 +63,7 @@ final class PluginLifecycleTest extends TestCase
         self::assertCount(1, $setRepository->rows);
         self::assertCount(1, $relationRepository->rows);
         self::assertSame([], $setRepository->deletePayloads);
-        self::assertSame(1, $connection->fetchOne('SELECT COUNT(*) FROM mgd_ai_image_labels_config_backup'));
+        self::assertSame(3, $connection->fetchOne('SELECT COUNT(*) FROM mgd_ai_image_labels_config_backup'));
     }
 
     /** Ohne Datenerhalt entfernt der Plugin-Lebenszyklus das eigene Set. */
@@ -93,13 +94,23 @@ final class PluginLifecycleTest extends TestCase
         $connection->update('system_config', ['configuration_value' => '{"_value":"auto"}'], [
             'configuration_key' => ConfigurationKeys::LANGUAGE,
         ]);
-        $systemConfig->expects(self::once())
+        $systemConfig->expects(self::exactly(2))
+            ->method('delete')
+            ->with(ConfigurationKeys::LANGUAGE, null)
+            ->willReturnCallback(static function () use ($connection): void {
+                $connection->delete('system_config', ['configuration_key' => ConfigurationKeys::LANGUAGE]);
+            });
+        $systemConfig->expects(self::exactly(2))
             ->method('set')
             ->with(ConfigurationKeys::LANGUAGE, 'de', null)
             ->willReturnCallback(static function () use ($connection): void {
                 // Bildet den echten SystemConfigService-Schreibzugriff für die Post-Verify-Abfrage ab.
-                $connection->update('system_config', ['configuration_value' => '{"_value":"de"}'], [
+                $connection->insert('system_config', [
+                    'id' => Uuid::randomBytes(),
                     'configuration_key' => ConfigurationKeys::LANGUAGE,
+                    'configuration_value' => '{"_value":"de"}',
+                    'sales_channel_id' => null,
+                    'created_at' => '2026-08-10 00:00:00.000',
                 ]);
             });
         $context = Context::createDefaultContext();
@@ -108,7 +119,15 @@ final class PluginLifecycleTest extends TestCase
 
         $plugin->install($installContext);
 
-        self::assertSame(0, $connection->fetchOne('SELECT COUNT(*) FROM mgd_ai_image_labels_config_backup'));
+        self::assertSame(3, $connection->fetchOne('SELECT COUNT(*) FROM mgd_ai_image_labels_config_backup'));
+
+        // Ein späterer Shopware-Fehler darf einen zweiten Installationsversuch
+        // nicht seiner Wiederherstellungsgrundlage berauben.
+        $plugin->install($installContext);
+        self::assertSame('{"_value":"de"}', $connection->fetchOne(
+            'SELECT configuration_value FROM system_config WHERE configuration_key = ?',
+            [ConfigurationKeys::LANGUAGE],
+        ));
     }
 
     /**
@@ -119,7 +138,7 @@ final class PluginLifecycleTest extends TestCase
      *     CustomFieldSetInstaller,
      *     Container,
      *     Connection,
-     *     SystemConfigService
+     *     SystemConfigService&MockObject
      * }
      */
     private function pluginWithRepositories(): array

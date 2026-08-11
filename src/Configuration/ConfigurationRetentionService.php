@@ -21,15 +21,15 @@ final readonly class ConfigurationRetentionService
         $this->storage->replaceSnapshot();
     }
 
-    /**
-     * Stellt nach Shopwares Default-Import die vorherigen Werte wieder her.
-     *
-     * Der Storage validiert zuerst den gesamten Snapshot und führt Schreiben und
-     * Löschen anschließend in derselben Datenbanktransaktion aus.
-     */
+    /** Stellt nach Shopwares Default-Import exakt die vorherige Belegung wieder her. */
     public function restoreAfterInstall(): void
     {
-        $this->storage->restoreTransaction(function (array $entries): void {
+        $this->storage->restoreTransaction(function (array $entries, array $currentEntries): void {
+            // Auch ein ausdrücklicher leerer Snapshot ist fachlich relevant: Die
+            // zuvor von Shopware importierten Defaults müssen dann verschwinden.
+            foreach ($currentEntries as $entry) {
+                $this->systemConfigService->delete($entry->key, $entry->salesChannelId);
+            }
             foreach ($entries as $entry) {
                 $this->systemConfigService->set($entry->key, $entry->value, $entry->salesChannelId);
             }

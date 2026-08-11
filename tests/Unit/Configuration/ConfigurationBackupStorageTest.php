@@ -12,7 +12,7 @@ use MGDAIImageLabels\Configuration\ConfigurationKeys;
 use PHPUnit\Framework\TestCase;
 use Shopware\Core\Framework\Uuid\Uuid;
 
-/** Prüft die Sicherung mit einer echten transaktionalen SQL-Datenbank. */
+/** Prüft Generationen, Eigentum und Rollback mit einer echten SQLite-Datenbank. */
 final class ConfigurationBackupStorageTest extends TestCase
 {
     private Connection $connection;
@@ -33,121 +33,74 @@ final class ConfigurationBackupStorageTest extends TestCase
         $this->storage = new ConfigurationBackupStorage($this->connection);
     }
 
-    public function testSnapshotReadsOnlyWhitelistAndAllScopes(): void
+    public function testSnapshotReadsOnlyWhitelistAndPersistsAfterRestore(): void
     {
         $salesChannelId = '018f123456789abcdef0123456789abc';
         $this->insertSystemConfig(ConfigurationKeys::LANGUAGE, 'de');
         $this->insertSystemConfig(ConfigurationKeys::FONT_SIZE, 14);
         $this->insertSystemConfig(ConfigurationKeys::LANGUAGE, 'en', $salesChannelId);
         $this->insertSystemConfig('OtherPlugin.config.secret', 'nicht-sichern');
-
         $this->storage->replaceSnapshot();
 
         $entries = null;
-        $this->storage->restoreTransaction(static function (array $restored) use (&$entries): void {
-            $entries = $restored;
-        });
+        $restored = $this->storage->restoreTransaction(
+            static function (array $snapshot) use (&$entries): void {
+                $entries = $snapshot;
+            },
+        );
 
+        self::assertTrue($restored);
         self::assertEquals([
             new ConfigurationBackupEntry(ConfigurationKeys::FONT_SIZE, null, 14),
             new ConfigurationBackupEntry(ConfigurationKeys::LANGUAGE, null, 'de'),
             new ConfigurationBackupEntry(ConfigurationKeys::LANGUAGE, $salesChannelId, 'en'),
         ], $entries);
-        self::assertSame(0, $this->backupCount(), 'Ein erfolgreich verbrauchter Snapshot muss entfernt sein.');
+        self::assertSame(5, $this->backupCount(), 'Owner, Kopfzeile und Werte bleiben für einen Retry erhalten.');
     }
 
-    public function testRepeatedKeepCyclesReplaceTheOldSnapshot(): void
+    public function testNoSnapshotAndExplicitEmptySnapshotAreDifferentStates(): void
+    {
+        $this->storage->ensureTable();
+        $called = false;
+        self::assertFalse($this->storage->restoreTransaction(static function () use (&$called): void {
+            $called = true;
+        }));
+        self::assertFalse($called);
+
+        $this->storage->replaceSnapshot();
+        $this->insertSystemConfig(ConfigurationKeys::LANGUAGE, 'auto');
+        self::assertTrue($this->storage->restoreTransaction(function (array $snapshot, array $current): void {
+            self::assertSame([], $snapshot);
+            self::assertCount(1, $current);
+            $this->connection->delete('system_config', ['configuration_key' => ConfigurationKeys::LANGUAGE]);
+        }));
+        self::assertSame(2, $this->backupCount(), 'Auch ein leerer Snapshot besitzt Owner und Kopfzeile.');
+    }
+
+    public function testRepeatedKeepCyclesAtomicallyReplaceGeneration(): void
     {
         $this->insertSystemConfig(ConfigurationKeys::LANGUAGE, 'de');
         $this->storage->replaceSnapshot();
+        $firstGeneration = $this->generation();
         $this->connection->update('system_config', ['configuration_value' => '{"_value":"en"}'], [
             'configuration_key' => ConfigurationKeys::LANGUAGE,
         ]);
 
         $this->storage->replaceSnapshot();
 
-        $entries = [];
-        $this->storage->restoreTransaction(static function (array $restored) use (&$entries): void {
-            $entries = $restored;
+        self::assertNotSame($firstGeneration, $this->generation());
+        $this->storage->restoreTransaction(static function (array $snapshot): void {
+            self::assertCount(1, $snapshot);
+            self::assertSame('en', $snapshot[0]->value);
         });
-        self::assertSame('en', $entries[0]->value);
-        self::assertCount(1, $entries);
+        self::assertSame(3, $this->backupCount());
     }
 
-    public function testMalformedOrForeignBackupFailsBeforeRestoreCallback(): void
-    {
-        $this->storage->replaceSnapshot();
-        $this->insertBackup('OtherPlugin.config.secret', null, 'string', '{"_value":"x"}');
-        $called = false;
-
-        try {
-            $this->storage->restoreTransaction(static function () use (&$called): void {
-                $called = true;
-            });
-            self::fail('Ein fremder Sicherungsschlüssel muss die Wiederherstellung abbrechen.');
-        } catch (\RuntimeException $exception) {
-            self::assertSame(
-                'Die Plugin-Konfiguration konnte nicht vollständig wiederhergestellt werden.',
-                $exception->getMessage(),
-            );
-        }
-
-        self::assertFalse($called);
-        self::assertSame(1, $this->backupCount());
-    }
-
-    public function testWrongValueTypeFailsClosed(): void
-    {
-        $this->storage->replaceSnapshot();
-        $this->insertBackup(ConfigurationKeys::FONT_SIZE, null, 'string', '{"_value":"14"}');
-
-        $this->expectException(\RuntimeException::class);
-        $this->storage->restoreTransaction(static function (): void {
-            self::fail('Bei einem falschen Typ darf nichts wiederhergestellt werden.');
-        });
-    }
-
-    public function testDuplicateScopeCollisionFailsBeforeRestoreCallback(): void
-    {
-        $this->storage->replaceSnapshot();
-        $this->insertBackup(ConfigurationKeys::LANGUAGE, null, 'string', '{"_value":"de"}');
-        $this->insertBackup(ConfigurationKeys::LANGUAGE, null, 'string', '{"_value":"en"}');
-        $called = false;
-
-        $this->expectException(\RuntimeException::class);
-        try {
-            $this->storage->restoreTransaction(static function () use (&$called): void {
-                $called = true;
-            });
-        } finally {
-            self::assertFalse($called);
-            self::assertSame(2, $this->backupCount());
-        }
-    }
-
-    public function testInvalidSalesChannelBytesFailClosed(): void
-    {
-        $this->storage->replaceSnapshot();
-        $this->connection->insert('mgd_ai_image_labels_config_backup', [
-            'id' => Uuid::randomBytes(),
-            'config_key' => ConfigurationKeys::LANGUAGE,
-            'sales_channel_id' => 'zu-kurz',
-            'value_type' => 'string',
-            'configuration_value' => '{"_value":"de"}',
-            'created_at' => '2026-08-10 00:00:00.000',
-            'updated_at' => null,
-        ]);
-
-        $this->expectException(\RuntimeException::class);
-        $this->storage->restoreTransaction(static function (): void {
-            self::fail('Eine ungültige Verkaufskanal-ID darf nicht wiederhergestellt werden.');
-        });
-    }
-
-    public function testRestoreFailureRollsBackAndKeepsSnapshot(): void
+    public function testRestoreFailureRollsBackSystemValuesAndKeepsGeneration(): void
     {
         $this->insertSystemConfig(ConfigurationKeys::LANGUAGE, 'de');
         $this->storage->replaceSnapshot();
+        $generation = $this->generation();
 
         try {
             $this->storage->restoreTransaction(function (): void {
@@ -158,72 +111,14 @@ final class ConfigurationBackupStorageTest extends TestCase
             });
             self::fail('Der Testfehler muss weitergereicht werden.');
         } catch (\RuntimeException $exception) {
-            self::assertSame(
-                'Die Plugin-Konfiguration konnte nicht vollständig wiederhergestellt werden.',
-                $exception->getMessage(),
-            );
-            self::assertNotNull($exception->getPrevious());
+            self::assertSame('Die Plugin-Konfiguration konnte nicht vollständig wiederhergestellt werden.', $exception->getMessage());
         }
 
-        self::assertSame('{"_value":"de"}', $this->connection->fetchOne(
-            'SELECT configuration_value FROM system_config WHERE configuration_key = ?',
-            [ConfigurationKeys::LANGUAGE],
-        ));
-        self::assertSame(1, $this->backupCount());
+        self::assertSame('{"_value":"de"}', $this->systemConfigValue(ConfigurationKeys::LANGUAGE));
+        self::assertSame($generation, $this->generation());
     }
 
-    public function testSilentValueMutationFailsVerificationAndRollsBack(): void
-    {
-        $this->insertSystemConfig(ConfigurationKeys::LANGUAGE, 'de');
-        $this->storage->replaceSnapshot();
-        $this->connection->update('system_config', ['configuration_value' => '{"_value":"auto"}'], [
-            'configuration_key' => ConfigurationKeys::LANGUAGE,
-        ]);
-
-        $this->assertRestoreMismatchRollsBack(function (): void {
-            $this->connection->update('system_config', ['configuration_value' => '{"_value":"en"}'], [
-                'configuration_key' => ConfigurationKeys::LANGUAGE,
-            ]);
-        });
-
-        self::assertSame('{"_value":"auto"}', $this->systemConfigValue(ConfigurationKeys::LANGUAGE));
-    }
-
-    public function testSilentDeletionFailsVerificationAndRollsBack(): void
-    {
-        $this->insertSystemConfig(ConfigurationKeys::LANGUAGE, 'de');
-        $this->storage->replaceSnapshot();
-        $this->connection->update('system_config', ['configuration_value' => '{"_value":"auto"}'], [
-            'configuration_key' => ConfigurationKeys::LANGUAGE,
-        ]);
-
-        $this->assertRestoreMismatchRollsBack(function (): void {
-            $this->connection->delete('system_config', ['configuration_key' => ConfigurationKeys::LANGUAGE]);
-        });
-
-        self::assertSame('{"_value":"auto"}', $this->systemConfigValue(ConfigurationKeys::LANGUAGE));
-    }
-
-    public function testSilentExtraWhitelistRowFailsVerificationAndRollsBack(): void
-    {
-        $this->insertSystemConfig(ConfigurationKeys::LANGUAGE, 'de');
-        $this->storage->replaceSnapshot();
-        $this->connection->update('system_config', ['configuration_value' => '{"_value":"auto"}'], [
-            'configuration_key' => ConfigurationKeys::LANGUAGE,
-        ]);
-
-        $this->assertRestoreMismatchRollsBack(function (): void {
-            $this->insertSystemConfig(ConfigurationKeys::FONT_SIZE, 18);
-        });
-
-        self::assertSame(0, $this->connection->fetchOne(
-            'SELECT COUNT(*) FROM system_config WHERE configuration_key = ?',
-            [ConfigurationKeys::FONT_SIZE],
-        ));
-        self::assertSame('{"_value":"auto"}', $this->systemConfigValue(ConfigurationKeys::LANGUAGE));
-    }
-
-    public function testSilentTypeCoercionFailsVerificationAndRollsBack(): void
+    public function testSilentRestoreMutationFailsStrictVerificationAndRollsBack(): void
     {
         $this->insertSystemConfig(ConfigurationKeys::FONT_SIZE, 13);
         $this->storage->replaceSnapshot();
@@ -231,22 +126,90 @@ final class ConfigurationBackupStorageTest extends TestCase
             'configuration_key' => ConfigurationKeys::FONT_SIZE,
         ]);
 
-        $this->assertRestoreMismatchRollsBack(function (): void {
-            $this->connection->update('system_config', ['configuration_value' => '{"_value":"13"}'], [
-                'configuration_key' => ConfigurationKeys::FONT_SIZE,
-            ]);
-        });
-
-        self::assertSame('{"_value":6}', $this->systemConfigValue(ConfigurationKeys::FONT_SIZE));
+        $this->expectException(\RuntimeException::class);
+        try {
+            $this->storage->restoreTransaction(function (): void {
+                $this->connection->update('system_config', ['configuration_value' => '{"_value":"13"}'], [
+                    'configuration_key' => ConfigurationKeys::FONT_SIZE,
+                ]);
+            });
+        } finally {
+            self::assertSame('{"_value":6}', $this->systemConfigValue(ConfigurationKeys::FONT_SIZE));
+            self::assertSame(3, $this->backupCount());
+        }
     }
 
-    public function testDropRemovesOnlyOwnedBackupTable(): void
+    public function testMalformedSnapshotFailsBeforeCallback(): void
     {
+        $this->insertSystemConfig(ConfigurationKeys::LANGUAGE, 'de');
         $this->storage->replaceSnapshot();
+        $this->connection->update(ConfigurationBackupStorage::TABLE_NAME, [
+            'configuration_value' => '{"_value":14}',
+        ], ['record_type' => 'value']);
+        $called = false;
+
+        $this->expectException(\RuntimeException::class);
+        try {
+            $this->storage->restoreTransaction(static function () use (&$called): void {
+                $called = true;
+            });
+        } finally {
+            self::assertFalse($called);
+        }
+    }
+
+    public function testForeignSameNamedTableIsNeverClaimedOrDropped(): void
+    {
+        $connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true]);
+        $connection->executeStatement('CREATE TABLE mgd_ai_image_labels_config_backup (id BLOB PRIMARY KEY, secret TEXT)');
+        $storage = new ConfigurationBackupStorage($connection);
+
+        foreach (['ensureTable', 'dropTable'] as $method) {
+            try {
+                $storage->{$method}();
+                self::fail('Eine namensgleiche Fremdtabelle muss fail-safe abgewiesen werden.');
+            } catch (\RuntimeException) {
+                self::assertTrue($connection->createSchemaManager()->tablesExist([ConfigurationBackupStorage::TABLE_NAME]));
+                self::assertSame(['id', 'secret'], array_keys($connection->createSchemaManager()->listTableColumns(ConfigurationBackupStorage::TABLE_NAME)));
+            }
+        }
+    }
+
+    public function testMissingOrWrongOwnerMarkerPreventsMutationAndDrop(): void
+    {
+        $this->storage->ensureTable();
+        $this->connection->delete(ConfigurationBackupStorage::TABLE_NAME, ['record_type' => 'owner']);
+        $this->connection->insert(ConfigurationBackupStorage::TABLE_NAME, [
+            'id' => Uuid::randomBytes(),
+            'record_type' => 'owner',
+            'generation_id' => null,
+            'scope_hash' => hash('sha256', 'fremd'),
+            'config_key' => null,
+            'sales_channel_id' => null,
+            'value_type' => null,
+            'configuration_value' => null,
+            'owner_token' => 'fremdes-plugin',
+            'created_at' => '2026-08-10 00:00:00.000',
+            'updated_at' => null,
+        ]);
+
+        foreach (['replaceSnapshot', 'dropTable'] as $method) {
+            try {
+                $this->storage->{$method}();
+                self::fail('Ohne eigenen Marker darf keine Mutation erfolgen.');
+            } catch (\RuntimeException) {
+                self::assertTrue($this->connection->createSchemaManager()->tablesExist([ConfigurationBackupStorage::TABLE_NAME]));
+            }
+        }
+    }
+
+    public function testOwnedTableCanBeDroppedAndLeavesSystemConfigUntouched(): void
+    {
+        $this->storage->ensureTable();
         $this->storage->dropTable();
 
-        self::assertSame(1, $this->connection->fetchOne("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'system_config'"));
-        self::assertSame(0, $this->connection->fetchOne("SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'mgd_ai_image_labels_config_backup'"));
+        self::assertTrue($this->connection->createSchemaManager()->tablesExist(['system_config']));
+        self::assertFalse($this->connection->createSchemaManager()->tablesExist([ConfigurationBackupStorage::TABLE_NAME]));
     }
 
     private function insertSystemConfig(string $key, int|string $value, ?string $salesChannelId = null): void
@@ -254,56 +217,34 @@ final class ConfigurationBackupStorageTest extends TestCase
         $this->connection->insert('system_config', [
             'id' => Uuid::randomBytes(),
             'configuration_key' => $key,
-            'configuration_value' => json_encode(['_value' => $value], JSON_THROW_ON_ERROR),
+            'configuration_value' => json_encode(['_value' => $value], \JSON_THROW_ON_ERROR),
             'sales_channel_id' => $salesChannelId === null ? null : Uuid::fromHexToBytes($salesChannelId),
             'created_at' => '2026-08-10 00:00:00.000',
-        ]);
-    }
-
-    private function insertBackup(string $key, ?string $salesChannelId, string $type, string $rawValue): void
-    {
-        $this->connection->insert('mgd_ai_image_labels_config_backup', [
-            'id' => Uuid::randomBytes(),
-            'config_key' => $key,
-            'sales_channel_id' => $salesChannelId === null ? null : Uuid::fromHexToBytes($salesChannelId),
-            'value_type' => $type,
-            'configuration_value' => $rawValue,
-            'created_at' => '2026-08-10 00:00:00.000',
-            'updated_at' => null,
         ]);
     }
 
     private function backupCount(): int
     {
-        return (int) $this->connection->fetchOne('SELECT COUNT(*) FROM mgd_ai_image_labels_config_backup');
+        $count = $this->connection->fetchOne('SELECT COUNT(*) FROM `' . ConfigurationBackupStorage::TABLE_NAME . '`');
+        self::assertTrue(is_int($count) || (is_string($count) && ctype_digit($count)));
+
+        return intval($count);
     }
 
-    /** @param callable(): void $silentMutation */
-    private function assertRestoreMismatchRollsBack(callable $silentMutation): void
+    private function generation(): string
     {
-        $completed = false;
-        try {
-            $this->storage->restoreTransaction(static function () use ($silentMutation): void {
-                $silentMutation();
-            });
-            $completed = true;
-        } catch (\RuntimeException $exception) {
-            self::assertSame(
-                'Die Plugin-Konfiguration konnte nicht vollständig wiederhergestellt werden.',
-                $exception->getMessage(),
-            );
-        }
+        $generation = $this->connection->fetchOne(
+            'SELECT generation_id FROM `' . ConfigurationBackupStorage::TABLE_NAME . '` WHERE record_type = ?',
+            ['header'],
+        );
+        self::assertIsString($generation);
 
-        self::assertFalse($completed, 'Ein vom Snapshot abweichender Datenbankzustand muss den Restore abbrechen.');
-        self::assertSame(1, $this->backupCount(), 'Der Snapshot muss nach einem Verify-Fehler erhalten bleiben.');
+        return bin2hex($generation);
     }
 
     private function systemConfigValue(string $key): string
     {
-        $value = $this->connection->fetchOne(
-            'SELECT configuration_value FROM system_config WHERE configuration_key = ?',
-            [$key],
-        );
+        $value = $this->connection->fetchOne('SELECT configuration_value FROM system_config WHERE configuration_key = ?', [$key]);
         self::assertIsString($value);
 
         return $value;

@@ -59,7 +59,37 @@ final class ConfigurationRetentionServiceTest extends TestCase
         self::assertSame('de', $systemConfig->get(ConfigurationKeys::LANGUAGE));
         self::assertSame(17, $systemConfig->get(ConfigurationKeys::FONT_SIZE));
         self::assertSame('en', $systemConfig->get(ConfigurationKeys::LANGUAGE, $salesChannelId));
-        self::assertSame(0, $connection->fetchOne(
+        self::assertSame(5, $connection->fetchOne(
+            'SELECT COUNT(*) FROM `' . ConfigurationBackupStorage::TABLE_NAME . '`',
+        ), 'Owner, Kopfzeile und drei Werte bleiben für sichere Installations-Retries bestehen.');
+
+        // Simuliert einen Fehler nach plugin->install(): Ein erneuter Versuch muss
+        // dieselbe Generation ohne Datenverlust wiederherstellen können.
+        $systemConfig->set(ConfigurationKeys::LANGUAGE, 'auto');
+        $retention->restoreAfterInstall();
+        self::assertSame('de', $systemConfig->get(ConfigurationKeys::LANGUAGE));
+    }
+
+    public function testExplicitEmptySnapshotRemovesCoreDefaults(): void
+    {
+        $connection = self::getContainer()->get(Connection::class);
+        $systemConfig = self::getContainer()->get(SystemConfigService::class);
+        self::assertInstanceOf(Connection::class, $connection);
+        self::assertInstanceOf(SystemConfigService::class, $systemConfig);
+        $retention = new ConfigurationRetentionService(new ConfigurationBackupStorage($connection), $systemConfig);
+
+        foreach (ConfigurationKeys::all() as $key) {
+            $systemConfig->delete($key);
+        }
+        $retention->snapshotBeforeKeepUninstall();
+        $systemConfig->set(ConfigurationKeys::LANGUAGE, 'auto');
+        $systemConfig->set(ConfigurationKeys::FONT_SIZE, 6);
+
+        $retention->restoreAfterInstall();
+
+        self::assertNull($systemConfig->get(ConfigurationKeys::LANGUAGE));
+        self::assertNull($systemConfig->get(ConfigurationKeys::FONT_SIZE));
+        self::assertSame(2, $connection->fetchOne(
             'SELECT COUNT(*) FROM `' . ConfigurationBackupStorage::TABLE_NAME . '`',
         ));
     }
