@@ -212,6 +212,47 @@ final class ConfigurationBackupStorageTest extends TestCase
         self::assertFalse($this->connection->createSchemaManager()->tablesExist([ConfigurationBackupStorage::TABLE_NAME]));
     }
 
+    public function testNoKeepRemovalIncludesGlobalAndSalesChannelValues(): void
+    {
+        $salesChannelId = '018f123456789abcdef0123456789abc';
+        $this->insertSystemConfig(ConfigurationKeys::LANGUAGE, 'de');
+        $this->insertSystemConfig(ConfigurationKeys::LANGUAGE, 'en', $salesChannelId);
+        $this->storage->ensureTable();
+
+        $this->storage->removeConfigurationTransaction(function (array $entries): void {
+            self::assertCount(2, $entries);
+            foreach ($entries as $entry) {
+                $criteria = ['configuration_key' => $entry->key];
+                if ($entry->salesChannelId !== null) {
+                    $criteria['sales_channel_id'] = Uuid::fromHexToBytes($entry->salesChannelId);
+                } else {
+                    $criteria['sales_channel_id'] = null;
+                }
+                $this->connection->delete('system_config', $criteria);
+            }
+        });
+
+        self::assertSame(0, $this->connection->fetchOne('SELECT COUNT(*) FROM system_config'));
+        self::assertSame(1, $this->backupCount(), 'Vor dem separaten Drop bleibt nur der Eigentümer bestehen.');
+    }
+
+    public function testNoKeepRemovalFailureRollsBackEveryScope(): void
+    {
+        $this->insertSystemConfig(ConfigurationKeys::LANGUAGE, 'de');
+        $this->storage->ensureTable();
+
+        $this->expectException(\RuntimeException::class);
+        try {
+            $this->storage->removeConfigurationTransaction(function (): void {
+                $this->connection->delete('system_config', ['configuration_key' => ConfigurationKeys::LANGUAGE]);
+                throw new \RuntimeException('absichtlicher Testfehler');
+            });
+        } finally {
+            self::assertSame('{"_value":"de"}', $this->systemConfigValue(ConfigurationKeys::LANGUAGE));
+            self::assertTrue($this->connection->createSchemaManager()->tablesExist([ConfigurationBackupStorage::TABLE_NAME]));
+        }
+    }
+
     private function insertSystemConfig(string $key, int|string $value, ?string $salesChannelId = null): void
     {
         $this->connection->insert('system_config', [

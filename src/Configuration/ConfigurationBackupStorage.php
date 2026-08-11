@@ -169,6 +169,33 @@ class ConfigurationBackupStorage
         }
     }
 
+    /**
+     * @param callable(list<ConfigurationBackupEntry>): void $remove
+     *
+     * Entfernt die positiv gelisteten Shopware-Werte transaktional. Shopware 6.6
+     * löscht beim No-Keep-Lauf sonst nur globale, aber nicht alle Kanalwerte.
+     */
+    public function removeConfigurationTransaction(callable $remove): void
+    {
+        $this->ensureTable();
+
+        try {
+            $this->connection->transactional(function () use ($remove): void {
+                $this->lockOwnerRow();
+                $currentEntries = $this->readOwnedSystemConfiguration();
+                $this->assertUniqueScopes($currentEntries);
+                $remove($currentEntries);
+                $this->assertSnapshotMatchesSystemConfiguration([]);
+            });
+        } catch (\Throwable $exception) {
+            throw new \RuntimeException(
+                'Die Plugin-Konfiguration konnte nicht vollständig entfernt werden.',
+                0,
+                $exception,
+            );
+        }
+    }
+
     /** Entfernt nur eine nachweislich eigene Tabelle; Namensgleichheit allein genügt nie. */
     public function dropTable(): void
     {

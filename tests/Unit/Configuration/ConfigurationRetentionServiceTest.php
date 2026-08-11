@@ -74,10 +74,28 @@ final class ConfigurationRetentionServiceTest extends TestCase
 
     public function testKeepAndNoKeepDelegateToTheOwnedStorageBoundary(): void
     {
+        $salesChannelId = '018f123456789abcdef0123456789abc';
+        $current = [
+            new ConfigurationBackupEntry(ConfigurationKeys::LANGUAGE, null, 'de'),
+            new ConfigurationBackupEntry(ConfigurationKeys::LANGUAGE, $salesChannelId, 'en'),
+        ];
         $storage = $this->createMock(ConfigurationBackupStorage::class);
         $storage->expects(self::once())->method('replaceSnapshot');
+        $storage->expects(self::once())->method('removeConfigurationTransaction')->willReturnCallback(
+            static function (callable $remove) use ($current): void {
+                $remove($current);
+            },
+        );
         $storage->expects(self::once())->method('dropTable');
-        $service = new ConfigurationRetentionService($storage, $this->createStub(SystemConfigService::class));
+        $systemConfig = $this->createMock(SystemConfigService::class);
+        $deleteIndex = 0;
+        $systemConfig->expects(self::exactly(2))->method('delete')->willReturnCallback(
+            static function (string $key, ?string $scope) use ($salesChannelId, &$deleteIndex): void {
+                self::assertSame(ConfigurationKeys::LANGUAGE, $key);
+                self::assertSame($deleteIndex++ === 0 ? null : $salesChannelId, $scope);
+            },
+        );
+        $service = new ConfigurationRetentionService($storage, $systemConfig);
 
         $service->snapshotBeforeKeepUninstall();
         $service->removeBackupWithoutUserData();

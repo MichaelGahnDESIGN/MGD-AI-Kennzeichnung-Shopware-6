@@ -36,9 +36,14 @@ final readonly class ConfigurationRetentionService
         });
     }
 
-    /** Entfernt bei einer Deinstallation ohne Datenerhalt ausschließlich die Backup-Tabelle. */
+    /** Entfernt bei No-Keep alle eigenen Scopes und danach die eigene Backup-Tabelle. */
     public function removeBackupWithoutUserData(): void
     {
+        $this->storage->removeConfigurationTransaction(function (array $currentEntries): void {
+            foreach ($currentEntries as $entry) {
+                $this->systemConfigService->delete($entry->key, $entry->salesChannelId);
+            }
+        });
         $this->storage->dropTable();
     }
 }
