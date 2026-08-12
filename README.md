@@ -54,6 +54,8 @@ Das Plugin speichert am Shopware-Medium drei klar begrenzte Custom Fields:
 
 Shopwares Thumbnail-Ausgabe liest diese Werte serverseitig, normalisiert sie gegen feste Positivlisten und ergänzt nur bei einem sichtbaren Status ein Label. Die Originaldatei wird weder überschrieben noch mit einem Wasserzeichen versehen.
 
+Sprache und globale Darstellungswerte liegen in Shopwares Systemkonfiguration und können dadurch je Verkaufskanal aufgelöst werden.
+
 ## Funktionen
 
 - fünf redaktionelle Zustände: keine Kennzeichnung, vollständig KI-generiert, teilweise KI-generiert, mit KI verändert und Deepfake
@@ -108,7 +110,7 @@ bin/console theme:compile
 
 Zugangsdaten und Datenbankkennwörter gehören ausschließlich in die geschützte Serverkonfiguration, niemals in Befehle, Issues oder das Repository.
 
-## Erste Kennzeichnung
+## Bedienung: erste Kennzeichnung
 
 1. **Inhalte → Medien** öffnen.
 2. Ein Bildmedium auswählen.
@@ -176,7 +178,7 @@ Vor jedem produktiven Update:
 
 Bei der Deinstallation entscheidet Shopwares Option **Benutzerdaten behalten**, ob Plugin-Konfiguration und Custom-Field-Definitionen erhalten bleiben. Das Plugin schützt erhaltene Konfigurationswerte zusätzlich gegen Shopwares Standardwert-Überschreibung bei einer späteren Reinstallation. Ohne Datenerhalt entfernt es seine eindeutig zugeordneten Definitionen und Konfiguration. Bilddateien und fremde Felder bleiben unangetastet.
 
-Medien können technisch ungenutzte JSON-Schlüssel behalten, weil eine automatische Massenänderung aller Medien riskanter wäre. Der vollständige Ablauf steht unter [Deinstallation und Wiederherstellung](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/wiki/Deinstallation-und-Wiederherstellung).
+Medien können technisch ungenutzte Werte in Form verbliebener JSON-Schlüssel behalten, weil eine automatische Massenänderung aller Medien riskanter wäre. Der vollständige Ablauf steht unter [Deinstallation und Wiederherstellung](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/wiki/Deinstallation-und-Wiederherstellung).
 
 ## Grenzen und Fehlerbehebung
 
@@ -225,5 +227,4 @@ Alle öffentlichen Projekte: [github.com/MichaelGahnDESIGN](https://github.com/M
 
 Das Plugin steht unter `GPL-2.0-or-later`. Siehe [LICENSE](LICENSE).
 
-Projekt und Quellcode: Michael Gahn DESIGN. Rechtliche Anbieterangaben stehen in [IMPRESSUM.md](IMPRESSUM.md).
-
+Projekt und Quellcode: Michael Gahn DESIGN. Rechtliche Anbieterangaben stehen im [Impressum von Michael Gahn DESIGN](https://michael-gahn.de/impressum/).

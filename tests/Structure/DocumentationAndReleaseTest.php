@@ -562,6 +562,36 @@ final class DocumentationAndReleaseTest extends TestCase
         }
     }
 
+    /** Stellt sicher, dass jeder lokale Link in README und Wiki auf ein echtes Ziel verweist. */
+    public function testReadmeAndWikiLocalLinksResolveToExistingTargets(): void
+    {
+        $documents = [self::ROOT . '/README.md'];
+        foreach (self::REQUIRED_WIKI_DOCUMENTS as $document) {
+            $documents[] = self::ROOT . '/docs/wiki/' . $document;
+        }
+
+        foreach ($documents as $document) {
+            $content = file_get_contents($document);
+            self::assertIsString($content);
+            preg_match_all('/\[[^]]+]\(([^)]+)\)/', $content, $matches);
+            foreach ($matches[1] as $target) {
+                if (preg_match('~^(?:https?://|mailto:|#)~', $target) === 1) {
+                    continue;
+                }
+
+                $path = rawurldecode(explode('#', $target, 2)[0]);
+                if (str_starts_with($document, self::ROOT . '/docs/wiki/') && !str_contains(basename($path), '.')) {
+                    $path .= '.md';
+                }
+
+                self::assertFileExists(
+                    dirname($document) . '/' . $path,
+                    sprintf('Defekter Link %s in %s', $target, $document),
+                );
+            }
+        }
+    }
+
     private function runReleaseBuild(string $script): string
     {
         $command = sprintf('bash %s 2>&1', escapeshellarg($script));
