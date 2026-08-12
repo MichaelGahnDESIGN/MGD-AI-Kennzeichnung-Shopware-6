@@ -34,6 +34,26 @@ final class DocumentationAndReleaseTest extends TestCase
         'Dokumentation/Deployment-und-Rueckfall.md',
     ];
 
+    /** @var list<string> */
+    private const REQUIRED_WIKI_DOCUMENTS = [
+        'Home.md',
+        'Installation-und-Updates.md',
+        'Bilder-kennzeichnen.md',
+        'Sprache-und-Gestaltung.md',
+        'Erlebniswelten-und-Hintergrundbilder.md',
+        'Themes-und-individuelle-Templates.md',
+        'Rechte-und-Rollen.md',
+        'Datenschutz-und-Sicherheit.md',
+        'Barrierefreiheit.md',
+        'Deinstallation-und-Wiederherstellung.md',
+        'Fehlerbehebung.md',
+        'Entwicklerarchitektur.md',
+        'Tests-und-Releaseprozess.md',
+        'FAQ.md',
+        '_Sidebar.md',
+        '_Footer.md',
+    ];
+
     /**
      * Prüft den CI-Vertrag anhand der tatsächlich geparsten YAML-Struktur.
      *
@@ -511,6 +531,34 @@ final class DocumentationAndReleaseTest extends TestCase
             }
             $this->removeTemporaryTree($fixture);
             $this->removeTemporaryTree($controlledTemp);
+        }
+    }
+
+    /** Schützt Vollständigkeit, Navigation und Vertraulichkeit des öffentlichen Wikis. */
+    public function testPublicWikiIsCompleteNavigableAndFreeFromOperationalSecrets(): void
+    {
+        $wikiDirectory = self::ROOT . '/docs/wiki';
+        self::assertDirectoryExists($wikiDirectory);
+        $combined = '';
+
+        foreach (self::REQUIRED_WIKI_DOCUMENTS as $document) {
+            $path = $wikiDirectory . '/' . $document;
+            self::assertFileExists($path);
+            $content = file_get_contents($path);
+            self::assertIsString($content);
+            self::assertStringNotContainsString('TODO', $content);
+            self::assertStringNotContainsString('TBD', $content);
+            $combined .= "\n" . $content;
+        }
+
+        $sidebar = file_get_contents($wikiDirectory . '/_Sidebar.md');
+        self::assertIsString($sidebar);
+        foreach (array_diff(self::REQUIRED_WIKI_DOCUMENTS, ['_Sidebar.md', '_Footer.md']) as $document) {
+            self::assertStringContainsString(sprintf('](%s)', pathinfo($document, PATHINFO_FILENAME)), $sidebar);
+        }
+
+        foreach (['/Users/', 'Zauberwort', 'SynoToken', 'DATABASE_URL=', 'password=', 'token='] as $forbidden) {
+            self::assertStringNotContainsString($forbidden, $combined);
         }
     }
 
