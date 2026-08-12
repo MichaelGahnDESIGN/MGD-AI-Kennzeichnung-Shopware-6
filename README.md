@@ -1,42 +1,103 @@
+<div align="center">
+
 # MGD AI Kennzeichnung Shopware 6
 
-Copyright (c) 2026 Michael Gahn DESIGN - https://Michael-Gahn.de
+**Transparente und barrierearme Kennzeichnung KI-generierter oder KI-bearbeiteter Bilder in Shopware 6.**
 
-MGD AI Kennzeichnung macht den Einsatz KI-erzeugter oder KI-bearbeiteter Bilder in einem Shopware-6-Storefront transparent. Redaktionelle Mitarbeitende ordnen den Status direkt am Medium zu. Das Plugin zeigt daraus eine gut lesbare, zweisprachige Kennzeichnung am Bild an.
+[![Lizenz: GPL-2.0-or-later](https://img.shields.io/badge/Lizenz-GPL--2.0--or--later-blue.svg)](LICENSE)
+[![Shopware 6.6 und 6.7](https://img.shields.io/badge/Shopware-6.6%20%7C%206.7-189EFF.svg)](#voraussetzungen-und-kompatibilität)
+[![PHP ab 8.2](https://img.shields.io/badge/PHP-ab%208.2-777BB4.svg)](#voraussetzungen-und-kompatibilität)
+[![Qualität](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/actions/workflows/quality.yml/badge.svg)](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/actions/workflows/quality.yml)
+[![Wiki](https://img.shields.io/badge/Dokumentation-GitHub--Wiki-6E56CF.svg)](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/wiki)
 
-Wichtig: Das Plugin erkennt KI-Inhalte **nicht automatisch**. Es sendet keine Bilder an einen KI-Dienst und bewertet keine Dateien. Die inhaltlich verantwortliche Person trifft und pflegt die Kennzeichnung selbst.
+[Release herunterladen](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/releases/latest) · [Wiki öffnen](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/wiki) · [Sicherheitslücke melden](SECURITY.md)
+
+</div>
+
+---
+
+MGD AI Kennzeichnung erweitert Shopware-Medien um einen redaktionell gepflegten KI-Status. Im Storefront erscheint daraus ein kleines Textlabel direkt am Bild. Position, Darstellung und Sprache bleiben kontrollierbar, während Bilddatei, Alt-Text, responsive Quellen und Shopwares normaler Speicherweg unangetastet bleiben.
+
+> [!IMPORTANT]
+> Das Plugin **erkennt KI-Inhalte nicht automatisch**. Es analysiert keine Bilder, überträgt keine Medien an externe Dienste und entscheidet nicht, ob ein Bild rechtlich gekennzeichnet werden muss. Diese Entscheidung bleibt bei den verantwortlichen Menschen.
+
+> [!WARNING]
+> Das Plugin ist ein technisches Transparenzwerkzeug und **keine Rechtsberatung**. Kennzeichnungspflichten hängen von Inhalt, Einsatz, Vertrag, Plattformregeln und geltendem Recht ab.
+
+## Dokumentation
+
+Das [GitHub-Wiki](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/wiki) enthält das vollständige Handbuch. Seine Quellen liegen zusätzlich versioniert unter [`docs/wiki/`](docs/wiki), damit Änderungen über Git nachvollziehbar bleiben.
+
+| Einstieg | Für wen? | Inhalt |
+| --- | --- | --- |
+| [Installation und Updates](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/wiki/Installation-und-Updates) | Shopbetreiber | ZIP, CLI, Backup, Update und Rückfall |
+| [Bilder kennzeichnen](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/wiki/Bilder-kennzeichnen) | Redaktion | Status, Position, Theme, Vorschau und Speichern |
+| [Sprache und Gestaltung](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/wiki/Sprache-und-Gestaltung) | Redaktion und Design | Automatisch, Deutsch, Englisch und sichere Designwerte |
+| [Erlebniswelten und Hintergrundbilder](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/wiki/Erlebniswelten-und-Hintergrundbilder) | Redaktion | CMS-Elemente, Alternativtexte und KI-Philosophie |
+| [Themes und individuelle Templates](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/wiki/Themes-und-individuelle-Templates) | Entwickler | Shopware-Integration, eigene Themes und Grenzen |
+| [Datenschutz und Sicherheit](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/wiki/Datenschutz-und-Sicherheit) | Betreiber und Datenschutz | Datenfluss, Berechtigungen und Schutzmodell |
+| [Fehlerbehebung](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/wiki/Fehlerbehebung) | Alle | Systematische Diagnose für Bilder und Labels |
+| [Entwicklerarchitektur](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/wiki/Entwicklerarchitektur) | Entwickler | Domain, DAL, Resolver, Twig und Administration |
+| [Tests und Releaseprozess](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/wiki/Tests-und-Releaseprozess) | Entwickler | Testmatrix, CI und reproduzierbares ZIP |
+
+## Das Problem
+
+KI-generierte und KI-bearbeitete Bilder können in Produktseiten, Kategorien, Erlebniswelten und redaktionellen Inhalten erscheinen. Ohne eine einheitliche Kennzeichnung müssen Redakteure Labels manuell in Bilder einbauen oder für jede Ausgabe eigene Templates pflegen. Das ist fehleranfällig, schwer übersetzbar und häufig nicht barrierefrei.
+
+## Die Lösung
+
+Das Plugin speichert am Shopware-Medium drei klar begrenzte Custom Fields:
+
+- fachlicher KI-Status,
+- gewünschte Ecke,
+- helles, dunkles oder automatisches Erscheinungsbild.
+
+Shopwares Thumbnail-Ausgabe liest diese Werte serverseitig, normalisiert sie gegen feste Positivlisten und ergänzt nur bei einem sichtbaren Status ein Label. Die Originaldatei wird weder überschrieben noch mit einem Wasserzeichen versehen.
 
 ## Funktionen
 
 - fünf redaktionelle Zustände: keine Kennzeichnung, vollständig KI-generiert, teilweise KI-generiert, mit KI verändert und Deepfake
-- Position und helles, dunkles oder automatisches Erscheinungsbild je Medium
-- zentrale, begrenzte Einstellungen für Größe, Abstand, Innenabstand, Eckenradius und Unschärfe
-- deutsche oder englische Ausgabe; im Standard `Automatisch` folgt sie der Sprache des Verkaufskanals
-- Vorschau in der Medienverwaltung, ohne einen eigenen Speicherweg zu eröffnen
-- Kennzeichnung von Shopware-Thumbnails und ein eigenes Erlebniswelten-Element für Hintergrundbilder
-- optional vorbereitbares, zunächst unverknüpftes Erlebniswelten-Layout zur eigenen KI-Philosophie
-- barrierearmer Textstatus zusätzlich zur visuellen Darstellung
+- vier feste Positionen: oben links, oben rechts, unten links und unten rechts
+- drei feste Themes: automatisch, hell und dunkel
+- automatische Sprache nach Verkaufskanal sowie feste Ausgabe auf Deutsch oder Englisch
+- lokale Vorschau direkt in der Shopware-Medienverwaltung
+- Nutzung von Shopwares nativer Custom-Field-Speicheraktion und Rechteprüfung
+- serverseitige Integration in das zentrale Shopware-Thumbnail-Template
+- eigenes Erlebniswelten-Element für gekennzeichnete Hintergrundbilder
+- optional vorbereitbare, zunächst unverknüpfte Erlebniswelt zur eigenen KI-Philosophie
+- barrierearme Textkennzeichnung mit zusätzlichem Screenreader-Hinweis bei Deepfakes
+- sichere Zahlenbereiche für Schriftgröße, Abstände, Radius und Hintergrundunschärfe
+- keine externe Bilderkennung, Telemetrie, externen Schriften oder Tracking-Dienste
+- reproduzierbares Release-ZIP und automatisierte Shopware-/PHP-Matrix
 
-## Voraussetzungen
+## Voraussetzungen und Kompatibilität
 
-- Shopware ab 6.6.10 oder eine kompatible Version aus der 6.7-Reihe
-- PHP ab 8.2
-- Schreibzugriff für Shopwares Plugin-, Cache- und Theme-Build-Prozesse
-- ein Backup vor Installation, Update oder Entfernung in einem produktiven Shop
+| Anforderung | Unterstützter Stand |
+| --- | --- |
+| Shopware | `~6.6.10` oder `~6.7.0` |
+| PHP | `^8.2` |
+| Browser | aktueller Browser mit normaler Shopware-6-Storefront-Unterstützung |
+| Installation | Shopware-Administration oder CLI-Zugriff |
+| Lizenz | `GPL-2.0-or-later` |
 
-## Installation
+Version `0.1.1` wurde in frisch installierten, isolierten Shops mit Shopware `6.6.10.22` und `6.7.13.0` geprüft. Installation, Aktivierung, Administration- und Storefront-Build, Datenbankintegration, Sprachwahl, Medienvorschau, Erlebniswelten sowie Deinstallation mit und ohne Datenerhalt waren erfolgreich. Ein zusätzlicher produktiver Referenztest unter Shopware `6.7.13.0` ist in [Dokumentation/TableGuard-Live-Test-2026-08.md](Dokumentation/TableGuard-Live-Test-2026-08.md) anonymisiert zusammengefasst.
 
-### Als ZIP im Administrationsbereich
+Andere Patchstände und vollständig eigene Themes benötigen weiterhin eine Staging-Prüfung.
 
-1. Laden Sie das Release `MGDAIImageLabels-<Version>.zip` herunter. Entpacken Sie es nicht.
-2. Öffnen Sie in Shopware **Erweiterungen > Meine Erweiterungen**.
-3. Laden Sie das ZIP hoch, installieren und aktivieren Sie die Erweiterung.
-4. Leeren Sie bei Bedarf den Shopware-Cache und kompilieren Sie das Storefront-Theme neu.
-5. Prüfen Sie die Darstellung zuerst in einer Staging-Umgebung und danach in allen aktiven Verkaufskanälen.
+## Schnellinstallation
 
-### Per Shopware-CLI
+### ZIP über die Shopware-Administration
 
-Kopieren Sie den im ZIP enthaltenen Ordner `MGDAIImageLabels` nach `custom/plugins/`. Führen Sie anschließend im Shopware-Projekt aus:
+1. Vorher Datenbank und `custom/plugins` sichern.
+2. Das aktuelle ZIP unter [Releases](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/releases/latest) herunterladen.
+3. In Shopware **Erweiterungen → Meine Erweiterungen → Erweiterung hochladen** öffnen.
+4. ZIP hochladen, installieren und aktivieren.
+5. Cache leeren und Theme kompilieren.
+6. Administration, aktive Verkaufskanäle und mindestens ein Testmedium kontrollieren.
+
+### Installation per CLI
+
+Den im ZIP enthaltenen Ordner `MGDAIImageLabels` nach `custom/plugins/` kopieren und im Shopware-Projekt ausführen:
 
 ```bash
 bin/console plugin:refresh
@@ -45,77 +106,124 @@ bin/console cache:clear
 bin/console theme:compile
 ```
 
-Die Befehle werden bewusst ohne Zugangsdaten gezeigt. Datenbankkennwörter und andere Geheimnisse gehören ausschließlich in die geschützte Serverkonfiguration.
+Zugangsdaten und Datenbankkennwörter gehören ausschließlich in die geschützte Serverkonfiguration, niemals in Befehle, Issues oder das Repository.
 
-## Bedienung
+## Erste Kennzeichnung
 
-### Ein Bild kennzeichnen
+1. **Inhalte → Medien** öffnen.
+2. Ein Bildmedium auswählen.
+3. Den Bereich **KI-Bildkennzeichnung** öffnen.
+4. KI-Status wählen.
+5. Optional Position und Theme für dieses Medium festlegen.
+6. Vorschau kontrollieren.
+7. Mit Shopwares vorhandener Custom-Field-Speicheraktion speichern.
+8. Storefront sowie alle relevanten Bildgrößen kontrollieren.
 
-1. Öffnen Sie das Bild in **Inhalte > Medien**.
-2. Wählen Sie im Custom-Field-Bereich **KI-Bildkennzeichnung** den KI-Status.
-3. Optional überschreiben Sie Position und Theme nur für dieses Medium.
-4. Kontrollieren Sie die lokale Vorschau.
-5. Speichern Sie mit Shopwares vorhandener Speicheraktion.
+Die Vorschau verändert noch keine Daten. Erst Shopwares Speicheraktion übernimmt die Auswahl. Die Bilddatei selbst bleibt unverändert.
 
-`Keine KI-Kennzeichnung` blendet das sichtbare Label aus. Ungültige oder unbekannte Werte werden ebenfalls sicher als nicht sichtbar behandelt. Das Plugin verändert die Bilddatei nicht.
+## Kennzeichnungsarten und Sprache
 
-### Sprache und Darstellung einstellen
+| Auswahl in Shopware | Deutsches Label | Englisches Label | Verwendung |
+| --- | --- | --- | --- |
+| Keine KI-Kennzeichnung | kein Label | no label | keine sichtbare Ausgabe |
+| Vollständig KI-generiert | `KI-GENERIERT` | `AI GENERATED` | Bild vollständig durch KI erzeugt |
+| Teilweise KI-generiert | `TEILWEISE KI-GENERIERT` | `AI PARTIALLY GENERATED` | Bild enthält KI-generierte Bestandteile |
+| Mit KI verändert | `MIT KI BEARBEITET` | `AI MODIFIED` | vorhandenes Bild wesentlich mit KI verändert |
+| Deepfake | `KI-DEEPFAKE` | `AI DEEPFAKE` | authentisch wirkende oder vergleichbare Manipulation |
 
-Öffnen Sie die Plugin-Konfiguration unter **Erweiterungen > Meine Erweiterungen**. `Automatisch` ist der empfohlene Sprachstandard: Deutschsprachige Verkaufskanäle erhalten deutsche, alle anderen unterstützten Kontexte englische Texte. Alternativ lässt sich Deutsch oder Englisch fest vorgeben. Die Sprache kann pro Verkaufskanal überschrieben werden; Darstellungswerte gelten global.
+Die Sprache steht standardmäßig auf **Automatisch**. Eine deutsche Verkaufskanalsprache erzeugt deutsche Texte; alle anderen Kontexte verwenden den englischen Fallback. Alternativ lässt sich Deutsch oder Englisch fest vorgeben. Der fachliche Status eines Mediums bleibt bei einem Sprachwechsel unverändert.
 
-Die verfügbaren Zahlenfelder besitzen feste Grenzen. Freie CSS-Werte werden weder gespeichert noch ausgegeben. Das automatische Theme berücksichtigt das Farbschema des Endgeräts.
+## Shopware, Erlebniswelten und Themes
 
-### Erlebniswelten
+Das Plugin erweitert Shopwares zentrales `sw_thumbnails`-Template und verwendet weiterhin Shopwares fertige Bildausgabe. `src`, `srcset`, `sizes`, Alt-Text, Titel, Lazy Loading und Zoomattribute werden nicht neu erfunden.
 
-Das Element **Gekennzeichnetes Hintergrundbild** verwendet ein Shopware-Bildmedium, feste Bildpositionen und eine sichere Hintergrundfarbe. Nicht dekorative Bilder benötigen einen sinnvollen Alternativtext. Das Element übernimmt die Kennzeichnung des gewählten Mediums.
+Zusätzlich stehen zur Verfügung:
 
-Unter **Einstellungen > Erweiterungen > MGD KI-Bildkennzeichnung** kann eine zweisprachige KI-Philosophie als Erlebniswelten-Layout vorbereitet werden. Dieser Schritt veröffentlicht oder verknüpft nichts. Prüfen, bearbeiten und veröffentlichen Sie das Layout anschließend bewusst über Shopwares Erlebniswelten.
+- **Gekennzeichnetes Hintergrundbild:** eigenes Erlebniswelten-Element mit lokalem Bildmedium, festen Positionen, sicherer Hintergrundfarbe und redaktionellem Alternativtext.
+- **KI-Philosophie:** eine berechtigte Admin-Aktion kann einmalig eine zweisprachige, unverknüpfte Erlebniswelt vorbereiten. Sie wird weder veröffentlicht noch automatisch einem Verkaufskanal zugeordnet.
 
-## Rechte und Sicherheit
+> [!CAUTION]
+> Direkt in HTML eingetragene `<img src="…">`-Elemente besitzen kein Shopware-Medienobjekt. Das Plugin kann dort keinen KI-Status auflösen. Auch ein Theme, das Shopwares Thumbnail-Template vollständig ersetzt, kann die Integration umgehen. Einzelheiten und sichere Integrationswege stehen im Wiki unter [Themes und individuelle Templates](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/wiki/Themes-und-individuelle-Templates).
 
-Das normale Bearbeiten von Medienfeldern folgt Shopwares Medien- und Custom-Field-Rechten. Für das Vorbereiten der Philosophie-Seite sind zusätzlich Rechte zum Ändern der Systemkonfiguration und zum Erstellen von CMS-Seiten, Sektionen, Blöcken und Elementen erforderlich. Vergeben Sie diese Rechte nur an zuständige Rollen.
+## Datenschutz und Sicherheit
 
-Sicherheitsmeldungen gehören in einen privaten Meldeweg und niemals mit Zugangsdaten in ein öffentliches Issue. Einzelheiten stehen in [SECURITY.md](SECURITY.md). Datenschutz und technische Schutzgrenzen erklärt [Dokumentation/Datenschutz-und-Sicherheit.md](Dokumentation/Datenschutz-und-Sicherheit.md).
+- keine Übertragung von Bildern an externe Dienste
+- keine automatische Analyse oder Profilbildung
+- keine eigenen Benutzerkonten, Zahlungsdaten oder Trackingdaten
+- Speicherung der Auswahl in Shopwares vorhandenen Medien-Custom-Fields
+- feste Status-, Positions- und Theme-Werte
+- serverseitig begrenzte Zahlenwerte statt freier CSS-Eingaben
+- Admin-Aktionen über Shopwares Authentifizierung, ACL und API-Kontext
+- keine geheimen Schlüssel im Quellcode oder Release
+
+Betreiber bleiben für Shopware-Updates, TLS, Serverhärtung, Backups, Rollen, Protokollschutz und ihre eigene Datenschutzerklärung verantwortlich. Mehr dazu: [Datenschutz und Sicherheit](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/wiki/Datenschutz-und-Sicherheit).
 
 ## Barrierefreiheit
 
-Die Kennzeichnung ist Text und nicht nur Farbe. Sie wird als Hinweis ausgezeichnet, bleibt für assistive Technik auch auf sehr kleinen Bildern verfügbar und blockiert weder Links noch Gesten. Beim Status Deepfake ergänzt das Plugin einen erläuternden Screenreader-Text. Dekorative Hintergrundbilder werden mit leerem Alternativtext ausgegeben; inhaltliche Bilder benötigen eine redaktionelle Beschreibung.
+Die Kennzeichnung besteht aus Text und nicht nur aus Farbe. Sie wird als Hinweis ausgezeichnet, blockiert keine Links oder Gesten und bleibt bei sehr kleinen Medien als zugänglicher Text erhalten. Deepfake-Status erhalten einen zusätzlichen Screenreader-Text. Dekorative Hintergrundbilder verwenden einen leeren Alternativtext; inhaltliche Bilder benötigen eine redaktionelle Beschreibung.
 
-Die konkrete Barrierefreiheit hängt weiterhin vom verwendeten Theme, dessen Kontrasten und der redaktionellen Pflege ab. Testen Sie Tastaturbedienung, Vergrößerung, Hell-/Dunkelmodus und Screenreader im tatsächlichen Storefront.
+Die endgültige Barrierefreiheit hängt vom aktiven Theme, dessen Kontrasten, Zoomverhalten und der redaktionellen Pflege ab. Tastatur, Vergrößerung, Hell-/Dunkelmodus und Screenreader müssen im echten Shop geprüft werden.
 
-## Update und Deinstallation
+## Update, Deinstallation und Rückfall
 
-Ein Update aktualisiert die plugin-eigene Custom-Field-Definition wiederholbar. Erstellen Sie trotzdem vor jedem produktiven Update eine Datenbank- und Dateisicherung.
+Vor jedem produktiven Update:
 
-Bei der Deinstallation entscheidet Shopwares Option **Benutzerdaten behalten** über Medienfelder und Systemkonfiguration: Ist sie aktiv, bleiben das plugin-eigene Custom-Field-Set und die Plugin-Einstellungen bestehen. Zusätzlich legt das Plugin einen lokalen, eng begrenzten Snapshot seiner exakt neun Einstellungswerte an. Das ist nötig, weil Shopware bei einer späteren Reinstallation zunächst die Plugin-Standardwerte schreibt. Im Installationsschritt werden globale und verkaufskanalspezifische Werte aus dem Snapshot wiederhergestellt. Der kleine Snapshot bleibt bis zum nächsten Keep-Zyklus erhalten, damit auch ein erst später abgebrochener Shopware-Installationslauf sicher wiederholt werden kann.
+1. Datenbank und Plugin-Dateien sichern.
+2. Releasehinweise und unterstützte Shopware-Versionen prüfen.
+3. Update zuerst in Staging installieren.
+4. Administration und Storefront testen.
+5. Erst danach produktiv aktualisieren.
 
-Ohne **Benutzerdaten behalten** entfernt das Plugin sein eindeutig zugeordnetes Set, alle globalen und verkaufskanalspezifischen Einträge seiner neun Konfigurationsschlüssel sowie seine eigentumsgeprüfte Snapshot-Tabelle. Diese zusätzliche Scope-Bereinigung ist nötig, weil Shopware 6.6 kanalbezogene Werte beim normalen Plugin-Uninstall nicht vollständig entfernt. Fremde Konfigurationen und Tabellen werden nicht berührt.
+Bei der Deinstallation entscheidet Shopwares Option **Benutzerdaten behalten**, ob Plugin-Konfiguration und Custom-Field-Definitionen erhalten bleiben. Das Plugin schützt erhaltene Konfigurationswerte zusätzlich gegen Shopwares Standardwert-Überschreibung bei einer späteren Reinstallation. Ohne Datenerhalt entfernt es seine eindeutig zugeordneten Definitionen und Konfiguration. Bilddateien und fremde Felder bleiben unangetastet.
 
-Die Bilddateien und fremde Custom Fields bleiben immer unberührt. Da Medien ihre Custom-Field-Inhalte als JSON speichern, bereinigt das Plugin die drei Schlüssel nicht einzeln in jedem Medium. Sie können nach einer Deinstallation ohne Datenerhalt als technisch ungenutzte Werte verbleiben und bei einer späteren Neuinstallation wieder zugeordnet werden. Wer auch diese Werte löschen muss, benötigt davor einen geprüften, gesicherten Bereinigungslauf. Das vorbereitete Philosophie-Layout wird nicht automatisch entfernt, damit redaktionelle Inhalte nicht überraschend verloren gehen.
+Medien können technisch ungenutzte JSON-Schlüssel behalten, weil eine automatische Massenänderung aller Medien riskanter wäre. Der vollständige Ablauf steht unter [Deinstallation und Wiederherstellung](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/wiki/Deinstallation-und-Wiederherstellung).
 
-Ein sicherer Rückfall ist in [Dokumentation/Deployment-und-Rueckfall.md](Dokumentation/Deployment-und-Rueckfall.md) beschrieben.
+## Grenzen und Fehlerbehebung
 
-## Grenzen und Kompatibilität
+- Das Plugin beurteilt nicht, ob ein Bild tatsächlich KI-generiert ist.
+- Rohe HTML-Bilder und vollständig eigene Thumbnail-Ausgaben werden nicht automatisch erkannt.
+- Sehr kleine Bilder zeigen das Label visuell reduziert; der zugängliche Text bleibt erhalten.
+- Eigene Theme-CSS-Regeln können Position und Kontrast beeinflussen.
+- Ein verschwundenes Bild mit HTTP 404 ist kein Kennzeichnungszustand, sondern weist auf eine fehlende Datei, einen fehlenden Medieneintrag oder eine veraltete URL hin.
 
-- Die fachliche Richtigkeit der Kennzeichnung bleibt redaktionelle Verantwortung.
-- Eigenständige Theme-Templates, die Shopwares Thumbnail-Template vollständig ersetzen, können die automatische Einbindung umgehen.
-- Sehr kleine Bilder zeigen den Hinweis aus Platzgründen visuell reduziert; der zugängliche Text bleibt erhalten.
-- Version 0.1.1 wurde in frisch installierten, isolierten Shops mit Shopware 6.6.10.22 und 6.7.13.0 geprüft. Installation, Aktivierung, Administration- und Storefront-Build, Datenbankintegration, Sprachwahl, Medienvorschau, Erlebniswelten sowie Deinstallation mit und ohne Datenerhalt waren erfolgreich. Eigene Themes und abweichende Shopware-Patchstände benötigen weiterhin eine Staging-Prüfung.
+Die systematische Diagnose beginnt immer mit der direkten Bild-URL und dem Shopware-Medieneintrag – nicht mit CSS. Siehe [Fehlerbehebung](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/wiki/Fehlerbehebung).
 
-Hinweise für eigene Themes stehen in [Dokumentation/Integration-eigener-Themes.md](Dokumentation/Integration-eigener-Themes.md). Die technische Aufteilung erklärt [Dokumentation/Architektur.md](Dokumentation/Architektur.md).
-
-Der zusätzliche produktive Referenztest ist in [Dokumentation/TableGuard-Live-Test-2026-08.md](Dokumentation/TableGuard-Live-Test-2026-08.md) zusammengefasst. Der Bericht enthält bewusst keine Zugangsdaten oder internen Betriebsdetails.
-
-## Entwicklung
-
-Beiträge sind willkommen. Bitte lesen Sie [CONTRIBUTING.md](CONTRIBUTING.md). Das Release-Paket wird reproduzierbar erzeugt mit:
+## Entwicklung und Tests
 
 ```bash
+composer install
+npm ci
+composer validate --strict
+composer test:unit
+composer analyse:phpstan
+composer check:style
+npm run test:administration
+npm run test:storefront
+vendor/bin/phpunit --fail-on-skipped tests/Structure/DocumentationAndReleaseTest.php
 bash scripts/build-release.sh
 ```
 
-Versionen und Änderungen stehen in [CHANGELOG.md](CHANGELOG.md).
+Integrationstests laufen ausschließlich gegen eine ausdrücklich freigegebene, isolierte Testdatenbank. Niemals eine produktive Datenbank verwenden. Architektur und Datenfluss erklärt das Wiki unter [Entwicklerarchitektur](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/wiki/Entwicklerarchitektur), der vollständige Qualitätsvertrag steht unter [Tests und Releaseprozess](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/wiki/Tests-und-Releaseprozess).
 
-## Lizenz
+## Mitwirken und Sicherheitsmeldungen
 
-Dieses Projekt ist unter `GPL-2.0-or-later` veröffentlicht. Siehe [LICENSE](LICENSE).
+Beiträge sind willkommen. Bitte zuerst [CONTRIBUTING.md](CONTRIBUTING.md) lesen und Änderungen testgetrieben, klein und nachvollziehbar halten.
+
+Vermutete Sicherheitslücken gehören nicht in ein öffentliches Issue. Der vertrauliche Meldeweg und die unterstützten Versionen stehen in [SECURITY.md](SECURITY.md).
+
+## Verwandte Projekte
+
+| Projekt | Beschreibung |
+| --- | --- |
+| [MGD AI Kennzeichnung WordPress](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-WordPress) | WordPress-Ausgabe derselben Transparenzidee |
+| [MGD AI PlayTest Skill](https://github.com/MichaelGahnDESIGN/MGD_AI-PlayTest_SKILL) | nutzerorientierte lokale und produktive Qualitätstests |
+| [MGD AI Project Updater Skill](https://github.com/MichaelGahnDESIGN/MGD_AI-Project-Updater_SKILL) | sichere Staging-, Update- und Rückfallabläufe |
+
+Alle öffentlichen Projekte: [github.com/MichaelGahnDESIGN](https://github.com/MichaelGahnDESIGN)
+
+## Lizenz und Impressum
+
+Das Plugin steht unter `GPL-2.0-or-later`. Siehe [LICENSE](LICENSE).
+
+Projekt und Quellcode: Michael Gahn DESIGN. Rechtliche Anbieterangaben stehen in [IMPRESSUM.md](IMPRESSUM.md).
+
