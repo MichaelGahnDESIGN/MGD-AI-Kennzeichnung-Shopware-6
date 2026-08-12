@@ -1,5 +1,7 @@
 # MGD AI Kennzeichnung Shopware 6
 
+Copyright (c) 2026 Michael Gahn DESIGN - https://Michael-Gahn.de
+
 MGD AI Kennzeichnung macht den Einsatz KI-erzeugter oder KI-bearbeiteter Bilder in einem Shopware-6-Storefront transparent. Redaktionelle Mitarbeitende ordnen den Status direkt am Medium zu. Das Plugin zeigt daraus eine gut lesbare, zweisprachige Kennzeichnung am Bild an.
 
 Wichtig: Das Plugin erkennt KI-Inhalte **nicht automatisch**. Es sendet keine Bilder an einen KI-Dienst und bewertet keine Dateien. Die inhaltlich verantwortliche Person trifft und pflegt die Kennzeichnung selbst.
