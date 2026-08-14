@@ -24,4 +24,19 @@ Version `0.1.2` begrenzt die Reparatur auf einen Fill-Rahmen, der direkt unter S
 
 Zusätzlich verwendet das deutsche und englische Frontend für den Deepfake-Status einheitlich den sichtbaren Text `AI DEEPFAKE`. Der interne Statuswert und der zusätzliche Screenreader-Hinweis bleiben unverändert.
 
-Vor dem Live-Update werden die fünf betroffenen Laufzeitdateien gesichert und mit SHA-256-Prüfsummen dokumentiert. Der Rückfall stellt diese Dateien wieder her und kompiliert anschließend Theme und Cache neu. Die produktive Browserabnahme umfasst Hauptbild, Label, Slider, Zoom, Galerievorschaubilder, Desktop, Mobil sowie die bereits integrierten Startseitenbilder.
+Vor dem Live-Update wurden die fünf betroffenen Laufzeitdateien gesichert und mit SHA-256-Prüfsummen dokumentiert. Nach dem Upload wurden die produktiven Dateien bytegenau mit dem geprüften Stand verglichen. Plugin-Aktualisierung, Theme-Kompilierung, Cache-Bereinigung und Cache-Aufbau liefen erfolgreich. Der temporäre Wartungsweg wurde anschließend entfernt.
+
+Die produktive Browserabnahme am 14. August 2026 bestätigte:
+
+- Artikelhauptbilder sind auf Desktop und Mobil wieder geladen und sichtbar.
+- `AI DEEPFAKE` liegt vollständig innerhalb der Produktgalerie.
+- Slider und Zoom funktionieren in beiden Ansichten.
+- 24 Galerievorschaubilder bleiben ohne doppelte sichtbare Kennzeichnung.
+- Die TableGuard-Startseite enthält auf Desktop, Tablet und Mobil weiterhin jeweils sechs geladene gekennzeichnete Bilder und sechs zugängliche Hinweise.
+- Es traten keine JavaScript-, Browserkonsolen- oder fehlgeschlagenen Netzwerkanfragen auf.
+
+Die vorhandene mobile Seitenüberbreite der individuell gestalteten TableGuard-Startseite besteht unabhängig vom Plugin und wurde durch dieses gezielte Update nicht verändert.
+
+## Abhängigkeitshinweis vom 14. August 2026
+
+Nach Fertigstellung veröffentlichte die Sicherheitsdatenbank einen Hinweis für `mcp/sdk` 0.6.0 (CVE-2026-53965). Diese Bibliothek stammt aus der aktuell unterstützten Shopware-Abhängigkeitskette und wird nicht in das Plugin-ZIP aufgenommen. Shopware 6.7.13.0 begrenzt die Bibliothek derzeit auf die betroffene Versionslinie, weshalb das Plugin sie nicht eigenständig auf die korrigierte Version 0.7.1 anheben kann. Der Galerie-Fix verwendet weder MCP noch SSE. Der Hinweis bleibt als externe Shopware-Abhängigkeit dokumentiert und muss bei einer kompatiblen Shopware-Aktualisierung erneut geprüft werden.
