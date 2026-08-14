@@ -31,7 +31,7 @@ Die Felder werden als Shopware-Custom-Fields am Medium gespeichert. Die Bilddate
 | Vollständig KI-generiert | Bild vollständig durch KI erzeugt | `KI-GENERIERT` oder `AI GENERATED` |
 | Teilweise KI-generiert | Bild enthält KI-generierte Bestandteile | `TEILWEISE KI-GENERIERT` oder `AI PARTIALLY GENERATED` |
 | Mit KI verändert | vorhandenes Bild wesentlich mit KI verändert | `MIT KI BEARBEITET` oder `AI MODIFIED` |
-| Deepfake | authentisch wirkende oder vergleichbare Manipulation | `KI-DEEPFAKE` oder `AI DEEPFAKE` |
+| Deepfake | authentisch wirkende oder vergleichbare Manipulation | `AI DEEPFAKE` in Deutsch und Englisch |
 
 Die Tabelle ist eine technische Beschreibung, keine rechtliche Einordnung.
 
@@ -54,4 +54,3 @@ Das Plugin ergänzt Bilder, die über Shopwares zentrales Thumbnail-System ausge
 - mobile, Tablet- und Desktopgröße geprüft?
 - Produktgalerie, Listing und Warenkorb kontrolliert, falls betroffen?
 - keine fälschliche Testkennzeichnung auf einem echten Medium zurückgelassen?
-

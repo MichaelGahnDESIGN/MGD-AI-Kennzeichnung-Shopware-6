@@ -131,7 +131,7 @@ Die Vorschau verändert noch keine Daten. Erst Shopwares Speicheraktion übernim
 | Vollständig KI-generiert | `KI-GENERIERT` | `AI GENERATED` | Bild vollständig durch KI erzeugt |
 | Teilweise KI-generiert | `TEILWEISE KI-GENERIERT` | `AI PARTIALLY GENERATED` | Bild enthält KI-generierte Bestandteile |
 | Mit KI verändert | `MIT KI BEARBEITET` | `AI MODIFIED` | vorhandenes Bild wesentlich mit KI verändert |
-| Deepfake | `KI-DEEPFAKE` | `AI DEEPFAKE` | authentisch wirkende oder vergleichbare Manipulation |
+| Deepfake | `AI DEEPFAKE` | `AI DEEPFAKE` | authentisch wirkende oder vergleichbare Manipulation |
 
 Die Sprache steht standardmäßig auf **Automatisch**. Eine deutsche Verkaufskanalsprache erzeugt deutsche Texte; alle anderen Kontexte verwenden den englischen Fallback. Alternativ lässt sich Deutsch oder Englisch fest vorgeben. Der fachliche Status eines Mediums bleibt bei einem Sprachwechsel unverändert.
 

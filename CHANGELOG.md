@@ -2,6 +2,16 @@
 
 Alle wesentlichen Änderungen dieses Projekts werden hier dokumentiert. Das Format orientiert sich an „Keep a Changelog“; Versionen folgen der semantischen Versionierung.
 
+## [0.1.2] – 2026-08-14
+
+### Behoben
+
+- Gekennzeichnete Hauptbilder behalten in Shopwares Produktgalerie ihre vollständige Größe sowie Zoom- und Sliderfunktion.
+
+### Geändert
+
+- Deutsches und englisches Frontend verwenden für den Deepfake-Status einheitlich `AI DEEPFAKE`.
+
 ## [0.1.1] – 2026-08-11
 
 ### Korrigiert

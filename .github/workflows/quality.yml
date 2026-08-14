@@ -163,7 +163,7 @@ jobs:
             # Artefakt bereitgestellt wird, nicht einen abweichenden Quellbaum.
             - name: Ausgeliefertes Shopware-Erweiterungspaket validieren
               if: matrix.shopware == '6.7' && matrix.php == '8.4'
-              run: shopware-cli --no-interaction extension validate dist/MGDAIImageLabels-0.1.1.zip
+              run: shopware-cli --no-interaction extension validate dist/MGDAIImageLabels-0.1.2.zip
 
             - name: Release-ZIP als Artefakt bereitstellen
               if: github.event_name != 'pull_request' && matrix.shopware == '6.7' && matrix.php == '8.4'
