@@ -123,6 +123,10 @@ final class DocumentationAndReleaseTest extends TestCase
         self::assertStringContainsString('composer require --no-update', $dependencyCommand);
         self::assertStringContainsString('shopware/core:', $dependencyCommand);
         self::assertStringContainsString('shopware/storefront:', $dependencyCommand);
+        self::assertStringContainsString("matrix.shopware }}\" == '6.7'", $dependencyCommand);
+        self::assertStringContainsString('composer config --json audit.ignore', $dependencyCommand);
+        self::assertStringContainsString('PKSA-p9gd-j6gr-6f9t', $dependencyCommand);
+        self::assertStringContainsString('liefert vendor nicht aus', $dependencyCommand);
         self::assertStringContainsString('composer update --prefer-dist --no-interaction --no-progress --with-all-dependencies', $dependencyCommand);
 
         self::assertSame(
@@ -233,6 +237,8 @@ final class DocumentationAndReleaseTest extends TestCase
         self::assertStringNotContainsString('secrets.', $serializedWorkflow);
         self::assertStringNotContainsString('pull_request_target', $serializedWorkflow);
         self::assertStringNotContainsString('contents: write', (string) file_get_contents($workflowPath));
+        self::assertStringNotContainsString('audit.block', $serializedWorkflow);
+        self::assertStringNotContainsString('--no-audit', $serializedWorkflow);
 
         foreach ($jobs as $job) {
             self::assertIsArray($job);
