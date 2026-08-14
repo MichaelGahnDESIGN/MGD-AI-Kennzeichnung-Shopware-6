@@ -354,11 +354,19 @@ async function inspectWithCdp(browser, htmlPath, temporaryDirectory) {
     } finally {
         socket?.close();
         if (browserProcess.exitCode === null) {
-            browserProcess.kill();
+            // Chromium beendet sich auf einzelnen CI-Runnern nach SIGTERM nicht
+            // zuverlässig. Nach einer kurzen Schonfrist wird ausschließlich
+            // der von diesem Test gestartete Kindprozess sicher beendet, damit
+            // Node keine offene Prozessreferenz behält und der Job nicht hängt.
+            browserProcess.kill('SIGTERM');
             await Promise.race([
                 once(browserProcess, 'exit'),
                 new Promise((resolve) => setTimeout(resolve, 2_000)),
             ]);
+            if (browserProcess.exitCode === null) {
+                browserProcess.kill('SIGKILL');
+                await bounded(once(browserProcess, 'exit'), 'Das Beenden des Chromium-Testprozesses', 5_000);
+            }
         }
     }
 }
