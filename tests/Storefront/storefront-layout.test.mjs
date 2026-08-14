@@ -64,9 +64,9 @@ function fixture(id, layout, width, height, values, text, options = {}) {
  * Stellt dasselbe Shopware-Medium einmal unverändert und einmal im Labelrahmen
  * dar. So werden Abmessungen und sichtbestimmende CSS-Eigenschaften verglichen.
  */
-function presentationPair(id, layout, mediaClass) {
-    const original = `<div id="${id}-original-slot" class="geometry-slot"><div id="${id}-original" class="${mediaClass}"></div></div>`;
-    const wrapped = `<div id="${id}-wrapped-slot" class="geometry-slot"><div id="${id}-wrapper" class="mgd-ai-labeled-media mgd-ai-labeled-media--${layout}"><div id="${id}-wrapped" class="${mediaClass}"></div><div class="mgd-ai-labeled-media__overlay"></div></div></div>`;
+function presentationPair(id, layout, mediaClass, slotClass = 'geometry-slot') {
+    const original = `<div id="${id}-original-slot" class="${slotClass}"><div id="${id}-original" class="${mediaClass}"></div></div>`;
+    const wrapped = `<div id="${id}-wrapped-slot" class="${slotClass}"><div id="${id}-wrapper" class="mgd-ai-labeled-media mgd-ai-labeled-media--${layout}"><div id="${id}-wrapped" class="${mediaClass}"></div><div class="mgd-ai-labeled-media__overlay"></div></div></div>`;
 
     return `<div class="geometry-pair geometry-${id}">${original}${wrapped}</div>`;
 }
@@ -110,7 +110,7 @@ body { margin: 0; font-size: 16px; }
 .geometry-cms-stretch .cms-image { width: 100%; height: 169px; }
 .geometry-listing .geometry-slot { width: 200px; height: 200px; }
 .geometry-listing .product-image { width: 100%; height: 100%; object-fit: contain; transition: transform 120ms ease; }
-.geometry-gallery-cover .geometry-slot { width: 300px; height: 180px; }
+.geometry-gallery-cover .geometry-slot { position: relative; width: 300px; min-height: 180px; }
 .geometry-gallery-cover .gallery-slider-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scale(0.98); }
 .geometry-gallery-standard .geometry-slot { width: 300px; }
 .geometry-gallery-standard .gallery-slider-image { width: 180px; height: 120px; max-width: 100%; }
@@ -146,7 +146,7 @@ ${presentationPair('cms-standard', 'intrinsic', 'cms-image')}
 ${presentationPair('cms-cover', 'fill', 'cms-image')}
 ${presentationPair('cms-stretch', 'fill', 'cms-image')}
 ${presentationPair('listing', 'fill', 'product-image')}
-${presentationPair('gallery-cover', 'fill', 'gallery-slider-image')}
+${presentationPair('gallery-cover', 'fill', 'gallery-slider-image', 'geometry-slot gallery-slider-item')}
 ${presentationPair('gallery-standard', 'intrinsic', 'gallery-slider-image')}
 ${presentationPair('cart', 'fill', 'line-item-img')}
 ${presentationPair('logo', 'intrinsic', 'footer-logo-image')}

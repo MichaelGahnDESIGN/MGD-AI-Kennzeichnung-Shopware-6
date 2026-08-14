@@ -209,6 +209,14 @@ final class LabelTemplateTest extends TestCase
         self::assertStringContainsString('clip-path: inset(50%)', $component);
         self::assertStringContainsString('text-overflow: ellipsis', $component);
         self::assertStringContainsString('white-space: nowrap', $component);
+        self::assertStringContainsString(
+            '.gallery-slider-item > .mgd-ai-labeled-media--fill',
+            $component,
+        );
+        self::assertMatchesRegularExpression(
+            '/\.gallery-slider-item\s*>\s*\.mgd-ai-labeled-media--fill\s*\{[^}]*position:\s*absolute;[^}]*inset:\s*0;/s',
+            $component,
+        );
         self::assertStringNotContainsString('display: none', $component);
         self::assertStringNotContainsString('visibility: hidden', $component);
         self::assertStringNotContainsString('aria-hidden', $component . $this->readResource('views/storefront/component/mgd-ai-image-label/labeled-media.html.twig'));
@@ -245,6 +253,10 @@ final class LabelTemplateTest extends TestCase
         ], $this->snippetPaths($german));
         self::assertSame('KI-GENERIERT', $this->snippetValue($german, 'mgd-ai-image-labels.status.generated'));
         self::assertSame('AI GENERATED', $this->snippetValue($english, 'mgd-ai-image-labels.status.generated'));
+        self::assertSame('AI DEEPFAKE', $this->snippetValue($german, 'mgd-ai-image-labels.status.deepfake'));
+        self::assertSame('AI DEEPFAKE', $this->snippetValue($neutralGerman, 'mgd-ai-image-labels.status.deepfake'));
+        self::assertSame('AI DEEPFAKE', $this->snippetValue($english, 'mgd-ai-image-labels.status.deepfake'));
+        self::assertSame('AI DEEPFAKE', $this->snippetValue($neutralEnglish, 'mgd-ai-image-labels.status.deepfake'));
     }
 
     public function testStorefrontSnippetsPassShopwaresCountryAgnosticLinter(): void
