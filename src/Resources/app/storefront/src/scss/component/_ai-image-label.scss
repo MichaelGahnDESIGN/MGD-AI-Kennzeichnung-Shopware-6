@@ -13,6 +13,14 @@
     height: 100%;
 }
 
+// Shopwares Produktgalerie positioniert das Hauptbild absolut und leitet die
+// Höhe aus dem Galerieslot ab. Der Rahmen übernimmt deshalb ausschließlich als
+// direktes Slot-Kind dieselbe Fläche, ohne andere Fill-Kontexte zu verändern.
+.gallery-slider-item > .mgd-ai-labeled-media--fill {
+    position: absolute;
+    inset: 0;
+}
+
 // Dieser Modus ist nur für bewusst intrinsisch dimensionierte Inline-Medien gedacht.
 .mgd-ai-labeled-media--intrinsic {
     display: inline-block;
