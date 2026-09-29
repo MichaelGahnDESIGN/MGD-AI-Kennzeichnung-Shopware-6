@@ -19,10 +19,8 @@ final class GitHubReleaseUpdater
     {
         $classFile = (new \ReflectionClass(MGDAIImageLabels::class))->getFileName();
         if (!is_string($classFile)) { throw new \RuntimeException('Plugin-Pfad ist nicht verfügbar.'); }
-        $plugin = dirname($classFile);
         // Auch Composer-Installationen werden nicht unbemerkt überschrieben.
-        $expected = $this->projectDirectory . '/custom/plugins/MGDAIImageLabels';
-        if (realpath($plugin) !== realpath($expected)) { throw new \RuntimeException('GitHub-Updates erfordern die ZIP-Installation in custom/plugins/MGDAIImageLabels.'); }
+        $plugin = PluginDirectory::resolve($classFile, $this->projectDirectory);
         $composer = json_decode((string) file_get_contents($plugin . '/composer.json'), true, 32, JSON_THROW_ON_ERROR);
         if (!is_array($composer)) { throw new \RuntimeException('Installierte composer.json ist ungültig.'); }
         $current = $composer['version'] ?? '';
