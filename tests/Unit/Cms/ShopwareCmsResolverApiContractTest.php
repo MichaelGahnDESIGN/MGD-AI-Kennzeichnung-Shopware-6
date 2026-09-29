@@ -15,7 +15,7 @@ use Shopware\Core\TestBootstrapper;
  * Schützt den recherchierten Resolver-Vertrag der beiden Zielversionen.
  *
  * Die Prüfsummen stammen aus den unveränderten offiziellen Shopware-Tags
- * v6.6.10.22 und v6.7.13.0. Pro Lauf wird ausdrücklich nur die tatsächlich
+ * v6.6.10.22, v6.6.10.27, v6.7.13.0 und v6.7.14.2. Pro Lauf wird nur die tatsächlich
  * installierte Linie geprüft. Erst Task 13 führt diesen Test in zwei getrennten
  * Shopware-Kerneln aus; dieser Test behauptet keinen lokalen Doppellauf.
  */
@@ -24,6 +24,12 @@ final class ShopwareCmsResolverApiContractTest extends TestCase
     /** @var array<string, array{interface: string, criteria: string, mediaDefinition: string, testBootstrapper: string}> */
     private const EXACT_OFFICIAL_CONTRACTS = [
         '6.6.10.22' => [
+            'interface' => '024f0d30f34aeb6038c71bf1815c5e1b9bc4dc6b6b55e79a65dd20a78bfe4152',
+            'criteria' => '941db3c05ec139f0ceb18eee622dfc8fa0bc64ea751410f4925d4790d1bdd0ea',
+            'mediaDefinition' => 'fcb0a5cdfb373ec8ea9a0620ef6738520de66e8ecf7a1cda8dad3ab04ababd4a',
+            'testBootstrapper' => '39f26f8f84cc6dbed932dad70ebacb8df4876dc097ae7a04be69b988af77d3f9',
+        ],
+        '6.6.10.27' => [
             'interface' => '024f0d30f34aeb6038c71bf1815c5e1b9bc4dc6b6b55e79a65dd20a78bfe4152',
             'criteria' => '941db3c05ec139f0ceb18eee622dfc8fa0bc64ea751410f4925d4790d1bdd0ea',
             'mediaDefinition' => 'fcb0a5cdfb373ec8ea9a0620ef6738520de66e8ecf7a1cda8dad3ab04ababd4a',
@@ -51,7 +57,7 @@ final class ShopwareCmsResolverApiContractTest extends TestCase
         self::assertArrayHasKey(
             $version,
             self::EXACT_OFFICIAL_CONTRACTS,
-            'Task 13 ist bewusst auf die zwei geprüften offiziellen Shopware-Tags begrenzt.',
+            'Der Vertrag ist auf die geprüften offiziellen Shopware-Tags begrenzt.',
         );
         $contract = self::EXACT_OFFICIAL_CONTRACTS[$version];
 

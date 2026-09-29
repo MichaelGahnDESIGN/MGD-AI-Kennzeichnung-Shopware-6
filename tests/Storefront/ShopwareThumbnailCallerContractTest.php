@@ -10,7 +10,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * Prüft die tatsächlich per Composer installierte offizielle Shopware-Quelle.
  *
- * Die Hashes stammen aus den unveränderten Tags v6.6.10.22 und v6.7.13.0.
+ * Die Hashes stammen aus den geprüften offiziellen Tags der 6.6- und 6.7-Linien.
  * Damit werden keine großen Shopware-Templates kopiert. Die spätere CI-Matrix
  * führt denselben Test mit der jeweils installierten Shopware-Linie aus.
  */
@@ -19,6 +19,31 @@ final class ShopwareThumbnailCallerContractTest extends TestCase
     /** @var array<string, array{thumbnailSha256: string, calls: int, names: list<string>}> */
     private const EXACT_CONTRACTS = [
         '6.6.10.22' => [
+            'thumbnailSha256' => '8080a1849dd029fbe479cbfaf747f7d26c46c6f535e17ef0f0cea4201093a0ab',
+            'calls' => 27,
+            'names' => [
+                'cms-block-background',
+                'cms-element-vimeo-video__placeholder',
+                'cms-element-youtube-video__placeholder',
+                'cms-image-slider-thumbnails',
+                'cms-image-thumbnails',
+                'configurator-option-img-thumbnails',
+                'footer-payment-image-thumbnails',
+                'footer-shipping-image-thumbnails',
+                'gallery-slider-image-thumbnails',
+                'gallery-slider-thumbnails-image-thumbnails',
+                'line-item-img-thumbnails',
+                'minimal-image-thumbnails',
+                'navigation-flyout-teaser-image-thumbnails',
+                'payment-method-image-thumbnails',
+                'product-detail-manufacturer-image-thumbnails',
+                'product-image-thumbnails',
+                'quickview-minimal-product-manufacturer-logo',
+                'search-suggest-product-image-thumbnails',
+                'shipping-method-image-thumbnails',
+            ],
+        ],
+        '6.6.10.27' => [
             'thumbnailSha256' => '8080a1849dd029fbe479cbfaf747f7d26c46c6f535e17ef0f0cea4201093a0ab',
             'calls' => 27,
             'names' => [
@@ -101,7 +126,7 @@ final class ShopwareThumbnailCallerContractTest extends TestCase
         self::assertArrayHasKey(
             $version,
             self::EXACT_CONTRACTS,
-            'Dieser lokale Forschungscheck ist bewusst auf die beiden geprüften offiziellen Tags begrenzt.',
+            'Dieser lokale Forschungscheck ist auf die geprüften offiziellen Tags begrenzt.',
         );
         $contract = self::EXACT_CONTRACTS[$version];
 

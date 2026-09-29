@@ -15,9 +15,9 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 #[AsMessageHandler(handles: UpdateTask::class)]
 final class UpdateTaskHandler extends ScheduledTaskHandler
 {
-    public function __construct(EntityRepository $scheduledTaskRepository, LoggerInterface $logger, private readonly SystemConfigService $config, private readonly GitHubReleaseUpdater $updater)
+    public function __construct(EntityRepository $scheduledTaskRepository, private readonly LoggerInterface $updateLogger, private readonly SystemConfigService $config, private readonly GitHubReleaseUpdater $updater)
     {
-        parent::__construct($scheduledTaskRepository, $logger);
+        parent::__construct($scheduledTaskRepository, $updateLogger);
     }
 
     public function run(): void
@@ -25,7 +25,7 @@ final class UpdateTaskHandler extends ScheduledTaskHandler
         // Updates gelten global; ein Sales-Channel-Override kann sie nicht aktivieren.
         if (!$this->config->getBool('MGDAIImageLabels.config.automaticUpdates')) { return; }
         try { $this->updater->checkAndPrepare(Context::createDefaultContext()); } catch (\Throwable $error) {
-            $this->exceptionLogger->warning('MGD KI-Bildkennzeichnung: automatische Update-Vorbereitung fehlgeschlagen.', ['exceptionType' => $error::class]);
+            $this->updateLogger->warning('MGD KI-Bildkennzeichnung: automatische Update-Vorbereitung fehlgeschlagen.', ['exceptionType' => $error::class]);
         }
     }
 }
