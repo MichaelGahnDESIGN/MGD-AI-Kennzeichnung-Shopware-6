@@ -2,6 +2,17 @@
 
 Alle wesentlichen Änderungen dieses Projekts werden hier dokumentiert. Das Format orientiert sich an „Keep a Changelog“; Versionen folgen der semantischen Versionierung.
 
+## [0.1.4] – 2026-09-30
+
+### Behoben
+
+- Der GitHub-Sofortcheck und die stündliche Prüfung erkennen nun den tatsächlichen Plugin-Hauptordner. Version 0.1.3 verglich irrtümlich den Unterordner `src/` mit `custom/plugins/MGDAIImageLabels` und brach daher stets mit 503 ab.
+- Ein Regressionstest deckt den Installationspfad und einen fremden Projektpfad ab.
+
+### Updatehinweis
+
+- Installationen von 0.1.3 müssen **einmalig manuell** auf 0.1.4 aktualisiert werden, da der defekte Updater in 0.1.3 das korrigierte Release selbst nicht vorbereiten kann. Vorher Datenbank und Plugin-Dateien sichern.
+
 ## [0.1.3] – 2026-09-29
 
 ### Hinzugefügt

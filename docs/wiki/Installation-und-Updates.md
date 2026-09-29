@@ -64,7 +64,7 @@ Verwenden Sie ein dafür freigegebenes Testmedium. Kennzeichnen Sie keine echten
 
 ### Einmaliger Umstieg auf den GitHub-Updater
 
-Die Versionen bis einschließlich 0.1.2 besitzen keinen GitHub-Updater. Deshalb 0.1.3 einmalig über das unveränderte Release-ZIP in **Erweiterungen → Meine Erweiterungen** oder per CLI installieren. Ohne diesen Schritt kann eine alte Installation neue GitHub-Releases nicht erkennen.
+Die Versionen bis einschließlich 0.1.2 besitzen keinen GitHub-Updater. Version 0.1.3 enthält einen Pfadfehler im Update-Check. Deshalb alle Installationen bis einschließlich 0.1.3 einmalig über das unveränderte Release-ZIP `0.1.4` in **Erweiterungen → Meine Erweiterungen** oder per CLI aktualisieren. Ohne diesen Schritt kann eine alte Installation neue GitHub-Releases nicht zuverlässig vorbereiten.
 
 ### Danach: optionaler stündlicher Check
 
