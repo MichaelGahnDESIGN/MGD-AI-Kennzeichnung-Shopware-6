@@ -35,6 +35,12 @@ final class ShopwareCmsResolverApiContractTest extends TestCase
             'mediaDefinition' => '6c2c470012d2974cb9c6614695658956658d84ebf1daf7a06ad95f81b4fd4f61',
             'testBootstrapper' => '55b22f45ec2e459d1443b5e2b810c4aa65f209f5c5290efd91a52176a939dc74',
         ],
+        '6.7.14.2' => [
+            'interface' => '024f0d30f34aeb6038c71bf1815c5e1b9bc4dc6b6b55e79a65dd20a78bfe4152',
+            'criteria' => '941db3c05ec139f0ceb18eee622dfc8fa0bc64ea751410f4925d4790d1bdd0ea',
+            'mediaDefinition' => '7acbfb2aa4bb52cf24ec3d85aadf6d09b57b8661721bc0395425cefa744210dd',
+            'testBootstrapper' => '85ec850ac29aa693450f79a29082adb1e5c78e2cdab41a6c0d5b9f8d54e59ccf',
+        ],
     ];
 
     public function testInstalledOfficialSourceMatchesItsResearchedContract(): void

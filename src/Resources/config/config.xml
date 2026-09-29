@@ -84,4 +84,16 @@
             <helpText>Background blur of the label in pixels.</helpText><helpText lang="de-DE">Hintergrundunschärfe der Kennzeichnung in Pixeln.</helpText>
         </input-field>
     </card>
+    <card>
+        <title>GitHub updates</title>
+        <title lang="de-DE">GitHub-Updates</title>
+        <input-field type="bool">
+            <name>automaticUpdates</name>
+            <label>Check GitHub releases hourly and prepare updates</label>
+            <label lang="de-DE">Stündlich GitHub-Releases prüfen und Update vorbereiten</label>
+            <defaultValue>false</defaultValue>
+            <helpText>Disabled by default. Configure globally. Requires Shopware scheduler and queue worker. Verified releases are prepared with a private rollback copy; then run the native Shopware plugin update. Plan a backup and maintenance window.</helpText>
+            <helpText lang="de-DE">Standardmäßig aus. Nur global einstellen. Ein laufender Shopware-Scheduler und Queue-Worker sind erforderlich. Geprüfte neuere Releases werden mit privater Rückfallsicherung vorbereitet; den eigentlichen Plugin-Updatevorgang anschließend in Shopware ausführen. Vorher Backup und Wartungsfenster einplanen.</helpText>
+        </input-field>
+    </card>
 </config>

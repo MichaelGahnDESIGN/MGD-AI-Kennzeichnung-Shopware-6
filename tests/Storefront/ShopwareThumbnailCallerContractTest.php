@@ -67,6 +67,30 @@ final class ShopwareThumbnailCallerContractTest extends TestCase
                 'shipping-method-image-thumbnails',
             ],
         ],
+        '6.7.14.2' => [
+            'thumbnailSha256' => '2ab633c06b67020f3ec0f1fb7a6529cb96ba91879447d19cdec9df039d85f923',
+            'calls' => 24,
+            'names' => [
+                'cms-block-background',
+                'cms-element-vimeo-video__placeholder',
+                'cms-element-youtube-video__placeholder',
+                'cms-image-slider-thumbnails',
+                'cms-image-thumbnails',
+                'configurator-option-img-thumbnails',
+                'footer-payment-image-thumbnails',
+                'footer-shipping-image-thumbnails',
+                'gallery-slider-image-thumbnails',
+                'gallery-slider-thumbnails-image-thumbnails',
+                'line-item-img-thumbnails',
+                'minimal-image-thumbnails',
+                'navigation-flyout-teaser-image-thumbnails',
+                'payment-method-image-thumbnails',
+                'product-image-thumbnails',
+                'quickview-minimal-product-manufacturer-logo',
+                'search-suggest-product-image-thumbnails',
+                'shipping-method-image-thumbnails',
+            ],
+        ],
     ];
 
     public function testInstalledExactOfficialTagMatchesTheResearchedCallerInventory(): void

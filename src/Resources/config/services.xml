@@ -26,6 +26,37 @@
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
         </service>
 
+        <!-- GitHub-Prüfung ist standardmäßig aus und verändert keine Shopware-Datenbank.
+             Die Vorbereitung validiert Release, Prüfsumme und ZIP, bevor Dateien gewechselt werden. -->
+        <service id="MGDAIImageLabels\Update\ArchiveValidator"/>
+        <service id="MGDAIImageLabels\Update\DownloadPolicy"/>
+        <service id="MGDAIImageLabels\Update\GitHubClient">
+            <argument type="service" id="MGDAIImageLabels\Update\DownloadPolicy"/>
+        </service>
+        <service id="MGDAIImageLabels\Update\AtomicInstaller">
+            <argument type="service" id="MGDAIImageLabels\Update\ArchiveValidator"/>
+        </service>
+        <service id="MGDAIImageLabels\Update\GitHubReleaseUpdater">
+            <argument type="service" id="MGDAIImageLabels\Update\GitHubClient"/>
+            <argument type="service" id="MGDAIImageLabels\Update\AtomicInstaller"/>
+            <argument type="service" id="Shopware\Core\Framework\Plugin\PluginService"/>
+            <argument>%kernel.project_dir%</argument>
+        </service>
+        <service id="MGDAIImageLabels\Administration\Controller\UpdateController" public="true">
+            <argument type="service" id="MGDAIImageLabels\Update\GitHubReleaseUpdater"/>
+            <argument type="service" id="logger"/>
+        </service>
+        <service id="MGDAIImageLabels\ScheduledTask\UpdateTask">
+            <tag name="shopware.scheduled.task"/>
+        </service>
+        <service id="MGDAIImageLabels\ScheduledTask\UpdateTaskHandler">
+            <argument type="service" id="scheduled_task.repository"/>
+            <argument type="service" id="logger"/>
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+            <argument type="service" id="MGDAIImageLabels\Update\GitHubReleaseUpdater"/>
+            <tag name="messenger.message_handler" handles="MGDAIImageLabels\ScheduledTask\UpdateTask"/>
+        </service>
+
         <!-- Kleine, explizit verdrahtete Dienste für das sichere Storefront-Viewmodell. -->
         <service id="MGDAIImageLabels\Media\MediaLabelMetadataNormalizer"/>
         <service id="MGDAIImageLabels\Configuration\DisplayConfigurationProvider">

@@ -62,13 +62,24 @@ Verwenden Sie ein dafür freigegebenes Testmedium. Kennzeichnen Sie keine echten
 
 ## Update
 
-1. Changelog und unterstützte Versionen lesen.
-2. Neues Backup anlegen.
-3. Update zuerst in Staging installieren.
-4. Plugin-Aktivität, Konfiguration und Custom Fields prüfen.
-5. Administration und Storefront bauen.
-6. Verkaufskanäle in beiden Sprachen testen.
-7. Erst danach produktiv aktualisieren.
+### Einmaliger Umstieg auf den GitHub-Updater
+
+Die Versionen bis einschließlich 0.1.2 besitzen keinen GitHub-Updater. Deshalb 0.1.3 einmalig über das unveränderte Release-ZIP in **Erweiterungen → Meine Erweiterungen** oder per CLI installieren. Ohne diesen Schritt kann eine alte Installation neue GitHub-Releases nicht erkennen.
+
+### Danach: optionaler stündlicher Check
+
+1. Changelog, Shopware-/PHP-Kompatibilität und Rückfallplan prüfen; Datenbank und Plugin-Dateien sichern.
+2. In den Plugin-Einstellungen global **GitHub-Updates → Stündlich GitHub-Releases prüfen und Update vorbereiten** aktivieren. Standard ist **aus**.
+3. Shopwares Scheduled-Task-Scheduler und Queue-Worker müssen tatsächlich laufen. Ohne sie findet kein periodischer Check statt.
+4. Das Plugin fragt höchstens stündlich das neueste stabile öffentliche GitHub-Release ab. Nur das exakt zum Tag passende ZIP-Asset mit GitHub-SHA-256-Prüfsumme wird akzeptiert. ZIP-Pfade, Dateitypen, Plugin-Identität und unveränderte Composer-Laufzeitabhängigkeiten werden geprüft.
+5. Die neue Version wird im privaten Ordner var/mgd-ai-image-labels mit einer Sicherung der bisherigen Plugin-Dateien vorbereitet. Danach **Plugin aktualisieren** in Shopware ausführen. Die Vorbereitung allein führt Shopwares Update-Lebenszyklus nicht aus.
+6. Plugin-Aktivität, Konfiguration, Custom Fields, Administration, Storefront und Verkaufskanäle in beiden Sprachen prüfen.
+
+Ein GitHub-Release löst **kein sofortiges Push-Ereignis** in Shopware aus. Der Rhythmus ist auf eine Stunde gesetzt; ein Administrator kann den geschützten Sofortcheck POST /api/_action/mgd-ai-image-labels/update/check mit der Shopware-Admin-API und system_config:update auslösen. Dafür keine Zugangsdaten in Skripten oder URLs speichern. Eine sichtbare Sofortcheck-Schaltfläche ist derzeit nicht Bestandteil der Administration.
+
+Auch nach einem erfolgreichen Check wird **nicht stillschweigend** das Plugin aktualisiert. Der Administrator wählt Zeitpunkt und Wartungsfenster. Wenn das Release Laufzeitabhängigkeiten ändert, bricht die Vorbereitung ab; dann ist die native manuelle Shopware-Installation mit Kompatibilitätsprüfung erforderlich. Der Mechanismus funktioniert nur bei ZIP-Installationen unter custom/plugins/MGDAIImageLabels, nicht bei Composer-verwalteten Plugins. Der Webserver benötigt Schreibrechte für diesen Ordner und das private var-Verzeichnis. Bei fehlenden Rechten oder GitHub-Ausfall bleibt die bestehende Installation erhalten.
+
+Die Vorbereitung verschiebt die vorhandenen Plugin-Dateien in eine private Rückfallsicherung. Zwischen zwei Verzeichnisumbenennungen gibt es eine kurze Umschaltlücke: Bei produktiven Shops ein Wartungsfenster verwenden. Die Sicherung nicht unbesehen löschen. Vor jedem produktiven Versionswechsel zunächst Staging prüfen; das Plugin ersetzt weder ein Datenbank- noch ein Serverbackup.
 
 ## Cache und Theme
 
@@ -84,4 +95,3 @@ Bei mehreren Verkaufskanälen jeden aktiven Kanal kontrollieren. CDN- oder Proxy
 ## Rückfall
 
 Bei einer Auffälligkeit zuerst das Plugin deaktivieren, Cache leeren und Theme kompilieren. Bleibt der Fehler bestehen, ist die Ursache wahrscheinlich nicht allein die aktive Plugin-Ausgabe. Für eine Deinstallation oder vollständige Wiederherstellung gilt die Anleitung [Deinstallation und Wiederherstellung](Deinstallation-und-Wiederherstellung).
-
