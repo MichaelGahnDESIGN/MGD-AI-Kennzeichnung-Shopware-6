@@ -16,7 +16,9 @@ concurrency:
 jobs:
     secret-scan:
         name: Geheimnisscan
-        runs-on: [self-hosted, Linux]
+        # Der öffentliche Quellcode benötigt keine Server-Secrets. GitHub-gehostete
+        # Runner halten die Qualitätsprüfung auch ohne eigenen Online-Runner lauffähig.
+        runs-on: ubuntu-latest
         steps:
             - name: Quellcode sicher auschecken
               # Quelle: https://github.com/actions/checkout/releases/tag/v7.0.1
@@ -46,7 +48,7 @@ jobs:
 
     quality:
         name: Shopware ${{ matrix.shopware }} / PHP ${{ matrix.php }}
-        runs-on: [self-hosted, Linux]
+        runs-on: ubuntu-latest
         strategy:
             fail-fast: false
             matrix:
