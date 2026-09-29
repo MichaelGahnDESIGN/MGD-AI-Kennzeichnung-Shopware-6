@@ -2,6 +2,18 @@
 
 Alle wesentlichen Änderungen dieses Projekts werden hier dokumentiert. Das Format orientiert sich an „Keep a Changelog“; Versionen folgen der semantischen Versionierung.
 
+## [0.1.3] – 2026-09-29
+
+### Hinzugefügt
+
+- Optionaler stündlicher GitHub-Release-Check für ZIP-Installationen. Eine neuere Version wird nach SHA-256-, Pfad-, Identitäts- und Abhängigkeitsprüfung mit privater Rückfallsicherung für Shopwares nativen Plugin-Updatevorgang vorbereitet.
+- Geschützter Admin-API-Sofortcheck für Administratoren mit Konfigurationsrecht.
+
+### Sicherheit und Betrieb
+
+- Automatische Prüfung bleibt standardmäßig ausgeschaltet. Es findet keine automatische Ausführung des Shopware-Plugin-Updates statt.
+- Der Umstieg von 0.1.2 auf 0.1.3 erfolgt einmalig per ZIP oder CLI. Erst danach kann das Plugin GitHub-Releases selbst erkennen.
+
 ## [0.1.2] – 2026-08-14
 
 ### Behoben

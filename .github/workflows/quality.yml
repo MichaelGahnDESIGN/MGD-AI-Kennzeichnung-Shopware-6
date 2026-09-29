@@ -16,7 +16,9 @@ concurrency:
 jobs:
     secret-scan:
         name: Geheimnisscan
-        runs-on: [self-hosted, Linux]
+        # Der öffentliche Quellcode benötigt keine Server-Secrets. GitHub-gehostete
+        # Runner halten die Qualitätsprüfung auch ohne eigenen Online-Runner lauffähig.
+        runs-on: ubuntu-latest
         steps:
             - name: Quellcode sicher auschecken
               # Quelle: https://github.com/actions/checkout/releases/tag/v7.0.1
@@ -46,7 +48,7 @@ jobs:
 
     quality:
         name: Shopware ${{ matrix.shopware }} / PHP ${{ matrix.php }}
-        runs-on: [self-hosted, Linux]
+        runs-on: ubuntu-latest
         strategy:
             fail-fast: false
             matrix:
@@ -172,7 +174,7 @@ jobs:
             # Artefakt bereitgestellt wird, nicht einen abweichenden Quellbaum.
             - name: Ausgeliefertes Shopware-Erweiterungspaket validieren
               if: matrix.shopware == '6.7' && matrix.php == '8.4'
-              run: shopware-cli --no-interaction extension validate dist/MGDAIImageLabels-0.1.2.zip
+              run: shopware-cli --no-interaction extension validate dist/MGDAIImageLabels-0.1.3.zip
 
             - name: Release-ZIP als Artefakt bereitstellen
               if: github.event_name != 'pull_request' && matrix.shopware == '6.7' && matrix.php == '8.4'

@@ -37,6 +37,7 @@ final class DisplayConfigurationConfigXmlTest extends TestCase
             'paddingX',
             'radius',
             'blur',
+            'automaticUpdates',
         ], array_keys($elements));
 
         $this->assertIntField($elements['fontSize'], DisplayConfiguration::DEFAULT_FONT_SIZE, DisplayConfiguration::MIN_FONT_SIZE, DisplayConfiguration::MAX_FONT_SIZE);
