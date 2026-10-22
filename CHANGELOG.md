@@ -1,5 +1,11 @@
 # Änderungsprotokoll
 
+## 0.1.5 – 2026-10-22
+
+- Plugin-Icon lokal eingebunden und im Release-Paket enthalten.
+- Darstellung in der Erweiterungsverwaltung ergänzt beziehungsweise verbessert.
+- Keine Änderung an Fachlogik, Einstellungen oder Datenbank.
+
 Alle wesentlichen Änderungen dieses Projekts werden hier dokumentiert. Das Format orientiert sich an „Keep a Changelog“; Versionen folgen der semantischen Versionierung.
 
 ## [0.1.4] – 2026-09-30

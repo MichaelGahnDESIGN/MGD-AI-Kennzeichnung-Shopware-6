@@ -1,76 +1,77 @@
 {
-    "name": "michaelgahn-design/mgd-ai-kennzeichnung-shopware-6",
-    "description": "Transparente und barrierefreie KI-Bildkennzeichnungen für Shopware 6.",
-    "type": "shopware-platform-plugin",
-    "license": "GPL-2.0-or-later",
-    "authors": [
-        {
-            "name": "Michael Gahn DESIGN",
-            "homepage": "https://github.com/MichaelGahnDESIGN"
-        }
-    ],
-    "require": {
-        "php": "^8.2",
-        "shopware/core": "~6.6.10 || ~6.7.0",
-        "shopware/storefront": "~6.6.10 || ~6.7.0"
-    },
-    "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3.68",
-        "phpstan/phpstan": "^1.12 || ^2.0",
-        "phpunit/phpunit": "^10.5 || ^11.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "MGDAIImageLabels\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "MGDAIImageLabels\\Tests\\": "tests/"
-        }
-    },
-    "extra": {
-        "shopware-plugin-class": "MGDAIImageLabels\\MGDAIImageLabels",
-        "label": {
-            "de-DE": "MGD KI-Bildkennzeichnung",
-            "en-GB": "MGD AI Image Labels"
-        },
-        "description": {
-            "de-DE": "Kennzeichnet KI-generierte, teilweise KI-generierte, bearbeitete und Deepfake-Bilder sicher, transparent, barrierefrei und zweisprachig direkt in Shopware 6.",
-            "en-GB": "Labels AI-generated, partially AI-generated, edited and deepfake images transparently, accessibly and bilingually throughout the Shopware 6 storefront."
-        },
-        "manufacturerLink": {
-            "de-DE": "https://github.com/MichaelGahnDESIGN",
-            "en-GB": "https://github.com/MichaelGahnDESIGN"
-        },
-        "supportLink": {
-            "de-DE": "https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/blob/main/SECURITY.md",
-            "en-GB": "https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/blob/main/SECURITY.md"
-        },
-        "mgd-release-version": "0.1.4"
-    },
-    "config": {
-        "allow-plugins": {
-            "symfony/runtime": true
-        },
-        "platform": {
-            "php": "8.2.0"
-        }
-    },
-    "scripts": {
-        "test:unit": "phpunit --testsuite unit",
-        "test:integration": [
-            "@php tests/Integration/preflight.php",
-            "phpunit --testsuite integration --fail-on-skipped"
-        ],
-        "analyse:phpstan": "phpstan analyse -c phpstan.neon.dist --memory-limit=1G",
-        "check:style": "php-cs-fixer fix --dry-run --diff",
-        "check:php": [
-            "composer validate --strict",
-            "php -l src/MGDAIImageLabels.php",
-            "@test:unit",
-            "@analyse:phpstan",
-            "@check:style"
-        ]
+  "name": "michaelgahn-design/mgd-ai-kennzeichnung-shopware-6",
+  "description": "Transparente und barrierefreie KI-Bildkennzeichnungen für Shopware 6.",
+  "type": "shopware-platform-plugin",
+  "license": "GPL-2.0-or-later",
+  "authors": [
+    {
+      "name": "Michael Gahn DESIGN",
+      "homepage": "https://github.com/MichaelGahnDESIGN"
     }
+  ],
+  "require": {
+    "php": "^8.2",
+    "shopware/core": "~6.6.10 || ~6.7.0",
+    "shopware/storefront": "~6.6.10 || ~6.7.0"
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3.68",
+    "phpstan/phpstan": "^1.12 || ^2.0",
+    "phpunit/phpunit": "^10.5 || ^11.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "MGDAIImageLabels\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "MGDAIImageLabels\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "shopware-plugin-class": "MGDAIImageLabels\\MGDAIImageLabels",
+    "label": {
+      "de-DE": "MGD KI-Bildkennzeichnung",
+      "en-GB": "MGD AI Image Labels"
+    },
+    "description": {
+      "de-DE": "Kennzeichnet KI-generierte, teilweise KI-generierte, bearbeitete und Deepfake-Bilder sicher, transparent, barrierefrei und zweisprachig direkt in Shopware 6.",
+      "en-GB": "Labels AI-generated, partially AI-generated, edited and deepfake images transparently, accessibly and bilingually throughout the Shopware 6 storefront."
+    },
+    "manufacturerLink": {
+      "de-DE": "https://github.com/MichaelGahnDESIGN",
+      "en-GB": "https://github.com/MichaelGahnDESIGN"
+    },
+    "supportLink": {
+      "de-DE": "https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/blob/main/SECURITY.md",
+      "en-GB": "https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/blob/main/SECURITY.md"
+    },
+    "mgd-release-version": "0.1.5",
+    "plugin-icon": "src/Resources/config/plugin.png"
+  },
+  "config": {
+    "allow-plugins": {
+      "symfony/runtime": true
+    },
+    "platform": {
+      "php": "8.2.0"
+    }
+  },
+  "scripts": {
+    "test:unit": "phpunit --testsuite unit",
+    "test:integration": [
+      "@php tests/Integration/preflight.php",
+      "phpunit --testsuite integration --fail-on-skipped"
+    ],
+    "analyse:phpstan": "phpstan analyse -c phpstan.neon.dist --memory-limit=1G",
+    "check:style": "php-cs-fixer fix --dry-run --diff",
+    "check:php": [
+      "composer validate --strict",
+      "php -l src/MGDAIImageLabels.php",
+      "@test:unit",
+      "@analyse:phpstan",
+      "@check:style"
+    ]
+  }
 }
