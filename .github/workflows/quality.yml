@@ -175,7 +175,7 @@ jobs:
             # Artefakt bereitgestellt wird, nicht einen abweichenden Quellbaum.
             - name: Ausgeliefertes Shopware-Erweiterungspaket validieren
               if: matrix.shopware == '6.7' && matrix.php == '8.4'
-              run: shopware-cli --no-interaction extension validate dist/MGDAIImageLabels-0.1.6.zip
+              run: shopware-cli --no-interaction extension validate dist/MGDAIImageLabels-0.1.7.zip
 
             - name: Release-ZIP als Artefakt bereitstellen
               if: github.event_name != 'pull_request' && matrix.shopware == '6.7' && matrix.php == '8.4'
@@ -186,3 +186,27 @@ jobs:
                   path: dist/MGDAIImageLabels-*.zip
                   if-no-files-found: error
                   retention-days: 14
+
+    built-assets:
+        name: Fertige Oberflächen frisch bauen und prüfen
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: '22'
+            - name: Shopware CLI 0.15.12 mit Prüfsumme installieren
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  mkdir -p /tmp/mgd-cli
+                  gh release download 0.15.12 --repo shopware/shopware-cli --pattern shopware-cli_Linux_x86_64.tar.gz --pattern checksums.txt --dir /tmp/mgd-cli
+                  cd /tmp/mgd-cli
+                  grep '  shopware-cli_Linux_x86_64.tar.gz$' checksums.txt | sha256sum -c -
+                  tar -xzf shopware-cli_Linux_x86_64.tar.gz
+            - name: Paketstand und frischen Build prüfen
+              run: |
+                  python3 scripts/build-assets.py --check
+                  python3 scripts/build-assets.py --cli /tmp/mgd-cli/shopware-cli
+                  node --test tests/Administration/built-assets.test.mjs
+                  git diff --exit-code -- src/Resources/public

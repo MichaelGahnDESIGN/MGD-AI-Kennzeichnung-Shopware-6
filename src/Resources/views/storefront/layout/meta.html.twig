@@ -1,0 +1,7 @@
+{% sw_extends '@Storefront/storefront/layout/meta.html.twig' %}
+
+{% block layout_head_stylesheet %}
+    {{ parent() }}
+    {# Fertige Plugin-Stile benötigen keinen Theme-Build auf dem Zielserver. #}
+    <link rel="stylesheet" href="{{ asset('bundles/mgdaiimagelabels/storefront/mgd-ai-labels.css', 'asset') }}">
+{% endblock %}

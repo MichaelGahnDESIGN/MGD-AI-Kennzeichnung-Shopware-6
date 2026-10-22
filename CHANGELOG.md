@@ -1,5 +1,14 @@
 # Änderungsprotokoll
 
+## 0.1.7 – 2026-10-23
+
+- Administration vollständig frisch gebaut; Bulk-Bearbeitung ist jetzt auch im ausgelieferten JavaScript enthalten.
+- Fertige Administration für Shopware 6.6/6.7 und Storefront-CSS im Upload-ZIP.
+- Quell- und Asset-Prüfsummen verhindern Releases mit veralteten Oberflächendateien.
+- CI baut isoliert neu und prüft das tatsächlich ausgelieferte JavaScript.
+- Upload und GitHub-Updates benötigen keinen manuellen Administration-/Theme-Build.
+
+
 ## 0.1.6 – 2026-10-22
 
 - Sammelbearbeitung der KI-Kennzeichnung direkt in der Medien-Mehrfachauswahl.

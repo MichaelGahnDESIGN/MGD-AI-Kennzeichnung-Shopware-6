@@ -30,7 +30,7 @@ Backups müssen verschlüsselt oder angemessen zugriffsgeschützt gespeichert we
 3. **Erweiterung hochladen** wählen und das ZIP unverändert hochladen.
 4. **MGD AI Kennzeichnung Shopware 6** installieren.
 5. Plugin aktivieren.
-6. Cache leeren und Theme kompilieren.
+6. Den nativen Shopware-Updatevorgang abschließen und die Administration neu laden.
 7. Administration und Storefront prüfen.
 
 ## Installation per CLI
@@ -95,3 +95,11 @@ Bei mehreren Verkaufskanälen jeden aktiven Kanal kontrollieren. CDN- oder Proxy
 ## Rückfall
 
 Bei einer Auffälligkeit zuerst das Plugin deaktivieren, Cache leeren und Theme kompilieren. Bleibt der Fehler bestehen, ist die Ursache wahrscheinlich nicht allein die aktive Plugin-Ausgabe. Für eine Deinstallation oder vollständige Wiederherstellung gilt die Anleitung [Deinstallation und Wiederherstellung](Deinstallation-und-Wiederherstellung).
+
+## Fertige Upload-Pakete ab 0.1.7
+
+Das Release-ZIP enthält die aktuelle Administration für Shopware 6.6/6.7 und fertig kompilierte Storefront-Stile. ZIP unter „Meine Erweiterungen“ hochladen, das reguläre Update ausführen und die Administration neu laden. Ein eigener Administration- oder Theme-Build ist für dieses Plugin nicht mehr nötig. Shopwares nativer Updateablauf kopiert die fertigen Dateien und behandelt seine Caches. Sonderkonfigurationen mit deaktivierter Asset-Veröffentlichung oder vorgeschaltetem CDN müssen weiterhin betrieblich berücksichtigt werden.
+
+Der GitHub-Updater verwendet dasselbe vollständige ZIP. Die Prüfung und Dateivorbereitung ersetzen weiterhin nicht den abschließenden nativen Updatevorgang. Auf dem Shopserver werden keine npm-Installation und kein Build gestartet.
+
+Für Entwickler: `python3 scripts/build-assets.py` baut mit Shopware CLI 0.15.12 und fest gepinnten Sass-Abhängigkeiten in temporären Verzeichnissen. Danach die erzeugten Dateien unter `src/Resources/public` mit versionieren. `python3 scripts/build-assets.py --check` prüft Quell- und Ausgabedateien gegen den Buildnachweis. Der ZIP-Build bricht bei veralteten Assets ab. GitHub CI baut zusätzlich unabhängig neu und vergleicht die Ausgabe. Der Test des fertigen JavaScript-Bundles prüft insbesondere die Registrierung der Bulk-Oberfläche.

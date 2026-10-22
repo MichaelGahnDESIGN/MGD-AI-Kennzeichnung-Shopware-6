@@ -107,7 +107,7 @@ Andere Patchstände und vollständig eigene Themes benötigen weiterhin eine Sta
 2. Das aktuelle ZIP unter [Releases](https://github.com/MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopware-6/releases/latest) herunterladen.
 3. In Shopware **Erweiterungen → Meine Erweiterungen → Erweiterung hochladen** öffnen.
 4. ZIP hochladen, installieren und aktivieren.
-5. Cache leeren und Theme kompilieren.
+5. Den nativen Shopware-Updatevorgang abschließen und die Administration neu laden.
 6. Administration, aktive Verkaufskanäle und mindestens ein Testmedium kontrollieren.
 
 ### Installation per CLI
@@ -300,4 +300,12 @@ Die Auswahl gilt ausschließlich für markierte Bildmedien, nicht für alle Bild
 
 Erforderlich ist das Shopware-Recht zum Bearbeiten von Medien. Die Anwendung liest jedes Bild vor dem Speichern frisch und ändert ausschließlich die gewählten MGD-Felder. Weitere Zusatzfelder bleiben erhalten. Bei einem Fehler werden die übrigen Bilder weiter verarbeitet. Es gibt keine automatische Rücknahme bereits erfolgreicher Änderungen. Prüfen Sie bei Fehlern die Auswahl und wiederholen Sie den Vorgang bei Bedarf; identische Werte können erneut angewendet werden. Gleichzeitige Änderungen derselben Medien durch andere Bearbeiter sollten vermieden werden.
 
-Die Einbindung wurde anhand des offiziellen Quellcodes von Shopware 6.6.10.27 und 6.7.15.1 geprüft. Automatische Verhaltenstests decken Filterung, Feldschutz, Berechtigungen, Sprache und Teilerfolge ab. Ein manueller Durchlauf in einer installierten Shopware-6.7.15.1-Administration steht noch aus. Nach dem Plugin-Update muss die Shopware-Administration neu gebaut und der Browser neu geladen werden, wie unter Installation beschrieben.
+Die Einbindung wurde anhand des offiziellen Quellcodes von Shopware 6.6.10.27 und 6.7.15.1 geprüft. Automatische Verhaltenstests decken Filterung, Feldschutz, Berechtigungen, Sprache und Teilerfolge ab. Ein manueller Durchlauf in einer installierten Shopware-6.7.15.1-Administration steht noch aus. Ab 0.1.7 enthält das Release die fertig gebaute Administration. Nach dem nativen Plugin-Update genügt ein Neuladen des Browsers.
+
+## Fertige Upload-Pakete ab 0.1.7
+
+Das Release-ZIP enthält die aktuelle Administration für Shopware 6.6/6.7 und fertig kompilierte Storefront-Stile. ZIP unter „Meine Erweiterungen“ hochladen, das reguläre Update ausführen und die Administration neu laden. Ein eigener Administration- oder Theme-Build ist für dieses Plugin nicht mehr nötig. Shopwares nativer Updateablauf kopiert die fertigen Dateien und behandelt seine Caches. Sonderkonfigurationen mit deaktivierter Asset-Veröffentlichung oder vorgeschaltetem CDN müssen weiterhin betrieblich berücksichtigt werden.
+
+Der GitHub-Updater verwendet dasselbe vollständige ZIP. Die Prüfung und Dateivorbereitung ersetzen weiterhin nicht den abschließenden nativen Updatevorgang. Auf dem Shopserver werden keine npm-Installation und kein Build gestartet.
+
+Für Entwickler: `python3 scripts/build-assets.py` baut mit Shopware CLI 0.15.12 und fest gepinnten Sass-Abhängigkeiten in temporären Verzeichnissen. Danach die erzeugten Dateien unter `src/Resources/public` mit versionieren. `python3 scripts/build-assets.py --check` prüft Quell- und Ausgabedateien gegen den Buildnachweis. Der ZIP-Build bricht bei veralteten Assets ab. GitHub CI baut zusätzlich unabhängig neu und vergleicht die Ausgabe. Der Test des fertigen JavaScript-Bundles prüft insbesondere die Registrierung der Bulk-Oberfläche.

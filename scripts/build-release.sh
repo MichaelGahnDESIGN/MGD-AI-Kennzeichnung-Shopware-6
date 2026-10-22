@@ -74,6 +74,11 @@ trap 'terminate_with_code 130' INT
 trap 'terminate_with_code 143' TERM
 trap 'terminate_with_code 129' HUP
 
+# Quelländerungen dürfen niemals mit alten Oberflächendateien veröffentlicht werden.
+if [[ -f "${project_root}/src/Resources/app/administration/src/main.js" ]]; then
+    python3 "${project_root}/scripts/build-assets.py" --check
+fi
+
 package_root="${release_temp_dir}/MGDAIImageLabels"
 install -d -m 0755 "${package_root}"
 
