@@ -87,12 +87,13 @@ jobs:
             - name: Composer-Metadaten prüfen
               run: composer validate --strict
 
-            - name: Shopware-Abhängigkeiten frisch auflösen
+            - name: Dokumentierte Shopware-Prüfversionen installieren
               shell: bash
               run: |
+                  # Die Quellcode-Vertragstests prüfen exakt diese dokumentierten Tags.
                   case "${{ matrix.shopware }}" in
-                      '6.6.10') shopware_constraint='~6.6.10.0' ;;
-                      '6.7') shopware_constraint='~6.7.0' ;;
+                      '6.6.10') shopware_constraint='6.6.10.27' ;;
+                      '6.7') shopware_constraint='6.7.14.2' ;;
                       *) echo 'Unbekannte Shopware-Linie.' >&2; exit 1 ;;
                   esac
                   composer config platform.php "${{ matrix.php }}"
