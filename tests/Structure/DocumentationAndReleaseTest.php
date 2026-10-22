@@ -117,7 +117,7 @@ final class DocumentationAndReleaseTest extends TestCase
         );
         self::assertSame('1.25.x', $this->workflowStep($steps, 'Go einrichten')['with']['go-version'] ?? null);
 
-        $dependencyStep = $this->workflowStep($steps, 'Shopware-Abhängigkeiten frisch auflösen');
+        $dependencyStep = $this->workflowStep($steps, 'Dokumentierte Shopware-Prüfversionen installieren');
         $dependencyCommand = $dependencyStep['run'] ?? null;
         self::assertIsString($dependencyCommand);
         self::assertStringContainsString('composer require --no-update', $dependencyCommand);
