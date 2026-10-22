@@ -1,0 +1,23 @@
+<sw-media-collapse v-if="images.length || busy" :title="$t('mgd-ai-image-labels.bulk.title')" :expand-on-loading="true">
+    <template #content>
+        <div class="mgd-ai-media-bulk">
+            <p>{{ $t('mgd-ai-image-labels.bulk.selection', { count: images.length }) }}</p>
+            <p>{{ $t('mgd-ai-image-labels.bulk.help') }}</p>
+            <fieldset :disabled="busy || !allowed">
+                <legend class="mgd-ai-media-bulk__legend">{{ $t('mgd-ai-image-labels.bulk.title') }}</legend>
+                <label v-for="field in fields" :key="field">
+                    <span>{{ $t('mgd-ai-image-labels.bulk.' + field) }}</span>
+                    <select v-model="values[field]">
+                        <option value="">{{ $t('mgd-ai-image-labels.bulk.unchanged') }}</option>
+                        <option v-for="value in options[field]" :key="value" :value="value">{{ label(field, value) }}</option>
+                    </select>
+                </label>
+                <button type="button" :disabled="busy || !allowed || !changed || !images.length" @click="apply">
+                    {{ $t('mgd-ai-image-labels.bulk.apply', { count: images.length }) }}
+                </button>
+            </fieldset>
+            <p v-if="!allowed">{{ $t('mgd-ai-image-labels.bulk.permission') }}</p>
+            <p role="status" aria-live="polite">{{ progress || outcome }}</p>
+        </div>
+    </template>
+</sw-media-collapse>

@@ -1,5 +1,13 @@
 # Änderungsprotokoll
 
+## 0.1.6 – 2026-10-22
+
+- Sammelbearbeitung der KI-Kennzeichnung direkt in der Medien-Mehrfachauswahl.
+- Status, Position und Darstellung einzeln ändern oder unverändert lassen.
+- Nur Bilder werden verarbeitet; andere Zusatzfelder bleiben erhalten.
+- Medienrechte, aktive Sprache, Fortschritt und Teilergebnisse werden berücksichtigt.
+- Keine Datenbankmigration und keine neuen externen Dienste.
+
 ## 0.1.5 – 2026-10-22
 
 - Plugin-Icon lokal eingebunden und im Release-Paket enthalten.

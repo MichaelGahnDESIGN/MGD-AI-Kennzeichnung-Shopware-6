@@ -1,0 +1,14 @@
+.mgd-ai-media-bulk {
+    padding: 0 24px 16px;
+    font-size: 14px;
+    p { margin-bottom: 12px; }
+    fieldset { border: 0; padding: 0; min-width: 0; }
+    &__legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    label { display: block; margin-bottom: 16px; }
+    label span { display: block; margin-bottom: 6px; }
+    select, button { width: 100%; min-height: 40px; padding: 8px 12px; border-radius: 4px; font: inherit; }
+    select { color: inherit; background: var(--color-elevation-surface-default, #fff); border: 1px solid var(--color-border-primary-default, #a3b3c2); }
+    button { background: #0875e1; color: #fff; border: 1px solid transparent; cursor: pointer; }
+    button:disabled { opacity: .5; cursor: default; }
+    select:focus-visible, button:focus-visible { outline: 2px solid #0875e1; outline-offset: 3px; }
+}

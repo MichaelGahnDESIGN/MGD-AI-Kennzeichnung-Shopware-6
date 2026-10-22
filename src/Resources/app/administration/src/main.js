@@ -1,3 +1,5 @@
+import './component/mgd-ai-media-bulk/index.js';
+import './extension/sw-media-quickinfo-multiple/index.js';
 /**
  * Einstiegspunkt der Shopware-Administration.
  *

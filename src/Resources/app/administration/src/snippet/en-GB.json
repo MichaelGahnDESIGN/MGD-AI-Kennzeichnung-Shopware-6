@@ -63,12 +63,42 @@
                     "missingAltText": "A non-decorative image is missing alternative text. Without a description, blind users cannot understand the image content."
                 },
                 "options": {
-                    "minHeight": { "240": "Compact (240 px)", "320": "Standard (320 px)", "480": "Large (480 px)", "640": "Extra large (640 px)" },
-                    "horizontalPosition": { "left": "Left", "center": "Centre", "right": "Right" },
-                    "verticalPosition": { "top": "Top", "center": "Centre", "bottom": "Bottom" },
-                    "fallbackColor": { "neutral-light": "Neutral light", "neutral-dark": "Neutral dark", "brand": "Blue" }
+                    "minHeight": {
+                        "240": "Compact (240 px)",
+                        "320": "Standard (320 px)",
+                        "480": "Large (480 px)",
+                        "640": "Extra large (640 px)"
+                    },
+                    "horizontalPosition": {
+                        "left": "Left",
+                        "center": "Centre",
+                        "right": "Right"
+                    },
+                    "verticalPosition": {
+                        "top": "Top",
+                        "center": "Centre",
+                        "bottom": "Bottom"
+                    },
+                    "fallbackColor": {
+                        "neutral-light": "Neutral light",
+                        "neutral-dark": "Neutral dark",
+                        "brand": "Blue"
+                    }
                 }
             }
+        },
+        "bulk": {
+            "title": "AI labels",
+            "selection": "{count} images selected",
+            "help": "Only selected images are changed. Folders and other files remain unchanged. Changes apply to the language selected above.",
+            "status": "Label",
+            "position": "Position",
+            "theme": "Appearance",
+            "unchanged": "Leave unchanged",
+            "apply": "Apply to {count} images",
+            "permission": "The media editing permission is required.",
+            "result": "{saved} images saved, {failed} failed. If errors occur, check the affected images and select them again.",
+            "error": "Changes could not be saved. Please check permissions and connection."
         }
     }
 }

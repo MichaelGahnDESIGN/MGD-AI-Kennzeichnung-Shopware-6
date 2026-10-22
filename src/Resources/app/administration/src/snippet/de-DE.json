@@ -63,12 +63,42 @@
                     "missingAltText": "Für ein nicht dekoratives Bild fehlt ein Alternativtext. Ohne Beschreibung können blinde Nutzer den Bildinhalt nicht erfassen."
                 },
                 "options": {
-                    "minHeight": { "240": "Kompakt (240 px)", "320": "Standard (320 px)", "480": "Groß (480 px)", "640": "Sehr groß (640 px)" },
-                    "horizontalPosition": { "left": "Links", "center": "Mitte", "right": "Rechts" },
-                    "verticalPosition": { "top": "Oben", "center": "Mitte", "bottom": "Unten" },
-                    "fallbackColor": { "neutral-light": "Neutral hell", "neutral-dark": "Neutral dunkel", "brand": "Blau" }
+                    "minHeight": {
+                        "240": "Kompakt (240 px)",
+                        "320": "Standard (320 px)",
+                        "480": "Groß (480 px)",
+                        "640": "Sehr groß (640 px)"
+                    },
+                    "horizontalPosition": {
+                        "left": "Links",
+                        "center": "Mitte",
+                        "right": "Rechts"
+                    },
+                    "verticalPosition": {
+                        "top": "Oben",
+                        "center": "Mitte",
+                        "bottom": "Unten"
+                    },
+                    "fallbackColor": {
+                        "neutral-light": "Neutral hell",
+                        "neutral-dark": "Neutral dunkel",
+                        "brand": "Blau"
+                    }
                 }
             }
+        },
+        "bulk": {
+            "title": "KI-Kennzeichnung",
+            "selection": "{count} Bilder ausgewählt",
+            "help": "Nur ausgewählte Bilder werden geändert. Ordner und andere Dateien bleiben unverändert. Die Änderungen gelten für die oben gewählte Sprache.",
+            "status": "Kennzeichnung",
+            "position": "Position",
+            "theme": "Darstellung",
+            "unchanged": "Unverändert lassen",
+            "apply": "Auf {count} Bilder anwenden",
+            "permission": "Zum Ändern ist das Recht „Medien bearbeiten“ erforderlich.",
+            "result": "{saved} Bilder gespeichert, {failed} fehlgeschlagen. Bei Fehlern die betroffenen Bilder prüfen und erneut auswählen.",
+            "error": "Die Änderungen konnten nicht gespeichert werden. Bitte Berechtigungen und Verbindung prüfen."
         }
     }
 }

@@ -54,3 +54,17 @@ Das Plugin ergänzt Bilder, die über Shopwares zentrales Thumbnail-System ausge
 - mobile, Tablet- und Desktopgröße geprüft?
 - Produktgalerie, Listing und Warenkorb kontrolliert, falls betroffen?
 - keine fälschliche Testkennzeichnung auf einem echten Medium zurückgelassen?
+
+
+## Mehrere Bilder gemeinsam kennzeichnen (ab 0.1.6)
+
+1. Unter **Inhalte → Medien** die gewünschten Bilder über die Auswahlkästchen markieren.
+2. Rechts in der Seitenleiste **KI-Kennzeichnung** öffnen.
+3. Kennzeichnung, Position und Darstellung wählen. **Unverändert lassen** erhält den jeweiligen bisherigen Wert jedes Bildes.
+4. **Auf … Bilder anwenden** anklicken und die abschließende Anzahl gespeicherter und fehlgeschlagener Bilder prüfen.
+
+Die Auswahl gilt ausschließlich für markierte Bildmedien, nicht für alle Bilder eines Ordners. Ordner, Videos und andere Dateien werden übersprungen. „Keine sichtbare Kennzeichnung“ entfernt das sichtbare Label. Die oben in Shopware gewählte Sprache gilt auch für diese Änderungen; bestehende Übersetzungs- und Vererbungsregeln bleiben erhalten.
+
+Erforderlich ist das Shopware-Recht zum Bearbeiten von Medien. Die Anwendung liest jedes Bild vor dem Speichern frisch und ändert ausschließlich die gewählten MGD-Felder. Weitere Zusatzfelder bleiben erhalten. Bei einem Fehler werden die übrigen Bilder weiter verarbeitet. Es gibt keine automatische Rücknahme bereits erfolgreicher Änderungen. Prüfen Sie bei Fehlern die Auswahl und wiederholen Sie den Vorgang bei Bedarf; identische Werte können erneut angewendet werden. Gleichzeitige Änderungen derselben Medien durch andere Bearbeiter sollten vermieden werden.
+
+Die Einbindung wurde anhand des offiziellen Quellcodes von Shopware 6.6.10.27 und 6.7.15.1 geprüft. Automatische Verhaltenstests decken Filterung, Feldschutz, Berechtigungen, Sprache und Teilerfolge ab. Ein manueller Durchlauf in einer installierten Shopware-6.7.15.1-Administration steht noch aus. Nach dem Plugin-Update muss die Shopware-Administration neu gebaut und der Browser neu geladen werden, wie unter Installation beschrieben.
