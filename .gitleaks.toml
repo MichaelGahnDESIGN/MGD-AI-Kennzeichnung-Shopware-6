@@ -1,0 +1,11 @@
+[extend]
+useDefault = true
+
+# Diese Zeile enthält nur die SHA-256-Prüfsumme einer versionierten Quelldatei.
+# „api.js“ im Dateinamen löst sonst die generische API-Key-Regel aus.
+[[allowlists]]
+description = "SHA-256 der Prepare-Philosophy-Quelldatei im Buildnachweis"
+condition = "AND"
+paths = ['''^src/Resources/public/build-integrity\.json$''']
+regexTarget = "line"
+regexes = ['''^\s*"src/Resources/app/administration/src/service/prepare-philosophy-page-api\.js": "[a-f0-9]{64}",?$''']
