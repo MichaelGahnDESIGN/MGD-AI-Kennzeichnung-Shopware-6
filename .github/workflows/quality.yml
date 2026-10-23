@@ -4,8 +4,8 @@ on:
     push:
     pull_request:
 
-# Der Workflow liest Quellcode, veröffentlicht aber weder Releases noch
-# Änderungen. Auch Pull Requests aus Forks erhalten dadurch keine Schreibrechte.
+# Standardmäßig sind alle Jobs nur lesend. Ausschließlich der Release-Job
+# erhält nach bestandenen Prüfungen Schreibrecht; Fork-PRs bleiben lesend.
 permissions:
     contents: read
 

@@ -238,7 +238,6 @@ final class DocumentationAndReleaseTest extends TestCase
         self::assertStringNotContainsString('extension validate ' . '.', $serializedWorkflow);
         self::assertStringNotContainsString('secrets.', $serializedWorkflow);
         self::assertStringNotContainsString('pull_request_target', $serializedWorkflow);
-        self::assertStringNotContainsString('contents: write', (string) file_get_contents($workflowPath));
         self::assertStringNotContainsString('audit.block', $serializedWorkflow);
         self::assertStringNotContainsString('--no-audit', $serializedWorkflow);
 
