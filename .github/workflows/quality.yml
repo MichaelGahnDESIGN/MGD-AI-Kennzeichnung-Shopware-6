@@ -177,16 +177,6 @@ jobs:
               if: matrix.shopware == '6.7' && matrix.php == '8.4'
               run: shopware-cli --no-interaction extension validate dist/MGDAIImageLabels-0.1.7.zip
 
-            - name: Release-ZIP als Artefakt bereitstellen
-              if: github.event_name != 'pull_request' && matrix.shopware == '6.7' && matrix.php == '8.4'
-              # Quelle: https://github.com/actions/upload-artifact/releases/tag/v7.0.1
-              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-              with:
-                  name: MGDAIImageLabels-${{ github.sha }}
-                  path: dist/MGDAIImageLabels-*.zip
-                  if-no-files-found: error
-                  retention-days: 14
-
     built-assets:
         name: Fertige Oberflächen frisch bauen und prüfen
         runs-on: ubuntu-latest
@@ -210,3 +200,25 @@ jobs:
                   python3 scripts/build-assets.py --cli /tmp/mgd-cli/shopware-cli
                   node --test tests/Administration/built-assets.test.mjs
                   git diff --exit-code -- src/Resources/public
+
+    release:
+        name: Geprüftes ZIP veröffentlichen
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        needs: [secret-scan, quality, built-assets]
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+        steps:
+            - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+            - name: Paket aus geprüften Assets erstellen
+              run: bash scripts/build-release.sh
+            - name: Neues Release veröffentlichen
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  VERSION=$(php -r '$c=json_decode(file_get_contents("composer.json"),true,512,JSON_THROW_ON_ERROR); echo $c["extra"]["mgd-release-version"];')
+                  if gh release view "v$VERSION" >/dev/null 2>&1; then
+                      echo "Version bereits veröffentlicht; vorhandene Assets bleiben erhalten."
+                      exit 0
+                  fi
+                  gh release create "v$VERSION" "dist/MGDAIImageLabels-$VERSION.zip" --target "$GITHUB_SHA" --title "Version $VERSION" --generate-notes
