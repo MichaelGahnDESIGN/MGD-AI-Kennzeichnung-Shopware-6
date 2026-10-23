@@ -205,16 +205,18 @@ final class DocumentationAndReleaseTest extends TestCase
         $shopwareInstallStep = $this->workflowStep($steps, 'Shopware CLI in fester Version installieren');
         self::assertSame($releaseStep['if'] ?? null, $shopwareInstallStep['if'] ?? null);
 
-        $uploadStep = $this->workflowStep($steps, 'Release-ZIP als Artefakt bereitstellen');
-        self::assertSame(
-            "github.event_name != 'pull_request' && matrix.shopware == '6.7' && matrix.php == '8.4'",
-            $uploadStep['if'] ?? null,
-        );
-        self::assertSame(
-            'actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a',
-            $uploadStep['uses'] ?? null,
-        );
-        self::assertSame('error', $uploadStep['with']['if-no-files-found'] ?? null);
+        $publishJob = $jobs['release'] ?? null;
+        self::assertIsArray($publishJob);
+        self::assertSame(['contents' => 'write'], $publishJob['permissions'] ?? null);
+        self::assertSame(['secret-scan', 'quality', 'built-assets'], $publishJob['needs'] ?? null);
+        self::assertSame("github.event_name == 'push' && github.ref == 'refs/heads/main'", $publishJob['if'] ?? null);
+        $publishSteps = $publishJob['steps'] ?? null;
+        self::assertIsArray($publishSteps);
+        $publish = $this->workflowStep($publishSteps, 'Neues Release veröffentlichen')['run'] ?? null;
+        self::assertIsString($publish);
+        self::assertStringContainsString('gh release create', $publish);
+        self::assertStringContainsString('gh release view', $publish);
+        self::assertStringNotContainsString('upload-artifact', json_encode($workflow, JSON_THROW_ON_ERROR));
 
         $secretJob = $jobs['secret-scan'] ?? null;
         self::assertIsArray($secretJob);

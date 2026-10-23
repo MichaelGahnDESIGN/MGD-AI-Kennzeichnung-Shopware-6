@@ -309,3 +309,5 @@ Das Release-ZIP enthält die aktuelle Administration für Shopware 6.6/6.7 und f
 Der GitHub-Updater verwendet dasselbe vollständige ZIP. Die Prüfung und Dateivorbereitung ersetzen weiterhin nicht den abschließenden nativen Updatevorgang. Auf dem Shopserver werden keine npm-Installation und kein Build gestartet.
 
 Für Entwickler: `python3 scripts/build-assets.py` baut mit Shopware CLI 0.15.12 und fest gepinnten Sass-Abhängigkeiten in temporären Verzeichnissen. Danach die erzeugten Dateien unter `src/Resources/public` mit versionieren. `python3 scripts/build-assets.py --check` prüft Quell- und Ausgabedateien gegen den Buildnachweis. Der ZIP-Build bricht bei veralteten Assets ab. GitHub CI baut zusätzlich unabhängig neu und vergleicht die Ausgabe. Der Test des fertigen JavaScript-Bundles prüft insbesondere die Registrierung der Bulk-Oberfläche.
+
+Die GitHub-Pipeline baut bei einer neuen Version auf `main` nach allen Prüfungen das fertige ZIP und veröffentlicht es direkt als Release. Bereits veröffentlichte Versionsnummern werden nicht überschrieben. GitHubs zusätzlicher Artefakt-Speicher wird dafür nicht benötigt.
