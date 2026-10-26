@@ -6,7 +6,7 @@
 
 **Architecture:** Der vorhandene Fill-Rahmen erhält eine ausschließlich auf direkte Kinder von `.gallery-slider-item` begrenzte absolute Positionierung. Die sichtbare Deepfake-Bezeichnung wird in allen vier regionalen und neutralen Storefront-Snippetdateien vereinheitlicht; Administration und interne Statuswerte bleiben unverändert.
 
-**Tech Stack:** Shopware 6.6/6.7, Twig, SCSS, PHP 8.2+, PHPUnit, Node Test Runner, Chrome DevTools Protocol, reproduzierbares ZIP, Git, kontrollierter TableGuard-Live-Playtest
+**Tech Stack:** Shopware 6.6/6.7, Twig, SCSS, PHP 8.2+, PHPUnit, Node Test Runner, Chrome DevTools Protocol, reproduzierbares ZIP, Git, kontrollierter <SHOP>-Live-Playtest
 
 ---
 
@@ -164,7 +164,7 @@ git commit -m "fix: erhalte gekennzeichnete Produktbilder"
 - Modify: `README.md`
 - Modify: `docs/wiki/Bilder-kennzeichnen.md`
 - Modify: `CHANGELOG.md`
-- Modify: `Dokumentation/TableGuard-Live-Test-2026-08.md`
+- Modify: `Dokumentation/<SHOP>-Live-Test-2026-08.md`
 
 - [ ] **Step 1: Version und öffentliche Bezeichnung aktualisieren**
 
@@ -186,9 +186,9 @@ Ergänze oben einen Abschnitt `0.1.2` mit Datum 14. August 2026 und genau diesen
 - Deutsches und englisches Frontend verwenden für den Deepfake-Status einheitlich `AI DEEPFAKE`.
 ```
 
-- [ ] **Step 3: TableGuard-Betriebsdokumentation ergänzen**
+- [ ] **Step 3: <SHOP>-Betriebsdokumentation ergänzen**
 
-Dokumentiere Ursache, begrenzte CSS-Regel, Testmatrix und Rückfallweg in `Dokumentation/TableGuard-Live-Test-2026-08.md`. Keine Zugangsdaten, Tokens oder Serverpfade aufnehmen.
+Dokumentiere Ursache, begrenzte CSS-Regel, Testmatrix und Rückfallweg in `Dokumentation/<SHOP>-Live-Test-2026-08.md`. Keine Zugangsdaten, Tokens oder Serverpfade aufnehmen.
 
 - [ ] **Step 4: Vollständige lokale Qualitätskette ausführen**
 
@@ -211,12 +211,12 @@ Expected: alle Befehle Exit `0`; Shopware CLI meldet keine Fehler; bekannte rein
 - [ ] **Step 5: Release- und Dokumentationscommit erstellen**
 
 ```bash
-git add composer.json README.md docs/wiki/Bilder-kennzeichnen.md CHANGELOG.md Dokumentation/TableGuard-Live-Test-2026-08.md
+git add composer.json README.md docs/wiki/Bilder-kennzeichnen.md CHANGELOG.md Dokumentation/<SHOP>-Live-Test-2026-08.md
 git diff --cached --check
 git commit -m "release: bereite Version 0.1.2 vor"
 ```
 
-### Task 4: TableGuard sicher live aktualisieren
+### Task 4: <SHOP> sicher live aktualisieren
 
 **Files:**
 - Local-only: `PLAYTEST/Playtest-live_14-08-2026-2/`
@@ -250,7 +250,7 @@ Führe ausschließlich Plugin-Aktualisierung, Cache-Leerung, Theme-Kompilierung 
 
 - [ ] **Step 5: Produktgalerie als Gast prüfen**
 
-Prüfe `https://tableguard.de/TableGuard-Base/TG-SF-0001` auf Desktop und Mobil:
+Prüfe `<SHOP-URL>/<PRODUKTSEITE>` auf Desktop und Mobil:
 
 - Hauptbild `naturalWidth > 0` und sichtbare Geometrie größer als 100 × 100 Pixel,
 - Rahmen entspricht dem sichtbaren Galerieslot,
@@ -272,7 +272,7 @@ Dokumentiere Prüfergebnisse und Backup-Pfad lokal. Bei einem Fehler die fünf D
 ### Task 5: GitHub und Wissen synchronisieren
 
 **Files:**
-- Modify: `/Volumes/AI-Workspace/AI_Knowledge/02 Projekte/MGD AI Kennzeichnung Shopware 6.md`
+- Modify: `<WISSENSBASIS>/02 Projekte/MGD AI Kennzeichnung Shopware 6.md`
 
 - [ ] **Step 1: Obsidian-Wissen aktualisieren**
 

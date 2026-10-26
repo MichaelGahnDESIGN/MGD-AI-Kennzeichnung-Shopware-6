@@ -831,7 +831,7 @@ git commit -m "ci: pruefe Shopware-Kompatibilitaet"
 
 - [ ] **Step 1: Zwei frische Testshops bereitstellen**
 
-Je eine isolierte Shopware-Installation für die jüngste 6.6.10.x- und 6.7.x-Version erstellen. Keine produktiven TableGuard-Daten verwenden. Plugin als `custom/plugins/MGDAIImageLabels` einbinden.
+Je eine isolierte Shopware-Installation für die jüngste 6.6.10.x- und 6.7.x-Version erstellen. Keine produktiven <SHOP>-Daten verwenden. Plugin als `custom/plugins/MGDAIImageLabels` einbinden.
 
 - [ ] **Step 2: Installation und Builds je Version ausführen**
 
@@ -910,12 +910,12 @@ Run: `gh release view v0.1.1 --repo MichaelGahnDESIGN/MGD-AI-Kennzeichnung-Shopw
 
 Expected: kein Draft, kein Prerelease, ein ZIP-Asset.
 
-### Task 15: Abgesicherte Installation im TableGuard-Liveshop
+### Task 15: Abgesicherte Installation im <SHOP>-Liveshop
 
 **Files:**
-- Create: `Dokumentation/TableGuard-Live-Test-2026-08.md`
-- Create: `/Users/michaelgahn/AKTUELLE PROJEKTE/TableGuard/Dokumentation/MGD_AI_Kennzeichnung_Live_Test_2026-08.md`
-- Create: `/Volumes/AI-Workspace/AI_Knowledge/02 Projekte/MGD AI Kennzeichnung Shopware 6.md`
+- Create: `Dokumentation/<SHOP>-Live-Test-2026-08.md`
+- Create: `<PROJEKTORDNER>/<SHOP>/Dokumentation/MGD_AI_Kennzeichnung_Live_Test_2026-08.md`
+- Create: `<WISSENSBASIS>/02 Projekte/MGD AI Kennzeichnung Shopware 6.md`
 
 - [ ] **Step 1: Live-Versionen und Ausgangszustand nur lesend erfassen**
 
@@ -923,15 +923,15 @@ In der Shopware-Administration Systeminformationen prüfen und Shopware-/PHP-Ver
 
 - [ ] **Step 2: Wiederherstellbares Backup erstellen und prüfen**
 
-Mit dem vorhandenen TableGuard-Backupverfahren ein vollständiges Datei- und Datenbankbackup anlegen. Dateigröße, Abschlussstatus und vorhandene Wiederherstellungsanleitung prüfen. Ohne erfolgreiches Backup wird die Live-Installation nicht begonnen.
+Mit dem vorhandenen <SHOP>-Backupverfahren ein vollständiges Datei- und Datenbankbackup anlegen. Dateigröße, Abschlussstatus und vorhandene Wiederherstellungsanleitung prüfen. Ohne erfolgreiches Backup wird die Live-Installation nicht begonnen.
 
 - [ ] **Step 3: Geprüftes Release-ZIP installieren**
 
-In **Erweiterungen → Meine Erweiterungen → Erweiterung hochladen** ausschließlich `MGDAIImageLabels-0.1.1.zip` wählen. Plugin installieren, anschließend Administration und Storefront über das vorhandene TableGuard-Deploymentverfahren bauen, Plugin aktivieren und Cache leeren.
+In **Erweiterungen → Meine Erweiterungen → Erweiterung hochladen** ausschließlich `MGDAIImageLabels-0.1.1.zip` wählen. Plugin installieren, anschließend Administration und Storefront über das vorhandene <SHOP>-Deploymentverfahren bauen, Plugin aktivieren und Cache leeren.
 
 - [ ] **Step 4: Minimalen Live-Datensatz testen**
 
-Ein vorhandenes, unkritisches TableGuard-Testbild kennzeichnen. Automatische Sprache, Deutsch und Englisch kurz prüfen; danach die gewünschte endgültige Einstellung wiederherstellen. Startseite, Listing, Produktdetail, Erlebniswelt, Warenkorb und Checkout prüfen. Das Plugin darf keine zusätzlichen externen Netzwerkrequests erzeugen.
+Ein vorhandenes, unkritisches <SHOP>-Testbild kennzeichnen. Automatische Sprache, Deutsch und Englisch kurz prüfen; danach die gewünschte endgültige Einstellung wiederherstellen. Startseite, Listing, Produktdetail, Erlebniswelt, Warenkorb und Checkout prüfen. Das Plugin darf keine zusätzlichen externen Netzwerkrequests erzeugen.
 
 - [ ] **Step 5: Fehlerpfad bei Bedarf ausführen**
 
@@ -939,16 +939,16 @@ Bei pluginbedingtem Fehler sofort deaktivieren, Cache und Theme neu bauen und er
 
 - [ ] **Step 6: Nicht sensible Ergebnisse dokumentieren**
 
-Testzeitpunkt, Versionen, geprüfte Seiten, Ergebnis und gegebenenfalls ausgeführten Rückfallweg dokumentieren. Die TableGuard-Versionsdokumentation und die Obsidian-Projektnotiz erhalten nur eine verständliche technische Zusammenfassung ohne Zugangsdaten.
+Testzeitpunkt, Versionen, geprüfte Seiten, Ergebnis und gegebenenfalls ausgeführten Rückfallweg dokumentieren. Die <SHOP>-Versionsdokumentation und die Obsidian-Projektnotiz erhalten nur eine verständliche technische Zusammenfassung ohne Zugangsdaten.
 
 - [ ] **Step 7: Abschlussdokumentation committen und pushen**
 
 ```bash
-git add Dokumentation/TableGuard-Live-Test-2026-08.md
-git commit -m "docs: dokumentiere TableGuard-Live-Test"
+git add Dokumentation/<SHOP>-Live-Test-2026-08.md
+git commit -m "docs: dokumentiere <SHOP>-Live-Test"
 git push origin main
-git -C "/Users/michaelgahn/AKTUELLE PROJEKTE/TableGuard" add Dokumentation/MGD_AI_Kennzeichnung_Live_Test_2026-08.md
-git -C "/Users/michaelgahn/AKTUELLE PROJEKTE/TableGuard" commit -m "docs: dokumentiere Test der KI-Bildkennzeichnung"
+git -C "<PROJEKTORDNER>/<SHOP>" add Dokumentation/MGD_AI_Kennzeichnung_Live_Test_2026-08.md
+git -C "<PROJEKTORDNER>/<SHOP>" commit -m "docs: dokumentiere Test der KI-Bildkennzeichnung"
 ```
 
 Expected: Repository sauber; öffentliche Dokumentation enthält keine sensiblen Daten.
@@ -959,4 +959,4 @@ Expected: Repository sauber; öffentliche Dokumentation enthält keine sensiblen
 - [ ] Der Plan enthält keine unvollständigen oder nur allgemein formulierten Arbeitsanweisungen.
 - [ ] Klassen-, Feld- und Methodennamen stimmen über Setup, Administration, Twig, Tests und Dokumentation überein.
 - [ ] `git diff --check` meldet keine Formatierungsfehler.
-- [ ] Das TableGuard-Repository enthält vor dem Live-Test weiterhin keine von diesem Projekt verursachten Änderungen.
+- [ ] Das <SHOP>-Repository enthält vor dem Live-Test weiterhin keine von diesem Projekt verursachten Änderungen.
