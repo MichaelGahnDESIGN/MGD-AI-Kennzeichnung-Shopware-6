@@ -15,7 +15,7 @@
     "src/Resources/app/administration/src/extension/sw-media-quickinfo/sw-media-quickinfo.html.twig": "14f6689ad85659e24143a70be47fbb012e58e94d0e7275ddcfa4561fb82424bf",
     "src/Resources/app/administration/src/extension/sw-media-quickinfo-multiple/index.js": "d8b0ce3613d75c1a463480c5c2a0ad8d040fd9b692d5d8e3117a8df10cf559c2",
     "src/Resources/app/administration/src/extension/sw-media-quickinfo-multiple/sw-media-quickinfo-multiple.html.twig": "c62c08b2884023ca52658ac034d9203c8a2a2c61db7579215a6d0a88988a56ba",
-    "src/Resources/app/administration/src/main.js": "3e309fd06ecd46726dbf47c0c924566082800740ee31a125ecfd0e2016bc10ae",
+    "src/Resources/app/administration/src/main.js": "9ec3cdf937cf4321b5ddce4c374f4a6a2e95f8caa044f20e830935f3db8461b1",
     "src/Resources/app/administration/src/module/mgd-ai-settings/index.js": "b639d733a6ded64db4e77980e1842e06b55b67c80923e83f4e4a8014f2a3fe56",
     "src/Resources/app/administration/src/module/mgd-ai-settings/page/mgd-ai-settings-index/index.js": "820e89dc469fcb33b4d0d2fa96be0ed6b5771f41324bd41505d77221b9738990",
     "src/Resources/app/administration/src/module/mgd-ai-settings/page/mgd-ai-settings-index/mgd-ai-settings-index.html.twig": "7269a2105e8bf704829357e544d65b639eb5da808b24fee55619ee5e006fb24b",
@@ -52,7 +52,7 @@
     "administration/.vite/entrypoints.json": "680b8dbbb42b1de35c92b063543e4660ab23fd2dd1659af3763721ac1ed1a17c",
     "administration/.vite/manifest.json": "f9b095ad4d8a2a1d1374afa299b0f03f4dd77d1db9bbc5a3dfdf45e3e50f3779",
     "administration/css/m-g-d-a-i-image-labels.css": "487142abf7e64a0a6196f8556a05c66a7fdccfdf270e5f88ae89524ebdea53fa",
-    "administration/js/m-g-d-a-i-image-labels.js": "0762fa3aabe9c49d1dad9cb66527579873e0bb2e8612705f7dc87fdbab9659cb",
+    "administration/js/m-g-d-a-i-image-labels.js": "a2ae1b152f9adf0cfeb0bc419d9060449e57672c6abebc641ff12624e9248c56",
     "storefront/mgd-ai-labels.css": "f0ccebc55632c3dc5d487c3e8840257eb90ee7a7b06ba9923180386ce75277c1"
   }
 }

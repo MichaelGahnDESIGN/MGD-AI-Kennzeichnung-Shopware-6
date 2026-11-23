@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- MGD Plugin-Baukasten: in die services.xml des Plugins importieren (docs/PLUGIN-BAUKASTEN.md, Kapitel Shopware) -->
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services https://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <!-- Shopware-Kleber, einzige Stelle mit Shopware-Diensten -->
+        <service id="MGDAIImageLabels\Kit\Platform\Shopware\ShopwareServices">
+            <argument type="service" id="Shopware\Core\Framework\Plugin\PluginManagementService"/>
+            <argument type="service" id="Shopware\Core\Framework\Plugin\PluginService"/>
+            <argument type="service" id="Shopware\Core\Framework\Plugin\PluginLifecycleService"/>
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+            <argument type="service" id="Doctrine\DBAL\Connection"/>
+            <argument type="service" id="parameter_bag"/>
+        </service>
+        <!-- Produkt, technischer Name, Anzeigename, Katalog-Kennung, Lizenz (aus) -->
+        <service id="MGDAIImageLabels\Kit\Platform\Shopware\ShopwareKit">
+            <argument type="service" id="MGDAIImageLabels\Kit\Platform\Shopware\ShopwareServices"/>
+            <argument>mgd-ai-kennzeichnung-shopware</argument>
+            <argument>MGDAIImageLabels</argument>
+            <argument>MGD AI Kennzeichnung</argument>
+            <argument>plugin-ki-kennzeichnung-shopware</argument>
+            <argument>false</argument>
+        </service>
+        <!-- tägliche Aktiv-Meldung, Shopware hat keinen WP-Cron -->
+        <service id="MGDAIImageLabels\Kit\Platform\Shopware\PingTask">
+            <tag name="shopware.scheduled.task"/>
+        </service>
+        <service id="MGDAIImageLabels\Kit\Platform\Shopware\PingTaskHandler">
+            <argument type="service" id="scheduled_task.repository"/>
+            <argument type="service" id="logger"/>
+            <argument type="service" id="MGDAIImageLabels\Kit\Platform\Shopware\ShopwareKit"/>
+            <tag name="messenger.message_handler" handles="MGDAIImageLabels\Kit\Platform\Shopware\PingTask"/>
+        </service>
+        <service id="MGDAIImageLabels\Kit\Platform\Shopware\ApiController" public="true">
+            <argument type="service" id="MGDAIImageLabels\Kit\Platform\Shopware\ShopwareKit"/>
+        </service>
+    </services>
+</container>

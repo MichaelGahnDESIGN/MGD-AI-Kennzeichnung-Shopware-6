@@ -52,6 +52,7 @@ final class MGDAIImageLabels extends Plugin
             // Der Snapshot muss vor Shopwares nachgelagerter Konfigurationsbehandlung vollständig sein.
             $this->retention()->snapshotBeforeKeepUninstall();
             parent::uninstall($uninstallContext);
+            $this->kitUninstall($uninstallContext);
 
             return;
         }
@@ -59,6 +60,20 @@ final class MGDAIImageLabels extends Plugin
         parent::uninstall($uninstallContext);
         $this->installer()->remove($uninstallContext->getContext());
         $this->retention()->removeBackupWithoutUserData();
+        $this->kitUninstall($uninstallContext);
+    }
+
+    // Abmelden bei theme.michael-gahn.de über den Baukasten, Server weg = Deinstallation läuft trotzdem
+    private function kitUninstall(UninstallContext $uninstallContext): void
+    {
+        try {
+            $config = $this->container?->get(SystemConfigService::class);
+            if ($config instanceof SystemConfigService) {
+                \MGDAIImageLabels\Kit\Platform\Shopware\ShopwareKit::forUninstall($uninstallContext, $config, 'mgd-ai-kennzeichnung-shopware')?->uninstall($uninstallContext);
+            }
+        } catch (\Throwable) {
+            return;
+        }
     }
 
     /**

@@ -3,5 +3,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://symfony.com/schema/routing https://symfony.com/schema/routing/routing-1.0.xsd">
     <!-- Nur Attribut-Routen aus dem klar begrenzten Admin-Controller-Ordner laden. -->
-    <import resource="../../Administration/Controller/" type="attribute"/>
+    <import resource="../../Administration/Controller/PreparePhilosophyPageController.php" type="attribute"/>
+    <!-- Baukasten-Routen (Status, Weitere Plugins, Update, Installation melden) -->
+    <import resource="../../Kit/Platform/Shopware/Resources/config/routes.xml"/>
 </routes>

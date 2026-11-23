@@ -175,7 +175,7 @@ jobs:
             # Artefakt bereitgestellt wird, nicht einen abweichenden Quellbaum.
             - name: Ausgeliefertes Shopware-Erweiterungspaket validieren
               if: matrix.shopware == '6.7' && matrix.php == '8.4'
-              run: shopware-cli --no-interaction extension validate dist/MGDAIImageLabels-0.1.7.zip
+              run: shopware-cli --no-interaction extension validate dist/MGDAIImageLabels-0.2.0.zip
 
     built-assets:
         name: Fertige Oberflächen frisch bauen und prüfen

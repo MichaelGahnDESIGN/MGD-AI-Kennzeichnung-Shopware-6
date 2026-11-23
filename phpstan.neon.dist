@@ -9,3 +9,5 @@ parameters:
         analyse:
             - vendor/*
             - dist/*
+            # erzeugter Plugin-Baukasten (bin/build-plugin-kit.php, nicht von Hand ändern)
+            - src/Kit/*

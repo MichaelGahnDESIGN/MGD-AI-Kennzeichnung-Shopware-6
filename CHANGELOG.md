@@ -1,5 +1,18 @@
 # Änderungsprotokoll
 
+## 0.2.0 – 2026-11-24
+
+- Neue Seite **Einstellungen → Erweiterungen → MGD AI Kennzeichnung** mit
+  Info, Updates, Weitere Plugins und dem Schalter „Installation melden“ aus
+  dem gemeinsamen MGD-Plugin-Baukasten.
+- Updates kommen jetzt von theme.michael-gahn.de. Der Knopf „Jetzt
+  aktualisieren“ lädt das ZIP aus dem GitHub-Release, prüft Größe, Prüfsumme
+  und Inhalt und spielt es erst dann ein. Es gibt kein automatisches Update.
+- Beim Deinstallieren meldet sich das Plugin bei theme.michael-gahn.de ab.
+- Der alte stündliche GitHub-Updater und seine Einstellung sind abgeschaltet.
+- Kennzeichnungen, Bilder und Designwerte bleiben unverändert.
+- Keine neue Datenbankmigration.
+
 ## 0.1.7 – 2026-10-23
 
 - Administration vollständig frisch gebaut; Bulk-Bearbeitung ist jetzt auch im ausgelieferten JavaScript enthalten.

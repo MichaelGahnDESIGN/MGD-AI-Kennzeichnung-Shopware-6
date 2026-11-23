@@ -189,7 +189,11 @@ Vor jedem produktiven Update:
 4. Administration und Storefront testen.
 5. Erst danach produktiv aktualisieren.
 
-Ab Version 0.1.4 kann das Plugin GitHub-Releases selbst prüfen. Die Option **GitHub-Updates** ist aus Sicherheitsgründen zunächst deaktiviert. Wird sie global aktiviert und laufen Shopwares Scheduler und Queue-Worker, wird stündlich nach einer neuen stabilen Version gesucht. Ein geprüftes ZIP wird mit privater Rückfallsicherung vorbereitet; das eigentliche **Plugin aktualisieren** lösen Sie weiterhin in Shopware aus. Ein geschützter Admin-API-Sofortcheck ist ebenfalls möglich. Für bestehende Installationen bis einschließlich 0.1.3 ist **einmalig ein manueller Wechsel auf 0.1.4** nötig: ältere Versionen enthalten keinen Updater, und in 0.1.3 verhindert ein Pfadfehler dessen Nutzung. Details und Grenzen stehen unter [Installation und Updates](docs/wiki/Installation-und-Updates.md).
+Ab Version 0.2.0 gibt es unter **Einstellungen → Erweiterungen → MGD AI Kennzeichnung** eine Seite mit Info, Updates, Weitere Plugins und dem Schalter **Installation bei Michael Gahn DESIGN melden**. Der Knopf **Jetzt aktualisieren** lädt das ZIP aus dem GitHub-Release, prüft Größe, Prüfsumme und Inhalt und spielt es erst dann ein. Danach wird das Update in Shopware ausgeführt. Es gibt kein automatisches Update. Der frühere stündliche GitHub-Updater ist abgeschaltet.
+
+**So melden Sie die Installation ab:** Auf der Seite den Haken bei **Installation bei Michael Gahn DESIGN melden** entfernen und speichern. Der Eintrag auf theme.michael-gahn.de wird gelöscht. Das Plugin läuft ganz normal weiter. Beim Deinstallieren meldet sich das Plugin ebenfalls ab.
+
+Nach dem Update einmal `bin/console cache:clear` und danach `bin/console scheduled-task:register` ausführen, damit die tägliche Meldung eingeplant wird.
 
 Bei der Deinstallation entscheidet Shopwares Option **Benutzerdaten behalten**, ob Plugin-Konfiguration und Custom-Field-Definitionen erhalten bleiben. Das Plugin schützt erhaltene Konfigurationswerte zusätzlich gegen Shopwares Standardwert-Überschreibung bei einer späteren Reinstallation. Ohne Datenerhalt entfernt es seine eindeutig zugeordneten Definitionen und Konfiguration. Bilddateien und fremde Felder bleiben unangetastet.
 
@@ -306,7 +310,7 @@ Die Einbindung wurde anhand des offiziellen Quellcodes von Shopware 6.6.10.27 un
 
 Das Release-ZIP enthält die aktuelle Administration für Shopware 6.6/6.7 und fertig kompilierte Storefront-Stile. ZIP unter „Meine Erweiterungen“ hochladen, das reguläre Update ausführen und die Administration neu laden. Ein eigener Administration- oder Theme-Build ist für dieses Plugin nicht mehr nötig. Shopwares nativer Updateablauf kopiert die fertigen Dateien und behandelt seine Caches. Sonderkonfigurationen mit deaktivierter Asset-Veröffentlichung oder vorgeschaltetem CDN müssen weiterhin betrieblich berücksichtigt werden.
 
-Der GitHub-Updater verwendet dasselbe vollständige ZIP. Die Prüfung und Dateivorbereitung ersetzen weiterhin nicht den abschließenden nativen Updatevorgang. Auf dem Shopserver werden keine npm-Installation und kein Build gestartet.
+Der Knopf **Jetzt aktualisieren** verwendet dasselbe vollständige ZIP. Die Prüfung und Dateivorbereitung ersetzen weiterhin nicht den abschließenden nativen Updatevorgang. Auf dem Shopserver werden keine npm-Installation und kein Build gestartet.
 
 Für Entwickler: `python3 scripts/build-assets.py` baut mit Shopware CLI 0.15.12 und fest gepinnten Sass-Abhängigkeiten in temporären Verzeichnissen. Danach die erzeugten Dateien unter `src/Resources/public` mit versionieren. `python3 scripts/build-assets.py --check` prüft Quell- und Ausgabedateien gegen den Buildnachweis. Der ZIP-Build bricht bei veralteten Assets ab. GitHub CI baut zusätzlich unabhängig neu und vergleicht die Ausgabe. Der Test des fertigen JavaScript-Bundles prüft insbesondere die Registrierung der Bulk-Oberfläche.
 

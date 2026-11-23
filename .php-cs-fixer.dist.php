@@ -15,7 +15,8 @@ $finder = Finder::create()
     ->files()
     ->name('*.php')
     ->in(__DIR__ . '/src')
-    ->exclude(['vendor', 'dist']);
+    // Kit = erzeugter Plugin-Baukasten, nicht von Hand ändern
+    ->exclude(['vendor', 'dist', 'Kit']);
 
 return (new Config())
     ->setRiskyAllowed(true)

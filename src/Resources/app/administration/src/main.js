@@ -14,6 +14,8 @@ import './extension/sw-media-quickinfo/index.js';
 import './module/sw-cms/elements/mgd-ai-background-image/index.js';
 import './module/sw-cms/elements/mgd-ai-philosophy/index.js';
 import './module/mgd-ai-settings/index.js';
+// Baukasten-Seite (Info, Updates, Weitere Plugins, Installation melden)
+import '../../../../Kit/Platform/Shopware/administration/mgd-kit.js';
 
 /**
  * Deutsch und Englisch gehören bereits zu Shopwares Locale-Registry. `extend`
