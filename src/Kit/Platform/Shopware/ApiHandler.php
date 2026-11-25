@@ -12,6 +12,8 @@ use MGDAIImageLabels\Kit\License\LicenseClient;
 // Rechte werden hier nochmal geprüft (zusätzlich _acl an der Route)
 final class ApiHandler
 {
+    // gemeinsam für alle MGD-Plugins im Shop, außerhalb jeder Plugin-Domäne
+    public const COLORS_KEY = 'MgdKit.colors.mine';
     // wie Symfony JsonResponse: < > ' " & werden escaped
     public const JSON_FLAGS = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
     public const ERROR = 'Das hat gerade nicht geklappt. Bitte lade die Seite neu und versuche es noch einmal.';
@@ -40,8 +42,7 @@ final class ApiHandler
 
         return self::guard(function () use ($context, $today): array {
             $installed = (string) ($this->shop->plugin($this->technicalName, $context)['version'] ?? '');
-
-            return [200, [
+            $out = [200, [
                 'name' => $this->pluginName,
                 'updates' => $this->updates->status($installed, $today),
                 'canUpdate' => $this->updater->canUpdate($context),
@@ -49,6 +50,13 @@ final class ApiHandler
                 'install' => $this->installData(),
                 'license' => $this->licenseData(),
             ]];
+            // Ersatz falls kein Scheduler läuft: erst NACH der Update-Prüfung (die meldet schon, setzt last_ping) > nie 2 Anfragen
+            try {
+                $this->install?->ping();
+            } catch (\Throwable) {
+            }
+
+            return $out;
         });
     }
 
@@ -120,6 +128,27 @@ final class ApiHandler
             }
 
             return [200, ['install' => $this->installData()]];
+        });
+    }
+
+    /**
+     * Farbwähler: $mine null = lesen, sonst speichern (nur mit Schreibrecht). Ein Schlüssel für alle MGD-Plugins
+     * @return array{0:int,1:array<string,mixed>}
+     */
+    public function colors(object $context, mixed $mine): array
+    {
+        if (!Acl::allowed($context, $mine === null ? Acl::READ : Acl::WRITE)) {
+            return self::denied();
+        }
+
+        return self::guard(function () use ($mine): array {
+            if ($mine !== null) {
+                $this->shop->set(self::COLORS_KEY, (string) json_encode(\MGDAIImageLabels\Kit\Ui\Colors::clean($mine, \MGDAIImageLabels\Kit\Ui\Colors::MAX_MINE)));
+            }
+            $raw = $this->shop->get(self::COLORS_KEY);
+            $list = is_string($raw) ? json_decode($raw, true, 4) : null;
+
+            return [200, ['mine' => \MGDAIImageLabels\Kit\Ui\Colors::clean(is_array($list) ? $list : [], \MGDAIImageLabels\Kit\Ui\Colors::MAX_MINE)]];
         });
     }
 

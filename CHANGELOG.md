@@ -1,5 +1,9 @@
 # Änderungsprotokoll
 
+## [2.1.1] - 2026-11-25
+
+- Aktueller Baukasten, einheitliche Version.
+
 ## 0.2.0 – 2026-11-24
 
 - Neue Seite **Einstellungen → Erweiterungen → MGD AI Kennzeichnung** mit

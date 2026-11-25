@@ -55,6 +55,19 @@ final class ApiController
         return self::json($this->kit->handler()->installReport(self::context($request), self::body($request)['enabled'] ?? null));
     }
 
+    // Farbwähler: Meine Farben für alle MGD-Plugins im Shop (system_config MgdKit.colors)
+    #[Route(path: self::PREFIX . '/colors', name: 'api.action.mgd_kit.mgd_ai_kennzeichnung_shopware.colors', defaults: ['_acl' => ['system_config:read']], methods: ['GET'])]
+    public function colors(Request $request): JsonResponse
+    {
+        return self::json($this->kit->handler()->colors(self::context($request), null));
+    }
+
+    #[Route(path: self::PREFIX . '/colors', name: 'api.action.mgd_kit.mgd_ai_kennzeichnung_shopware.colors_save', defaults: ['_acl' => ['system_config:update']], methods: ['POST'])]
+    public function colorsSave(Request $request): JsonResponse
+    {
+        return self::json($this->kit->handler()->colors(self::context($request), self::body($request)['mine'] ?? []));
+    }
+
     #[Route(path: self::PREFIX . '/license', name: 'api.action.mgd_kit.mgd_ai_kennzeichnung_shopware.license', defaults: ['_acl' => ['system_config:update']], methods: ['POST'])]
     public function license(Request $request): JsonResponse
     {

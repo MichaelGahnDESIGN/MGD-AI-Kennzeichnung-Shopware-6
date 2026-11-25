@@ -55,6 +55,13 @@ final class ShopwareKit
         return $this->technicalName . '.config.' . $name;
     }
 
+    // eigener Bereich außerhalb von <Tech>.config: die Einstellungsseite schreibt beim Speichern alle config-Werte zurück
+    // und könnte sonst einen neueren Zustand überschreiben (Befund theme). installReport bleibt in config (Schalter)
+    public function stateKey(string $name): string
+    {
+        return $this->technicalName . '.mgdKit.' . $name;
+    }
+
     /** Install-Client mit der Version aus der Plugin-Tabelle, null = Angaben fehlen */
     public function installClient(): ?InstallClient
     {
@@ -91,6 +98,36 @@ final class ShopwareKit
     }
 
     /**
+     * Aus activate()/postUpdate(): Kit ohne services.xml bauen (Dienste gibts da noch nicht, Befund slider)
+     * Version: bei UpdateContext die NEUE Version, sonst die aktuelle
+     * @param object $context Shopware\Core\Framework\Plugin\Context\ActivateContext|UpdateContext|InstallContext
+     */
+    public static function forLifecycle(object $context, object $systemConfig, string $product, ?Transport $http = null, ?object $connection = null): ?self
+    {
+        try {
+            $tech = (string) $context->getPlugin()->getName();
+            $version = method_exists($context, 'getUpdatePluginVersion') ? (string) $context->getUpdatePluginVersion() : (string) $context->getCurrentPluginVersion();
+            $db = $connection ?? UninstallShop::connectionOf($systemConfig);
+
+            return new self(new UninstallShop($systemConfig, $tech, $version, $db), $product, $tech, $tech, http: $http);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /** sofort melden, nur mit Zustimmung (Schalter Installation melden). Wirft nie */
+    public function reportNow(): bool
+    {
+        try {
+            $c = $this->installClient();
+
+            return $c !== null && $c->isEnabled() && $c->ping(true);
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
      * Deinstallieren: Eintrag auf der Plattform löschen (immer), Kit-Config nur ohne keepUserData. Wirft nie
      * true = Install-Client war da
      */
@@ -117,9 +154,11 @@ final class ShopwareKit
         }
         if (!$keep) {
             foreach (self::CONFIG_NAMES as $name) {
-                try {
-                    $this->shop->set($this->configKey($name), null);
-                } catch (\Throwable) {
+                foreach ([$this->configKey($name), $this->stateKey($name)] as $k) {
+                    try {
+                        $this->shop->set($k, null);
+                    } catch (\Throwable) {
+                    }
                 }
             }
         }
@@ -163,12 +202,26 @@ final class ShopwareKit
         }
     }
 
+    // neuer Schlüssel, alter Wert aus <Tech>.config wird 1x übernommen und dort gelöscht
     private function store(string $name): CallbackStore
     {
-        $key = $this->configKey($name);
+        $key = $this->stateKey($name);
+        $old = $this->configKey($name);
         $shop = $this->shop;
 
-        return new CallbackStore(static fn (): mixed => $shop->get($key), static function (string $v) use ($shop, $key): void {
+        return new CallbackStore(static function () use ($shop, $key, $old): mixed {
+            $v = $shop->get($key);
+            if ($v !== null && $v !== '') {
+                return $v;
+            }
+            $legacy = $shop->get($old);
+            if (is_string($legacy) && $legacy !== '') {
+                $shop->set($key, $legacy);
+                $shop->set($old, null);
+            }
+
+            return $legacy;
+        }, static function (string $v) use ($shop, $key): void {
             $shop->set($key, $v);
         });
     }

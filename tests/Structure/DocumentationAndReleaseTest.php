@@ -194,7 +194,7 @@ final class DocumentationAndReleaseTest extends TestCase
         $validationStep = $this->workflowStep($steps, 'Ausgeliefertes Shopware-Erweiterungspaket validieren');
         self::assertSame($releaseStep['if'] ?? null, $validationStep['if'] ?? null);
         self::assertSame(
-            'shopware-cli --no-interaction extension validate dist/MGDAIImageLabels-0.2.0.zip',
+            'shopware-cli --no-interaction extension validate dist/MGDAIImageLabels-2.1.1.zip',
             $validationStep['run'] ?? null,
         );
         self::assertGreaterThan(
@@ -267,7 +267,7 @@ final class DocumentationAndReleaseTest extends TestCase
         $composer = json_decode((string) file_get_contents(self::ROOT . '/composer.json'), true, 512, JSON_THROW_ON_ERROR);
         self::assertIsArray($composer);
         self::assertArrayNotHasKey('version', $composer);
-        self::assertSame('0.2.0', $composer['extra']['mgd-release-version'] ?? null);
+        self::assertSame('2.1.1', $composer['extra']['mgd-release-version'] ?? null);
 
         $scripts = $composer['scripts'] ?? null;
         self::assertIsArray($scripts);
@@ -349,15 +349,15 @@ final class DocumentationAndReleaseTest extends TestCase
         self::assertTrue(is_executable($script), 'Das Release-Skript muss ausführbar sein.');
 
         $firstOutput = $this->runReleaseBuild($script);
-        self::assertStringContainsString('MGDAIImageLabels-0.2.0.zip', $firstOutput);
+        self::assertStringContainsString('MGDAIImageLabels-2.1.1.zip', $firstOutput);
 
-        $archivePath = self::ROOT . '/dist/MGDAIImageLabels-0.2.0.zip';
+        $archivePath = self::ROOT . '/dist/MGDAIImageLabels-2.1.1.zip';
         self::assertFileExists($archivePath);
         $firstChecksum = hash_file('sha256', $archivePath);
         self::assertIsString($firstChecksum);
 
         $secondOutput = $this->runReleaseBuild($script);
-        self::assertStringContainsString('MGDAIImageLabels-0.2.0.zip', $secondOutput);
+        self::assertStringContainsString('MGDAIImageLabels-2.1.1.zip', $secondOutput);
         self::assertSame($firstChecksum, hash_file('sha256', $archivePath), 'Zwei Builds müssen bytegleich sein.');
 
         $archive = new \ZipArchive();

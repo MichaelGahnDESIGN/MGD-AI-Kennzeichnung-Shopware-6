@@ -42,6 +42,21 @@ final class MGDAIImageLabels extends Plugin
         $this->installer()->install($updateContext->getContext());
     }
 
+    // Neue Version bei theme.michael-gahn.de melden (Baukasten), Fehler nie nach außen
+    public function postUpdate(UpdateContext $updateContext): void
+    {
+        parent::postUpdate($updateContext);
+
+        try {
+            $config = $this->container?->get(SystemConfigService::class);
+            if ($config instanceof SystemConfigService) {
+                \MGDAIImageLabels\Kit\Platform\Shopware\ShopwareKit::forLifecycle($updateContext, $config, 'mgd-ai-kennzeichnung-shopware')?->reportNow();
+            }
+        } catch (\Throwable) {
+            return;
+        }
+    }
+
     /**
      * Respektiert Shopwares Datenerhalt-Option und entfernt sonst nur das
      * plugin-eigene Custom-Field-Set.
