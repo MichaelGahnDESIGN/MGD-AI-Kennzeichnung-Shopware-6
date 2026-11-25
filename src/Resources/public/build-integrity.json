@@ -52,7 +52,7 @@
     "administration/.vite/entrypoints.json": "680b8dbbb42b1de35c92b063543e4660ab23fd2dd1659af3763721ac1ed1a17c",
     "administration/.vite/manifest.json": "f9b095ad4d8a2a1d1374afa299b0f03f4dd77d1db9bbc5a3dfdf45e3e50f3779",
     "administration/css/m-g-d-a-i-image-labels.css": "487142abf7e64a0a6196f8556a05c66a7fdccfdf270e5f88ae89524ebdea53fa",
-    "administration/js/m-g-d-a-i-image-labels.js": "0db5c6b7d7c2489efdbc04573fb4c9193c39ac50809ba1fba1efa3c0a1a26a18",
+    "administration/js/m-g-d-a-i-image-labels.js": "3edabde1e1304f5ac85aa25cb5c265f7764c678fa392ee4c4e11235d762f815e",
     "storefront/mgd-ai-labels.css": "f0ccebc55632c3dc5d487c3e8840257eb90ee7a7b06ba9923180386ce75277c1"
   }
 }
