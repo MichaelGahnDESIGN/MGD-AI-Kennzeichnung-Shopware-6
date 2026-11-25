@@ -101,18 +101,18 @@ final class DocumentationAndReleaseTest extends TestCase
             $this->workflowStep($steps, 'Quellcode sicher auschecken')['uses'] ?? null,
         );
         self::assertSame(
-            'shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f',
+            'shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962',
             $this->workflowStep($steps, 'PHP einrichten')['uses'] ?? null,
         );
         self::assertSame('${{ matrix.php }}', $this->workflowStep($steps, 'PHP einrichten')['with']['php-version'] ?? null);
         self::assertSame('composer:v2', $this->workflowStep($steps, 'PHP einrichten')['with']['tools'] ?? null);
         self::assertSame(
-            'actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38',
+            'actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1',
             $this->workflowStep($steps, 'Node.js einrichten')['uses'] ?? null,
         );
         self::assertSame('24.x', $this->workflowStep($steps, 'Node.js einrichten')['with']['node-version'] ?? null);
         self::assertSame(
-            'actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16',
+            'actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e',
             $this->workflowStep($steps, 'Go einrichten')['uses'] ?? null,
         );
         self::assertSame('1.25.x', $this->workflowStep($steps, 'Go einrichten')['with']['go-version'] ?? null);
@@ -367,8 +367,8 @@ final class DocumentationAndReleaseTest extends TestCase
         self::assertIsString($packagedComposer);
         $packagedMetadata = json_decode($packagedComposer, true, 512, JSON_THROW_ON_ERROR);
         self::assertIsArray($packagedMetadata);
-        self::assertSame('0.2.0', $packagedMetadata['version'] ?? null);
-        self::assertSame('0.2.0', $packagedMetadata['extra']['mgd-release-version'] ?? null);
+        self::assertSame('2.1.1', $packagedMetadata['version'] ?? null);
+        self::assertSame('2.1.1', $packagedMetadata['extra']['mgd-release-version'] ?? null);
 
         $entries = [];
         for ($index = 0; $index < $archive->numFiles; ++$index) {
