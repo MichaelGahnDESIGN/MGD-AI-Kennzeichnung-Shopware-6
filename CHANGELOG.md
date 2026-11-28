@@ -1,5 +1,9 @@
 # Änderungsprotokoll
 
+## [2.2.0] - 2026-11-28
+
+- Baukasten 1.17.0: Anmeldung auch bei Update und Aktivieren, Farbwähler-Verbesserungen.
+
 ## [2.1.4] - 2026-11-26
 
 - MGD Tools: Plugins an- und abschalten, Lizenz je Plugin.

@@ -42,9 +42,10 @@ final class UninstallShop implements ShopwareApi
         return false;
     }
 
+    // gleiche Domain wie im Betrieb, sonst kommt die Anmeldung bei update/activate nie an (Befund slider)
     public function domain(): string
     {
-        return '';
+        return ShopwareServices::domainOf($this->db);
     }
 
     public function get(string $key): mixed

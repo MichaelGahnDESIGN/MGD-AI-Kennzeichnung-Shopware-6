@@ -189,9 +189,9 @@ Vor jedem produktiven Update:
 4. Administration und Storefront testen.
 5. Erst danach produktiv aktualisieren.
 
-**MGD Tools (ab Version 2.1.4):** Dort siehst du alle MGD-Plugins an einem Ort. Du kannst dieses Plugin **aktivieren und deaktivieren** und siehst, ob eine **Lizenz** nötig ist (Free oder Pro) und ob sie gültig ist.
+**MGD Tools (ab Version 2.2.0):** Dort siehst du alle MGD-Plugins an einem Ort. Du kannst dieses Plugin **aktivieren und deaktivieren** und siehst, ob eine **Lizenz** nötig ist (Free oder Pro) und ob sie gültig ist.
 
-Ab Version 0.2.0 gibt es unter **Einstellungen → Erweiterungen → MGD AI Kennzeichnung** eine Seite mit Info, Updates, Weitere Plugins und dem Schalter **Installation bei Michael Gahn DESIGN melden**. Der Knopf **Jetzt aktualisieren** lädt das ZIP aus dem GitHub-Release, prüft Größe, Prüfsumme und Inhalt und spielt es erst dann ein. Danach wird das Update in Shopware ausgeführt. Es gibt kein automatisches Update. Der frühere stündliche GitHub-Updater ist abgeschaltet.
+Ab Version 2.2.0 gibt es unter **Einstellungen → Erweiterungen → MGD AI Kennzeichnung** eine Seite mit Info, Updates, Weitere Plugins und dem Schalter **Installation bei Michael Gahn DESIGN melden**. Der Knopf **Jetzt aktualisieren** lädt das ZIP aus dem GitHub-Release, prüft Größe, Prüfsumme und Inhalt und spielt es erst dann ein. Danach wird das Update in Shopware ausgeführt. Es gibt kein automatisches Update. Der frühere stündliche GitHub-Updater ist abgeschaltet.
 
 **So melden Sie die Installation ab:** Auf der Seite den Haken bei **Installation bei Michael Gahn DESIGN melden** entfernen und speichern. Der Eintrag auf theme.michael-gahn.de wird gelöscht. Das Plugin läuft ganz normal weiter. Beim Deinstallieren meldet sich das Plugin ebenfalls ab.
 
@@ -290,7 +290,7 @@ Tel.: +49 (0) 151 59156639
 E-Mail: Anfrage@Michael-Gahn.de
 <!-- /MGD-LEGAL -->
 
-## Plugin-Icon – Version 0.1.5
+## Plugin-Icon – Version 2.2.0
 
 Eigenes lokales Icon in der Shopware-Erweiterungsverwaltung. Die Grafik ist im Release-Paket enthalten; keine externen Bilddienste und keine neuen gespeicherten Daten. Vorhandene Funktionen und Einstellungen bleiben unverändert.
 

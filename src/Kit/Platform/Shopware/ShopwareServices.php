@@ -78,8 +78,14 @@ final class ShopwareServices implements ShopwareApi, CatalogMediaDir
     // erste aktive Storefront-Domain, sonst APP_URL
     public function domain(): string
     {
+        return self::domainOf($this->db);
+    }
+
+    /** auch für Lifecycle/Deinstallieren (UninstallShop), dort gibts nur DBAL, Befund slider: Domain war leer */
+    public static function domainOf(?object $db): string
+    {
         try {
-            $url = $this->db?->fetchOne(
+            $url = $db?->fetchOne(
                 'SELECT d.url FROM sales_channel_domain d INNER JOIN sales_channel s ON s.id = d.sales_channel_id '
                 . 'WHERE s.type_id = UNHEX(:type) AND s.active = 1 ORDER BY d.created_at ASC LIMIT 1',
                 ['type' => self::STOREFRONT_TYPE],
